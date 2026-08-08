@@ -32,18 +32,26 @@ export function captureFocusWithin(root: HTMLElement): FocusSnapshot | null {
   if (!selector) return null;
   let selectionStart: number | null = null;
   let selectionEnd: number | null = null;
-  if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) {
+  if (
+    active instanceof HTMLInputElement ||
+    active instanceof HTMLTextAreaElement
+  ) {
     // selectionStart / setSelectionRange throw DOMException on input
     // types color / number / range / date / etc.; null means "skip caret restore".
     try {
       selectionStart = active.selectionStart;
       selectionEnd = active.selectionEnd;
-    } catch { /* see note above */ }
+    } catch {
+      /* see note above */
+    }
   }
   return { selector, selectionStart, selectionEnd };
 }
 
-export function restoreFocusWithin(root: HTMLElement, snap: FocusSnapshot | null): void {
+export function restoreFocusWithin(
+  root: HTMLElement,
+  snap: FocusSnapshot | null,
+): void {
   if (!snap) return;
   let target: HTMLElement | null;
   try {
@@ -58,13 +66,16 @@ export function restoreFocusWithin(root: HTMLElement, snap: FocusSnapshot | null
     return;
   }
   if (
-    (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) &&
+    (target instanceof HTMLInputElement ||
+      target instanceof HTMLTextAreaElement) &&
     snap.selectionStart !== null &&
     snap.selectionEnd !== null
   ) {
     try {
       target.setSelectionRange(snap.selectionStart, snap.selectionEnd);
-    } catch { /* same DOMException as capture above */ }
+    } catch {
+      /* same DOMException as capture above */
+    }
   }
 }
 
@@ -72,9 +83,10 @@ function focusSelectorFor(el: HTMLElement): string | null {
   const propKey = el.dataset.propKey;
   if (propKey !== undefined) {
     const tag = el.tagName.toLowerCase();
-    const type = el instanceof HTMLInputElement ? el.type : '';
+    const type = el instanceof HTMLInputElement ? el.type : "";
     const keyEsc = cssEscape(propKey);
-    if (type) return `${tag}[type="${cssEscape(type)}"][data-prop-key="${keyEsc}"]`;
+    if (type)
+      return `${tag}[type="${cssEscape(type)}"][data-prop-key="${keyEsc}"]`;
     return `${tag}[data-prop-key="${keyEsc}"]`;
   }
   if (el.id) return `#${cssEscape(el.id)}`;
@@ -82,8 +94,9 @@ function focusSelectorFor(el: HTMLElement): string | null {
 }
 
 function cssEscape(s: string): string {
-  const fn = (globalThis as { CSS?: { escape?: (s: string) => string } }).CSS?.escape;
-  if (typeof fn === 'function') return fn(s);
+  const fn = (globalThis as { CSS?: { escape?: (s: string) => string } }).CSS
+    ?.escape;
+  if (typeof fn === "function") return fn(s);
   // Fallback escape (sufficient for our keys, alphanumerics + dots + dashes).
-  return s.replace(/[!"#$%&'()*+,./:;<=>?@[\\\]^`{|}~]/g, '\\$&');
+  return s.replace(/[!"#$%&'()*+,./:;<=>?@[\\\]^`{|}~]/g, "\\$&");
 }

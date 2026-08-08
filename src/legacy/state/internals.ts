@@ -1,13 +1,18 @@
-import type { AnimationDocument } from '@shinkeonkim/clotho';
-import { animationDocumentSchema } from '@shinkeonkim/clotho';
-import type { HistoryEntry, HistoryKind, InternalState, Listener } from './types';
+import type { AnimationDocument } from "@shinkeonkim/clotho";
+import { animationDocumentSchema } from "@shinkeonkim/clotho";
+import type {
+  HistoryEntry,
+  HistoryKind,
+  InternalState,
+  Listener,
+} from "./types";
 
 const listeners = new Set<Listener>();
 
 export const state: InternalState = {
   def: null,
   dirty: false,
-  selection: { kind: 'none' },
+  selection: { kind: "none" },
   currentTime: 0,
   isDraft: false,
 };
@@ -46,8 +51,8 @@ export function emit(): void {
 
 export function mutateDef(
   fn: (def: AnimationDocument) => void,
-  label = 'edit',
-  kind: HistoryKind = 'other',
+  label = "edit",
+  kind: HistoryKind = "other",
 ): void {
   if (!state.def) return;
   if (!inTransient) pushHistory(label, kind);
@@ -56,7 +61,7 @@ export function mutateDef(
   const parsed = animationDocumentSchema.safeParse(cloned);
   if (!parsed.success) {
     past.pop();
-    console.warn('[studio.state] invalid mutation', parsed.error.issues);
+    console.warn("[studio.state] invalid mutation", parsed.error.issues);
     return;
   }
   state.def = parsed.data;

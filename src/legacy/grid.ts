@@ -1,5 +1,5 @@
-const STORAGE_KEY = 'studio.grid';
-const SIZE_KEY = 'studio.gridSize';
+const STORAGE_KEY = "studio.grid";
+const SIZE_KEY = "studio.gridSize";
 const DEFAULT_SIZE = 10;
 
 let gridEnabled = false;
@@ -8,7 +8,7 @@ const listeners = new Set<() => void>();
 
 export function initGrid(): void {
   try {
-    gridEnabled = localStorage.getItem(STORAGE_KEY) === '1';
+    gridEnabled = localStorage.getItem(STORAGE_KEY) === "1";
     const raw = Number(localStorage.getItem(SIZE_KEY));
     if (Number.isFinite(raw) && raw > 0) gridSize = raw;
   } catch {
@@ -28,7 +28,7 @@ export function setGridEnabled(on: boolean): void {
   if (gridEnabled === on) return;
   gridEnabled = on;
   try {
-    localStorage.setItem(STORAGE_KEY, on ? '1' : '0');
+    localStorage.setItem(STORAGE_KEY, on ? "1" : "0");
   } catch {
     return;
   }
@@ -45,7 +45,10 @@ export function snap(value: number): number {
   return Math.round(value / gridSize) * gridSize;
 }
 
-export function snapPoint(pt: { x: number; y: number }): { x: number; y: number } {
+export function snapPoint(pt: { x: number; y: number }): {
+  x: number;
+  y: number;
+} {
   if (!gridEnabled) return pt;
   return { x: snap(pt.x), y: snap(pt.y) };
 }

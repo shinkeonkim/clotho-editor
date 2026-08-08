@@ -5,7 +5,7 @@
 // setting with the original value as the default, so an existing host keeps working
 // without changing anything and a new one is not stuck with someone else's layout.
 
-let placeholderUrl = '/uploads/placeholder.png';
+let placeholderUrl = "/uploads/placeholder.png";
 
 export interface HostOptions {
   /** Image used when inserting a placeholder image element. */

@@ -4,7 +4,7 @@ import type {
   ArrowElement,
   LineElement,
   SnapshotMap,
-} from '@shinkeonkim/clotho';
+} from "@shinkeonkim/clotho";
 import {
   SVG_NS,
   escapeXml,
@@ -15,10 +15,10 @@ import {
   textBBoxOnCanvas,
   resolveLineCoords,
   resolveArrowCoords,
-} from './canvas-utils';
-import { getAnchorPoints } from './anchor-system';
+} from "./canvas-utils";
+import { getAnchorPoints } from "./anchor-system";
 
-type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
+type ResizeHandle = "nw" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w";
 
 export function renderResizeHandles(
   canvasEl: SVGSVGElement | null,
@@ -30,39 +30,57 @@ export function renderResizeHandles(
   const state = snap.get(elId);
   if (!baseEl || !state) return null;
   let box: { x: number; y: number; w: number; h: number };
-  let handles: ResizeHandle[] = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'];
-  if (baseEl.type === 'rect' || baseEl.type === 'image') {
-    box = { x: state.x as number, y: state.y as number, w: state.width as number, h: state.height as number };
-  } else if (baseEl.type === 'circle') {
+  let handles: ResizeHandle[] = ["nw", "n", "ne", "e", "se", "s", "sw", "w"];
+  if (baseEl.type === "rect" || baseEl.type === "image") {
+    box = {
+      x: state.x as number,
+      y: state.y as number,
+      w: state.width as number,
+      h: state.height as number,
+    };
+  } else if (baseEl.type === "circle") {
     const r = state.r as number;
-    box = { x: (state.cx as number) - r, y: (state.cy as number) - r, w: r * 2, h: r * 2 };
-    handles = ['n', 'e', 's', 'w'];
-  } else if (baseEl.type === 'text') {
+    box = {
+      x: (state.cx as number) - r,
+      y: (state.cy as number) - r,
+      w: r * 2,
+      h: r * 2,
+    };
+    handles = ["n", "e", "s", "w"];
+  } else if (baseEl.type === "text") {
     const bbox = textBBoxOnCanvas(canvasEl, elId);
     if (!bbox) return null;
     box = bbox;
-    handles = ['se'];
+    handles = ["se"];
   } else {
     return null;
   }
-  const positions: Record<ResizeHandle, { x: number; y: number; cursor: string }> = {
-    nw: { x: box.x, y: box.y, cursor: 'nwse-resize' },
-    n: { x: box.x + box.w / 2, y: box.y, cursor: 'ns-resize' },
-    ne: { x: box.x + box.w, y: box.y, cursor: 'nesw-resize' },
-    e: { x: box.x + box.w, y: box.y + box.h / 2, cursor: 'ew-resize' },
-    se: { x: box.x + box.w, y: box.y + box.h, cursor: 'nwse-resize' },
-    s: { x: box.x + box.w / 2, y: box.y + box.h, cursor: 'ns-resize' },
-    sw: { x: box.x, y: box.y + box.h, cursor: 'nesw-resize' },
-    w: { x: box.x, y: box.y + box.h / 2, cursor: 'ew-resize' },
+  const positions: Record<
+    ResizeHandle,
+    { x: number; y: number; cursor: string }
+  > = {
+    nw: { x: box.x, y: box.y, cursor: "nwse-resize" },
+    n: { x: box.x + box.w / 2, y: box.y, cursor: "ns-resize" },
+    ne: { x: box.x + box.w, y: box.y, cursor: "nesw-resize" },
+    e: { x: box.x + box.w, y: box.y + box.h / 2, cursor: "ew-resize" },
+    se: { x: box.x + box.w, y: box.y + box.h, cursor: "nwse-resize" },
+    s: { x: box.x + box.w / 2, y: box.y + box.h, cursor: "ns-resize" },
+    sw: { x: box.x, y: box.y + box.h, cursor: "nesw-resize" },
+    w: { x: box.x, y: box.y + box.h / 2, cursor: "ew-resize" },
   };
-  const g = document.createElementNS(SVG_NS, 'g');
+  const g = document.createElementNS(SVG_NS, "g");
   const rotation = (state.rotation as number) || 0;
-  if (rotation && (baseEl.type === 'rect' || baseEl.type === 'image' || baseEl.type === 'circle')) {
+  if (
+    rotation &&
+    (baseEl.type === "rect" ||
+      baseEl.type === "image" ||
+      baseEl.type === "circle")
+  ) {
     const cx = box.x + box.w / 2;
     const cy = box.y + box.h / 2;
-    g.setAttribute('transform', `rotate(${rotation} ${cx} ${cy})`);
+    g.setAttribute("transform", `rotate(${rotation} ${cx} ${cy})`);
   }
-  let html = '';
+  let html = "";
   for (const h of handles) {
     const p = positions[h];
     html += `<rect x="${p.x - 5}" y="${p.y - 5}" width="10" height="10"
@@ -85,25 +103,26 @@ export function renderRotationHandle(
   const center = centerOfElement(baseEl, state);
   if (!center) return null;
   let topY: number | null = null;
-  if (baseEl.type === 'rect' || baseEl.type === 'image') {
+  if (baseEl.type === "rect" || baseEl.type === "image") {
     topY = (state.y as number) - 24;
-  } else if (baseEl.type === 'circle') {
+  } else if (baseEl.type === "circle") {
     topY = (state.cy as number) - (state.r as number) - 24;
-  } else if (baseEl.type === 'text') {
+  } else if (baseEl.type === "text") {
     const bbox = textBBoxOnCanvas(canvasEl, elId);
     if (bbox) topY = bbox.y - 24;
-  } else if (baseEl.type === 'polygon') {
-    const bbox = polygonBoundingBox(String(state.points ?? ''));
+  } else if (baseEl.type === "polygon") {
+    const bbox = polygonBoundingBox(String(state.points ?? ""));
     if (bbox) topY = bbox.y - 24;
-  } else if (baseEl.type === 'path') {
+  } else if (baseEl.type === "path") {
     const bbox = pathBBoxOnCanvas(canvasEl, elId);
     if (bbox) topY = bbox.y - 24;
   }
   if (topY === null) return null;
 
-  const g = document.createElementNS(SVG_NS, 'g');
+  const g = document.createElementNS(SVG_NS, "g");
   const rotation = (state.rotation as number) || 0;
-  if (rotation) g.setAttribute('transform', `rotate(${rotation} ${center.x} ${center.y})`);
+  if (rotation)
+    g.setAttribute("transform", `rotate(${rotation} ${center.x} ${center.y})`);
   g.innerHTML = `
     <line x1="${center.x}" y1="${center.y}" x2="${center.x}" y2="${topY + 8}" stroke="var(--color-accent)" stroke-width="1.5" stroke-dasharray="3 2" pointer-events="none" />
     <circle cx="${center.x}" cy="${topY}" r="8" fill="var(--color-accent)" stroke="white" stroke-width="2" data-rotate-handle="${escapeXml(elId)}" style="cursor: grab" />
@@ -120,9 +139,14 @@ export function renderAnchorDots(
   const baseEl = byId.get(elId);
   const state = snap.get(elId);
   if (!baseEl || !state) return null;
-  if (baseEl.type !== 'rect' && baseEl.type !== 'circle' && baseEl.type !== 'image') return null;
+  if (
+    baseEl.type !== "rect" &&
+    baseEl.type !== "circle" &&
+    baseEl.type !== "image"
+  )
+    return null;
   const points = anchorPointsOf(baseEl, state);
-  const g = document.createElementNS(SVG_NS, 'g');
+  const g = document.createElementNS(SVG_NS, "g");
   for (const p of points) {
     g.innerHTML += `<circle cx="${p.x}" cy="${p.y}" r="6" fill="white" stroke="#6366f1" stroke-width="2"
       data-anchor-handle data-elem-id="${escapeXml(elId)}" data-anchor="${p.anchor}" style="cursor: crosshair" />`;
@@ -138,14 +162,15 @@ export function renderLineEndpointHandles(
   const baseEl = byId.get(elId);
   const state = snap.get(elId);
   if (!baseEl || !state) return null;
-  if (baseEl.type !== 'line' && baseEl.type !== 'arrow') return null;
-  const coords = baseEl.type === 'line'
-    ? resolveLineCoords(state as unknown as LineElement, snap, byId)
-    : resolveArrowCoords(state as unknown as ArrowElement, snap, byId);
+  if (baseEl.type !== "line" && baseEl.type !== "arrow") return null;
+  const coords =
+    baseEl.type === "line"
+      ? resolveLineCoords(state as unknown as LineElement, snap, byId)
+      : resolveArrowCoords(state as unknown as ArrowElement, snap, byId);
   if (!coords) return null;
   const midX = (coords.x1 + coords.x2) / 2;
   const midY = (coords.y1 + coords.y2) / 2;
-  const g = document.createElementNS(SVG_NS, 'g');
+  const g = document.createElementNS(SVG_NS, "g");
   g.innerHTML = `
     <rect x="${coords.x1 - 6}" y="${coords.y1 - 6}" width="12" height="12" rx="2"
       fill="white" stroke="var(--color-accent)" stroke-width="2"
@@ -168,16 +193,18 @@ export function renderPolygonVertexHandles(
   const baseEl = byId.get(elId);
   const state = snap.get(elId);
   if (!baseEl || !state) return null;
-  if (baseEl.type !== 'polygon') return null;
-  const points = String(state.points ?? '').trim().split(/\s+/);
+  if (baseEl.type !== "polygon") return null;
+  const points = String(state.points ?? "")
+    .trim()
+    .split(/\s+/);
   const parsed: { x: number; y: number; i: number }[] = [];
   for (let i = 0; i < points.length; i += 1) {
-    const [x, y] = points[i].split(',').map(Number);
+    const [x, y] = points[i].split(",").map(Number);
     if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
     parsed.push({ x, y, i });
   }
-  const g = document.createElementNS(SVG_NS, 'g');
-  let html = '';
+  const g = document.createElementNS(SVG_NS, "g");
+  let html = "";
   if (parsed.length >= 2) {
     for (let i = 0; i < parsed.length; i += 1) {
       const a = parsed[i];
@@ -195,7 +222,7 @@ export function renderPolygonVertexHandles(
     html += `<circle cx="${p.x}" cy="${p.y}" r="6" fill="white" stroke="var(--color-accent)" stroke-width="2"
       data-vertex-handle data-elem-id="${escapeXml(elId)}" data-vertex-index="${p.i}"
       style="cursor: grab" >
-      <title>${removable ? '드래그=이동, 우클릭=삭제' : '드래그=이동'}</title>
+      <title>${removable ? "드래그=이동, 우클릭=삭제" : "드래그=이동"}</title>
     </circle>`;
   }
   g.innerHTML = html;
@@ -208,12 +235,12 @@ export function renderSnapTargets(
   byId: Map<string, AnimationElement>,
   activeSnapTarget: { elementId: string; anchor: Anchor } | null,
 ): SVGElement | null {
-  const g = document.createElementNS(SVG_NS, 'g');
-  let html = '';
+  const g = document.createElementNS(SVG_NS, "g");
+  let html = "";
   for (const baseEl of byId.values()) {
     if (baseEl.id === draggingElementId) continue;
     // Skip lines/arrows, only show snap targets on shapes
-    if (baseEl.type === 'line' || baseEl.type === 'arrow') continue;
+    if (baseEl.type === "line" || baseEl.type === "arrow") continue;
     const state = snap.get(baseEl.id);
     if (!state || !state.visible) continue;
     const points = getAnchorPoints(baseEl, state as Record<string, unknown>);
@@ -246,17 +273,28 @@ export function renderSelectionOutline(
   const state = snap.get(elId);
   if (!baseEl || !state) return null;
   let box: { x: number; y: number; w: number; h: number } | null = null;
-  if (baseEl.type === 'rect' || baseEl.type === 'image') {
-    box = { x: (state.x as number) - 4, y: (state.y as number) - 4, w: (state.width as number) + 8, h: (state.height as number) + 8 };
-  } else if (baseEl.type === 'circle') {
+  if (baseEl.type === "rect" || baseEl.type === "image") {
+    box = {
+      x: (state.x as number) - 4,
+      y: (state.y as number) - 4,
+      w: (state.width as number) + 8,
+      h: (state.height as number) + 8,
+    };
+  } else if (baseEl.type === "circle") {
     const r = state.r as number;
-    box = { x: (state.cx as number) - r - 4, y: (state.cy as number) - r - 4, w: r * 2 + 8, h: r * 2 + 8 };
-  } else if (baseEl.type === 'text') {
+    box = {
+      x: (state.cx as number) - r - 4,
+      y: (state.cy as number) - r - 4,
+      w: r * 2 + 8,
+      h: r * 2 + 8,
+    };
+  } else if (baseEl.type === "text") {
     const bbox = textBBoxOnCanvas(canvasEl, elId);
-    if (bbox) box = { x: bbox.x - 4, y: bbox.y - 4, w: bbox.w + 8, h: bbox.h + 8 };
-  } else if (baseEl.type === 'line' || baseEl.type === 'arrow') {
+    if (bbox)
+      box = { x: bbox.x - 4, y: bbox.y - 4, w: bbox.w + 8, h: bbox.h + 8 };
+  } else if (baseEl.type === "line" || baseEl.type === "arrow") {
     const coords =
-      baseEl.type === 'line'
+      baseEl.type === "line"
         ? resolveLineCoords(state as unknown as LineElement, snap, byId)
         : resolveArrowCoords(state as unknown as ArrowElement, snap, byId);
     if (!coords) return null;
@@ -266,19 +304,21 @@ export function renderSelectionOutline(
       w: Math.abs(coords.x2 - coords.x1) + 8,
       h: Math.abs(coords.y2 - coords.y1) + 8,
     };
-  } else if (baseEl.type === 'polygon') {
-    const bbox = polygonBoundingBox(String(state.points ?? ''));
-    if (bbox) box = { x: bbox.x - 4, y: bbox.y - 4, w: bbox.w + 8, h: bbox.h + 8 };
-  } else if (baseEl.type === 'path') {
+  } else if (baseEl.type === "polygon") {
+    const bbox = polygonBoundingBox(String(state.points ?? ""));
+    if (bbox)
+      box = { x: bbox.x - 4, y: bbox.y - 4, w: bbox.w + 8, h: bbox.h + 8 };
+  } else if (baseEl.type === "path") {
     const bbox = pathBBoxOnCanvas(canvasEl, elId);
-    if (bbox) box = { x: bbox.x - 4, y: bbox.y - 4, w: bbox.w + 8, h: bbox.h + 8 };
+    if (bbox)
+      box = { x: bbox.x - 4, y: bbox.y - 4, w: bbox.w + 8, h: bbox.h + 8 };
   }
   if (!box) return null;
-  const rect = document.createElementNS(SVG_NS, 'rect');
-  rect.setAttribute('x', String(box.x));
-  rect.setAttribute('y', String(box.y));
-  rect.setAttribute('width', String(box.w));
-  rect.setAttribute('height', String(box.h));
-  rect.classList.add('element-selected-outline');
+  const rect = document.createElementNS(SVG_NS, "rect");
+  rect.setAttribute("x", String(box.x));
+  rect.setAttribute("y", String(box.y));
+  rect.setAttribute("width", String(box.w));
+  rect.setAttribute("height", String(box.h));
+  rect.classList.add("element-selected-outline");
   return rect;
 }

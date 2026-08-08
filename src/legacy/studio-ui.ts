@@ -36,7 +36,16 @@ export interface StudioUi {
   gridToggleBtn: HTMLButtonElement;
 }
 
-export function setStatus(ui: StudioUi, text: string, kind: 'ok' | 'warn' | 'error' = 'ok'): void {
+export function setStatus(
+  ui: StudioUi,
+  text: string,
+  kind: "ok" | "warn" | "error" = "ok",
+): void {
   ui.status.textContent = text;
-  ui.status.style.color = kind === 'error' ? '#ef4444' : kind === 'warn' ? '#f59e0b' : 'var(--color-fg-muted)';
+  ui.status.style.color =
+    kind === "error"
+      ? "#ef4444"
+      : kind === "warn"
+        ? "#f59e0b"
+        : "var(--color-fg-muted)";
 }

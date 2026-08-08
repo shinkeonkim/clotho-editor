@@ -1,5 +1,5 @@
-export type { Selection, HistoryKind, HistoryEntry } from './types';
-export { subscribe } from './internals';
+export type { Selection, HistoryKind, HistoryEntry } from "./types";
+export { subscribe } from "./internals";
 export {
   isDraft,
   setDraft,
@@ -16,7 +16,7 @@ export {
   isElementSelected,
   toggleSelectionFor,
   getCurrentSnapshot,
-} from './core';
+} from "./core";
 export {
   beginTransient,
   endTransient,
@@ -28,7 +28,7 @@ export {
   getHistory,
   jumpBack,
   jumpForward,
-} from './history';
+} from "./history";
 export {
   addElement,
   deleteElement,
@@ -43,7 +43,7 @@ export {
   removeTrackKeyframe,
   setElementValueAtTime,
   removeTrack,
-} from './elements';
+} from "./elements";
 export {
   addChapter,
   updateChapter,
@@ -52,7 +52,7 @@ export {
   updateEffect,
   deleteEffect,
   updateDuration,
-} from './timeline';
+} from "./timeline";
 export {
   updateMeta,
   updateCanvas,
@@ -63,4 +63,4 @@ export {
   registerExternalAsset,
   registerInlineAsset,
   registerDataUriAsset,
-} from './meta';
+} from "./meta";

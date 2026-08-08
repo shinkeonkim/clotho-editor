@@ -1,4 +1,4 @@
-import type { HistoryEntry, HistoryKind } from './types';
+import type { HistoryEntry, HistoryKind } from "./types";
 import {
   emit,
   future,
@@ -7,9 +7,12 @@ import {
   setInTransient,
   snapshotJson,
   state,
-} from './internals';
+} from "./internals";
 
-export function beginTransient(label = 'edit', kind: HistoryKind = 'other'): void {
+export function beginTransient(
+  label = "edit",
+  kind: HistoryKind = "other",
+): void {
   if (!state.def) return;
   pushHistory(label, kind);
   setInTransient(true);
@@ -32,7 +35,12 @@ export function undo(): void {
   const prev = past[past.length - 1]!;
   const cur = snapshotJson();
   if (cur !== null) {
-    future.push({ snap: cur, label: prev.label, kind: prev.kind, timestamp: prev.timestamp });
+    future.push({
+      snap: cur,
+      label: prev.label,
+      kind: prev.kind,
+      timestamp: prev.timestamp,
+    });
   }
   past.pop();
   state.def = JSON.parse(prev.snap);
@@ -45,7 +53,12 @@ export function redo(): void {
   const next = future[future.length - 1]!;
   const cur = snapshotJson();
   if (cur !== null) {
-    past.push({ snap: cur, label: next.label, kind: next.kind, timestamp: next.timestamp });
+    past.push({
+      snap: cur,
+      label: next.label,
+      kind: next.kind,
+      timestamp: next.timestamp,
+    });
   }
   future.pop();
   state.def = JSON.parse(next.snap);
@@ -58,7 +71,10 @@ export function resetHistory(): void {
   future.length = 0;
 }
 
-export function getHistory(): { past: readonly HistoryEntry[]; future: readonly HistoryEntry[] } {
+export function getHistory(): {
+  past: readonly HistoryEntry[];
+  future: readonly HistoryEntry[];
+} {
   return { past, future };
 }
 

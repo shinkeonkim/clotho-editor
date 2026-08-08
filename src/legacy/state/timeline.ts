@@ -1,8 +1,5 @@
-import type {
-  AnimationEffect,
-  Chapter,
-} from '@shinkeonkim/clotho';
-import { emit, mutateDef, state } from './internals';
+import type { AnimationEffect, Chapter } from "@shinkeonkim/clotho";
+import { emit, mutateDef, state } from "./internals";
 
 export function addChapter(c: Chapter): void {
   mutateDef(
@@ -11,14 +8,14 @@ export function addChapter(c: Chapter): void {
       def.chapters.sort((a, b) => a.time - b.time);
     },
     `Chapter 추가: ${c.label || c.id}`,
-    'chapter',
+    "chapter",
   );
-  state.selection = { kind: 'chapter', chapterId: c.id };
+  state.selection = { kind: "chapter", chapterId: c.id };
   emit();
 }
 
 export function updateChapter(id: string, patch: Partial<Chapter>): void {
-  const keys = Object.keys(patch).join(', ');
+  const keys = Object.keys(patch).join(", ");
   mutateDef(
     (def) => {
       const idx = def.chapters.findIndex((c) => c.id === id);
@@ -27,7 +24,7 @@ export function updateChapter(id: string, patch: Partial<Chapter>): void {
       def.chapters.sort((a, b) => a.time - b.time);
     },
     `Chapter 수정: ${id} (${keys})`,
-    'chapter',
+    "chapter",
   );
 }
 
@@ -37,10 +34,10 @@ export function deleteChapter(id: string): void {
       def.chapters = def.chapters.filter((c) => c.id !== id);
     },
     `Chapter 삭제: ${id}`,
-    'chapter',
+    "chapter",
   );
-  if (state.selection.kind === 'chapter' && state.selection.chapterId === id) {
-    state.selection = { kind: 'none' };
+  if (state.selection.kind === "chapter" && state.selection.chapterId === id) {
+    state.selection = { kind: "none" };
   }
   emit();
 }
@@ -52,11 +49,14 @@ export function addEffect(eff: AnimationEffect): void {
       def.effects.sort((a, b) => a.time - b.time);
     },
     `효과 추가: ${eff.type}`,
-    'effect',
+    "effect",
   );
 }
 
-export function updateEffect(id: string, patch: Partial<AnimationEffect>): void {
+export function updateEffect(
+  id: string,
+  patch: Partial<AnimationEffect>,
+): void {
   mutateDef(
     (def) => {
       const idx = def.effects.findIndex((e) => e.id === id);
@@ -65,7 +65,7 @@ export function updateEffect(id: string, patch: Partial<AnimationEffect>): void 
       def.effects.sort((a, b) => a.time - b.time);
     },
     `효과 수정: ${id}`,
-    'effect',
+    "effect",
   );
 }
 
@@ -75,10 +75,10 @@ export function deleteEffect(id: string): void {
       def.effects = def.effects.filter((e) => e.id !== id);
     },
     `효과 삭제: ${id}`,
-    'effect',
+    "effect",
   );
-  if (state.selection.kind === 'effect' && state.selection.effectId === id) {
-    state.selection = { kind: 'none' };
+  if (state.selection.kind === "effect" && state.selection.effectId === id) {
+    state.selection = { kind: "none" };
   }
   emit();
 }
@@ -101,7 +101,7 @@ export function updateDuration(ms: number): void {
       }
     },
     `duration: ${ms} ms`,
-    'meta',
+    "meta",
   );
   if (state.currentTime > ms) state.currentTime = ms;
 }

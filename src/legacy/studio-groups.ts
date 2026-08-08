@@ -1,4 +1,4 @@
-import type { AnimationElement, GroupElement } from '@shinkeonkim/clotho';
+import type { AnimationElement, GroupElement } from "@shinkeonkim/clotho";
 import {
   addElement,
   deleteElement,
@@ -6,17 +6,19 @@ import {
   setSelection,
   uniqueElementId,
   updateElementBase,
-} from './state';
+} from "./state";
 
 export function isGroup(el: AnimationElement): el is GroupElement {
-  return el.type === 'group';
+  return el.type === "group";
 }
 
 /** Direct children of a group, in document order (which is also paint order). */
 export function childIdsOf(groupId: string): string[] {
   const def = getDef();
   if (!def) return [];
-  return def.elements.filter((el) => el.parentId === groupId).map((el) => el.id);
+  return def.elements
+    .filter((el) => el.parentId === groupId)
+    .map((el) => el.id);
 }
 
 /**
@@ -60,11 +62,16 @@ export function expandToLeafIds(ids: string[]): string[] {
   return out;
 }
 
-export function groupBbox(groupId: string): { x: number; y: number; w: number; h: number } | null {
+export function groupBbox(
+  groupId: string,
+): { x: number; y: number; w: number; h: number } | null {
   const def = getDef();
   if (!def) return null;
   const leafIds = expandToLeafIds([groupId]);
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  let minX = Infinity,
+    minY = Infinity,
+    maxX = -Infinity,
+    maxY = -Infinity;
   let any = false;
   for (const id of leafIds) {
     const el = def.elements.find((e) => e.id === id);
@@ -80,12 +87,28 @@ export function groupBbox(groupId: string): { x: number; y: number; w: number; h
   return any ? { x: minX, y: minY, w: maxX - minX, h: maxY - minY } : null;
 }
 
-function elementBbox(el: AnimationElement): { x: number; y: number; w: number; h: number } | null {
-  if (el.type === 'rect' || el.type === 'image') return { x: el.x, y: el.y, w: el.width, h: el.height };
-  if (el.type === 'circle') return { x: el.cx - el.r, y: el.cy - el.r, w: el.r * 2, h: el.r * 2 };
-  if (el.type === 'text') return { x: el.x - 40, y: el.y - (el.fontSize ?? 16), w: 80, h: el.fontSize ?? 16 };
-  if (el.type === 'line' || el.type === 'arrow') {
-    if (typeof el.x1 !== 'number' || typeof el.x2 !== 'number' || typeof el.y1 !== 'number' || typeof el.y2 !== 'number') return null;
+function elementBbox(
+  el: AnimationElement,
+): { x: number; y: number; w: number; h: number } | null {
+  if (el.type === "rect" || el.type === "image")
+    return { x: el.x, y: el.y, w: el.width, h: el.height };
+  if (el.type === "circle")
+    return { x: el.cx - el.r, y: el.cy - el.r, w: el.r * 2, h: el.r * 2 };
+  if (el.type === "text")
+    return {
+      x: el.x - 40,
+      y: el.y - (el.fontSize ?? 16),
+      w: 80,
+      h: el.fontSize ?? 16,
+    };
+  if (el.type === "line" || el.type === "arrow") {
+    if (
+      typeof el.x1 !== "number" ||
+      typeof el.x2 !== "number" ||
+      typeof el.y1 !== "number" ||
+      typeof el.y2 !== "number"
+    )
+      return null;
     return {
       x: Math.min(el.x1, el.x2),
       y: Math.min(el.y1, el.y2),
@@ -93,43 +116,53 @@ function elementBbox(el: AnimationElement): { x: number; y: number; w: number; h
       h: Math.abs(el.y2 - el.y1),
     };
   }
-  if (el.type === 'polygon') {
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  if (el.type === "polygon") {
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity;
     let any = false;
     for (const pair of el.points.trim().split(/\s+/)) {
-      const [x, y] = pair.split(',').map(Number);
+      const [x, y] = pair.split(",").map(Number);
       if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
       any = true;
-      if (x < minX) minX = x; if (y < minY) minY = y;
-      if (x > maxX) maxX = x; if (y > maxY) maxY = y;
+      if (x < minX) minX = x;
+      if (y < minY) minY = y;
+      if (x > maxX) maxX = x;
+      if (y > maxY) maxY = y;
     }
     return any ? { x: minX, y: minY, w: maxX - minX, h: maxY - minY } : null;
   }
-  if (el.type === 'path') return { x: el.x ?? 0, y: el.y ?? 0, w: 60, h: 60 };
+  if (el.type === "path") return { x: el.x ?? 0, y: el.y ?? 0, w: 60, h: 60 };
   return null;
 }
 
 function shiftLeafBy(el: AnimationElement, dx: number, dy: number): void {
   if (dx === 0 && dy === 0) return;
-  if (el.type === 'rect' || el.type === 'image' || el.type === 'text') {
+  if (el.type === "rect" || el.type === "image" || el.type === "text") {
     updateElementBase(el.id, { x: el.x + dx, y: el.y + dy });
-  } else if (el.type === 'circle') {
+  } else if (el.type === "circle") {
     updateElementBase(el.id, { cx: el.cx + dx, cy: el.cy + dy });
-  } else if (el.type === 'line' || el.type === 'arrow') {
+  } else if (el.type === "line" || el.type === "arrow") {
     const patch: Record<string, unknown> = {};
-    if (typeof el.x1 === 'number') patch.x1 = el.x1 + dx;
-    if (typeof el.y1 === 'number') patch.y1 = el.y1 + dy;
-    if (typeof el.x2 === 'number') patch.x2 = el.x2 + dx;
-    if (typeof el.y2 === 'number') patch.y2 = el.y2 + dy;
+    if (typeof el.x1 === "number") patch.x1 = el.x1 + dx;
+    if (typeof el.y1 === "number") patch.y1 = el.y1 + dy;
+    if (typeof el.x2 === "number") patch.x2 = el.x2 + dx;
+    if (typeof el.y2 === "number") patch.y2 = el.y2 + dy;
     updateElementBase(el.id, patch);
-  } else if (el.type === 'path') {
+  } else if (el.type === "path") {
     updateElementBase(el.id, { x: (el.x ?? 0) + dx, y: (el.y ?? 0) + dy });
-  } else if (el.type === 'polygon') {
-    const shifted = el.points.trim().split(/\s+/).map((pair) => {
-      const [x, y] = pair.split(',').map(Number);
-      if (Number.isFinite(x) && Number.isFinite(y)) return `${(x + dx).toFixed(1)},${(y + dy).toFixed(1)}`;
-      return pair;
-    }).join(' ');
+  } else if (el.type === "polygon") {
+    const shifted = el.points
+      .trim()
+      .split(/\s+/)
+      .map((pair) => {
+        const [x, y] = pair.split(",").map(Number);
+        if (Number.isFinite(x) && Number.isFinite(y))
+          return `${(x + dx).toFixed(1)},${(y + dy).toFixed(1)}`;
+        return pair;
+      })
+      .join(" ");
     updateElementBase(el.id, { points: shifted });
   }
 }
@@ -154,9 +187,10 @@ export function groupElements(ids: string[]): string | null {
   if (!def) return null;
   const valid = ids.filter((id) => def.elements.some((e) => e.id === id));
   if (valid.length < 2) return null;
-  const newId = uniqueElementId('group');
+  const newId = uniqueElementId("group");
   const bbox = (() => {
-    let minX = Infinity, minY = Infinity;
+    let minX = Infinity,
+      minY = Infinity;
     for (const id of valid) {
       const el = def.elements.find((e) => e.id === id);
       if (!el) continue;
@@ -165,12 +199,15 @@ export function groupElements(ids: string[]): string | null {
       if (b.x < minX) minX = b.x;
       if (b.y < minY) minY = b.y;
     }
-    return { x: Number.isFinite(minX) ? minX : 0, y: Number.isFinite(minY) ? minY : 0 };
+    return {
+      x: Number.isFinite(minX) ? minX : 0,
+      y: Number.isFinite(minY) ? minY : 0,
+    };
   })();
   const group: GroupElement = {
-    type: 'group',
+    type: "group",
     id: newId,
-    name: `Group ${newId.split('-')[1] ?? ''}`.trim(),
+    name: `Group ${newId.split("-")[1] ?? ""}`.trim(),
     rotation: 0,
     appearances: [],
     tracks: [],
@@ -181,7 +218,7 @@ export function groupElements(ids: string[]): string | null {
   };
   addElement(group);
   for (const id of valid) updateElementBase(id, { parentId: newId });
-  setSelection({ kind: 'element', elementId: newId });
+  setSelection({ kind: "element", elementId: newId });
   return newId;
 }
 
@@ -196,11 +233,11 @@ export function ungroupElement(groupId: string): string[] {
   for (const id of childIds) updateElementBase(id, { parentId: undefined });
   deleteElement(groupId);
   if (childIds.length === 1) {
-    setSelection({ kind: 'element', elementId: childIds[0] });
+    setSelection({ kind: "element", elementId: childIds[0] });
   } else if (childIds.length > 1) {
-    setSelection({ kind: 'elements', elementIds: childIds });
+    setSelection({ kind: "elements", elementIds: childIds });
   } else {
-    setSelection({ kind: 'none' });
+    setSelection({ kind: "none" });
   }
   return childIds;
 }

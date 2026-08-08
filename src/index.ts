@@ -8,17 +8,22 @@
 //
 // See docs/PORTING.md for what moved and why.
 
-export { Studio } from './Studio';
-export type { StudioProps } from './Studio';
-export { StudioMount } from './StudioMount';
-export type { StudioMountProps } from './StudioMount';
+export { Studio } from "./Studio";
+export type { StudioProps } from "./Studio";
+export { StudioMount } from "./StudioMount";
+export type { StudioMountProps } from "./StudioMount";
 
 // The headless pieces, for hosts building their own shell.
-export * from './legacy/state';
-export { childIdsOf, groupElements, ungroupElement, isGroup } from './legacy/studio-groups';
+export * from "./legacy/state";
+export {
+  childIdsOf,
+  groupElements,
+  ungroupElement,
+  isGroup,
+} from "./legacy/studio-groups";
 
 // Host wiring: where documents are stored and which assets the editor reaches for.
 // Both default to what the original Studio used, so an existing host needs no change.
-export { configureApi, apiBaseUrl } from './legacy/api';
-export { configureHost, placeholderImageUrl } from './legacy/host';
-export type { HostOptions } from './legacy/host';
+export { configureApi, apiBaseUrl } from "./legacy/api";
+export { configureHost, placeholderImageUrl } from "./legacy/host";
+export type { HostOptions } from "./legacy/host";

@@ -214,7 +214,9 @@ const SKELETON = `
 </div>
 `;
 
-export function StudioMount({ initialId }: StudioMountProps): React.JSX.Element {
+export function StudioMount({
+  initialId,
+}: StudioMountProps): React.JSX.Element {
   const inited = useRef(false);
 
   useEffect(() => {

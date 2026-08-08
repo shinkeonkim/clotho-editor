@@ -50,11 +50,19 @@ export function Studio({ initial, onSave }: StudioProps): React.JSX.Element {
     : [];
 
   function setElements(next: EditableElement[]): void {
-    setDef((current) => ({ ...current, elements: next as unknown as ElementList }));
+    setDef((current) => ({
+      ...current,
+      elements: next as unknown as ElementList,
+    }));
     setSaved(false);
   }
 
-  function updateElement(id: string, key: string, raw: string, numeric: boolean): void {
+  function updateElement(
+    id: string,
+    key: string,
+    raw: string,
+    numeric: boolean,
+  ): void {
     setElements(
       elements.map((e) =>
         e.id === id ? { ...e, [key]: numeric ? Number(raw) : raw } : e,
@@ -110,7 +118,9 @@ export function Studio({ initial, onSave }: StudioProps): React.JSX.Element {
             <li key={e.id}>
               <button
                 type="button"
-                className={e.id === selectedId ? "studio-el active" : "studio-el"}
+                className={
+                  e.id === selectedId ? "studio-el active" : "studio-el"
+                }
                 onClick={() => setSelectedId(e.id)}
               >
                 <span className="studio-el-type">{e.type}</span>

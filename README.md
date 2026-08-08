@@ -16,12 +16,16 @@
 ## 사용
 
 ```tsx
-import { Studio, configureApi, configureHost } from '@shinkeonkim/clotho-editor';
-import '@shinkeonkim/clotho-editor/styles.css';
+import {
+  Studio,
+  configureApi,
+  configureHost,
+} from "@shinkeonkim/clotho-editor";
+import "@shinkeonkim/clotho-editor/styles.css";
 
 // 문서가 어디 저장되는지는 호스트가 정한다. 기본값은 원래 Studio가 쓰던 경로다.
-configureApi({ baseUrl: '/api/admin/animations' });
-configureHost({ placeholderImageUrl: '/uploads/placeholder.png' });
+configureApi({ baseUrl: "/api/admin/animations" });
+configureHost({ placeholderImageUrl: "/uploads/placeholder.png" });
 
 <Studio initial={doc} onSave={handleSave} />;
 ```

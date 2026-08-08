@@ -7,7 +7,7 @@ import type {
   RectElement,
   SnapshotMap,
   TextElement,
-} from '@shinkeonkim/clotho';
+} from "@shinkeonkim/clotho";
 import {
   getDef,
   getSelection,
@@ -21,11 +21,16 @@ import {
   isElementSelected,
   toggleSelectionFor,
   getSelectedElementIds,
-} from './state';
-import { snapPoint } from './grid';
-import type { Anchor } from '@shinkeonkim/clotho';
-import { resolveAsset } from '@shinkeonkim/clotho';
-import { findContainingGroup, groupBbox, isGroup, moveGroupBy } from './studio-groups';
+} from "./state";
+import { snapPoint } from "./grid";
+import type { Anchor } from "@shinkeonkim/clotho";
+import { resolveAsset } from "@shinkeonkim/clotho";
+import {
+  findContainingGroup,
+  groupBbox,
+  isGroup,
+  moveGroupBy,
+} from "./studio-groups";
 import {
   SVG_NS,
   escapeXml,
@@ -37,8 +42,8 @@ import {
   resolveLineCoords,
   polygonBoundingBox,
   pathBBoxOnCanvas,
-} from './canvas-utils';
-import { getAnchorPoints, findNearestAnchor } from './anchor-system';
+} from "./canvas-utils";
+import { getAnchorPoints, findNearestAnchor } from "./anchor-system";
 import {
   renderResizeHandles,
   renderRotationHandle,
@@ -47,7 +52,7 @@ import {
   renderPolygonVertexHandles,
   renderSnapTargets,
   renderSelectionOutline,
-} from './canvas-handles';
+} from "./canvas-handles";
 
 interface DragExtra {
   id: string;
@@ -76,7 +81,7 @@ interface RotateState {
 
 interface ConnectState {
   fromId: string;
-  fromAnchor: import('@shinkeonkim/clotho').Anchor;
+  fromAnchor: import("@shinkeonkim/clotho").Anchor;
   startX: number;
   startY: number;
   currentX: number;
@@ -85,10 +90,15 @@ interface ConnectState {
 
 interface EndpointDragState {
   elementId: string;
-  end: 'start' | 'end';
+  end: "start" | "end";
   currentX: number;
   currentY: number;
-  snapTarget: { elementId: string; anchor: Anchor; x: number; y: number } | null;
+  snapTarget: {
+    elementId: string;
+    anchor: Anchor;
+    x: number;
+    y: number;
+  } | null;
 }
 
 const SNAP_RADIUS = 12;
@@ -135,13 +145,13 @@ const HEAD_MARKER_DEFS = `
   </marker>
 `;
 
-function markerUrlFor(head: string | undefined, end: 'start' | 'end'): string {
-  if (!head || head === 'none') return '';
-  const isOpenCircle = head === 'circle-open';
-  const isCircle = head === 'circle' || isOpenCircle;
+function markerUrlFor(head: string | undefined, end: "start" | "end"): string {
+  if (!head || head === "none") return "";
+  const isOpenCircle = head === "circle-open";
+  const isCircle = head === "circle" || isOpenCircle;
   if (isCircle) return `url(#studio-h-${head})`;
   const idBase = `studio-h-${head}`;
-  return end === 'start' ? `url(#${idBase}-start)` : `url(#${idBase})`;
+  return end === "start" ? `url(#${idBase}-start)` : `url(#${idBase})`;
 }
 
 interface VertexDragState {
@@ -150,7 +160,7 @@ interface VertexDragState {
   originalPoints: string;
 }
 
-type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
+type ResizeHandle = "nw" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w";
 
 interface ResizeState {
   elementId: string;
@@ -189,14 +199,14 @@ let canvasZoom = 1;
 
 export function initCanvas(root: SVGSVGElement): void {
   canvasEl = root;
-  root.addEventListener('click', onCanvasClick);
-  root.addEventListener('mousedown', onMouseDown);
-  root.addEventListener('mouseover', onMouseOver);
-  root.addEventListener('mouseleave', onMouseLeave);
-  root.addEventListener('contextmenu', onContextMenu);
-  root.addEventListener('wheel', onCanvasWheel, { passive: false });
-  document.addEventListener('mousemove', onMouseMove);
-  document.addEventListener('mouseup', onMouseUp);
+  root.addEventListener("click", onCanvasClick);
+  root.addEventListener("mousedown", onMouseDown);
+  root.addEventListener("mouseover", onMouseOver);
+  root.addEventListener("mouseleave", onMouseLeave);
+  root.addEventListener("contextmenu", onContextMenu);
+  root.addEventListener("wheel", onCanvasWheel, { passive: false });
+  document.addEventListener("mousemove", onMouseMove);
+  document.addEventListener("mouseup", onMouseUp);
   subscribe(render);
   render();
 }
@@ -204,9 +214,12 @@ export function initCanvas(root: SVGSVGElement): void {
 function onCanvasWheel(e: WheelEvent): void {
   if (!e.ctrlKey && !e.metaKey) return;
   e.preventDefault();
-  const wrap = canvasEl?.closest('.studio-canvas-wrap') as HTMLElement | null;
+  const wrap = canvasEl?.closest(".studio-canvas-wrap") as HTMLElement | null;
   if (!wrap) {
-    canvasZoom = Math.max(0.1, Math.min(5, canvasZoom * (e.deltaY < 0 ? 1.1 : 1 / 1.1)));
+    canvasZoom = Math.max(
+      0.1,
+      Math.min(5, canvasZoom * (e.deltaY < 0 ? 1.1 : 1 / 1.1)),
+    );
     render();
     return;
   }
@@ -214,7 +227,10 @@ function onCanvasWheel(e: WheelEvent): void {
   const mxInWrap = e.clientX - wrapRect.left + wrap.scrollLeft;
   const myInWrap = e.clientY - wrapRect.top + wrap.scrollTop;
   const old = canvasZoom;
-  canvasZoom = Math.max(0.1, Math.min(5, canvasZoom * (e.deltaY < 0 ? 1.1 : 1 / 1.1)));
+  canvasZoom = Math.max(
+    0.1,
+    Math.min(5, canvasZoom * (e.deltaY < 0 ? 1.1 : 1 / 1.1)),
+  );
   const ratio = canvasZoom / old;
   render();
   wrap.scrollLeft = mxInWrap * ratio - (e.clientX - wrapRect.left);
@@ -223,22 +239,24 @@ function onCanvasWheel(e: WheelEvent): void {
 
 function onContextMenu(e: MouseEvent): void {
   const target = e.target as Element | null;
-  const vertexEl = target?.closest<SVGElement>('[data-vertex-handle]');
+  const vertexEl = target?.closest<SVGElement>("[data-vertex-handle]");
   if (!vertexEl) return;
-  const id = vertexEl.dataset.elemId ?? '';
-  const idx = Number(vertexEl.dataset.vertexIndex ?? '-1');
+  const id = vertexEl.dataset.elemId ?? "";
+  const idx = Number(vertexEl.dataset.vertexIndex ?? "-1");
   const def = getDef();
   if (!def || idx < 0) return;
   const el = def.elements.find((x) => x.id === id);
-  if (!el || el.type !== 'polygon') return;
+  if (!el || el.type !== "polygon") return;
   const snap = getCurrentSnapshot();
   const state = snap.get(id);
   if (!state) return;
-  const points = String(state.points ?? '').trim().split(/\s+/);
+  const points = String(state.points ?? "")
+    .trim()
+    .split(/\s+/);
   if (points.length <= 3) return;
   e.preventDefault();
   points.splice(idx, 1);
-  setElementValueAtTime(id, { points: points.join(' ') });
+  setElementValueAtTime(id, { points: points.join(" ") });
 }
 
 function onMouseOver(e: MouseEvent): void {
@@ -256,20 +274,26 @@ function onMouseLeave(): void {
   }
 }
 
-function svgPoint(clientX: number, clientY: number): { x: number; y: number } | null {
+function svgPoint(
+  clientX: number,
+  clientY: number,
+): { x: number; y: number } | null {
   if (!canvasEl) return null;
   const def = getDef();
   if (!def) return null;
   const rect = canvasEl.getBoundingClientRect();
   const sx = def.canvas.width / rect.width;
   const sy = def.canvas.height / rect.height;
-  return snapPoint({ x: (clientX - rect.left) * sx, y: (clientY - rect.top) * sy });
+  return snapPoint({
+    x: (clientX - rect.left) * sx,
+    y: (clientY - rect.top) * sy,
+  });
 }
 
 function findElementId(target: EventTarget | null): string | null {
   let node = target as Element | null;
   while (node && node !== canvasEl) {
-    const id = node.getAttribute?.('data-elem-id');
+    const id = node.getAttribute?.("data-elem-id");
     if (id) return id;
     node = node.parentElement;
   }
@@ -283,39 +307,47 @@ function onCanvasClick(e: MouseEvent): void {
     return;
   }
   const target = e.target as Element | null;
-  const addVertexHandle = target?.closest<SVGElement>('[data-vertex-add]');
+  const addVertexHandle = target?.closest<SVGElement>("[data-vertex-add]");
   if (addVertexHandle) {
     e.preventDefault();
     e.stopPropagation();
-    const id = addVertexHandle.dataset.elemId ?? '';
-    const afterIdx = Number(addVertexHandle.dataset.afterIndex ?? '-1');
+    const id = addVertexHandle.dataset.elemId ?? "";
+    const afterIdx = Number(addVertexHandle.dataset.afterIndex ?? "-1");
     const def = getDef();
     if (!def || afterIdx < 0) return;
     const el = def.elements.find((x) => x.id === id);
-    if (!el || el.type !== 'polygon') return;
+    if (!el || el.type !== "polygon") return;
     const snap = getCurrentSnapshot();
     const state = snap.get(id);
     if (!state) return;
-    const points = String(state.points ?? '').trim().split(/\s+/);
-    const a = points[afterIdx]?.split(',').map(Number) ?? [];
-    const b = points[(afterIdx + 1) % points.length]?.split(',').map(Number) ?? [];
+    const points = String(state.points ?? "")
+      .trim()
+      .split(/\s+/);
+    const a = points[afterIdx]?.split(",").map(Number) ?? [];
+    const b =
+      points[(afterIdx + 1) % points.length]?.split(",").map(Number) ?? [];
     if (a.length !== 2 || b.length !== 2) return;
     const mx = (a[0] + b[0]) / 2;
     const my = (a[1] + b[1]) / 2;
     points.splice(afterIdx + 1, 0, `${mx.toFixed(1)},${my.toFixed(1)}`);
-    setElementValueAtTime(id, { points: points.join(' ') });
+    setElementValueAtTime(id, { points: points.join(" ") });
     return;
   }
-  if (target?.closest('[data-rotate-handle], [data-anchor-handle], [data-resize-handle]')) return;
+  if (
+    target?.closest(
+      "[data-rotate-handle], [data-anchor-handle], [data-resize-handle]",
+    )
+  )
+    return;
   const id = findElementId(e.target);
   if (id) {
     const resolvedId = e.altKey ? id : (findContainingGroup(id)?.id ?? id);
     if (e.shiftKey || e.ctrlKey || e.metaKey) {
       setSelection(toggleSelectionFor(getSelection(), resolvedId));
     } else {
-      setSelection({ kind: 'element', elementId: resolvedId });
+      setSelection({ kind: "element", elementId: resolvedId });
     }
-  } else if (e.target === canvasEl) setSelection({ kind: 'none' });
+  } else if (e.target === canvasEl) setSelection({ kind: "none" });
 }
 
 function onMouseDown(e: MouseEvent): void {
@@ -324,16 +356,16 @@ function onMouseDown(e: MouseEvent): void {
   const def = getDef();
   if (!def) return;
 
-  if (target?.closest<SVGElement>('[data-vertex-add]')) {
+  if (target?.closest<SVGElement>("[data-vertex-add]")) {
     e.preventDefault();
     e.stopPropagation();
     return;
   }
 
-  const resizeHandle = target?.closest<SVGElement>('[data-resize-handle]');
+  const resizeHandle = target?.closest<SVGElement>("[data-resize-handle]");
   if (resizeHandle) {
     e.preventDefault();
-    const id = resizeHandle.dataset.elemId ?? '';
+    const id = resizeHandle.dataset.elemId ?? "";
     const handle = resizeHandle.dataset.resizeHandle as ResizeHandle;
     const snap = getCurrentSnapshot();
     const elState = snap.get(id);
@@ -350,17 +382,17 @@ function onMouseDown(e: MouseEvent): void {
       startH: 0,
       aspect: 1,
     };
-    if (baseEl.type === 'rect' || baseEl.type === 'image') {
+    if (baseEl.type === "rect" || baseEl.type === "image") {
       rs.startX = elState.x as number;
       rs.startY = elState.y as number;
       rs.startW = elState.width as number;
       rs.startH = elState.height as number;
       rs.aspect = rs.startW / Math.max(1, rs.startH);
-    } else if (baseEl.type === 'circle') {
+    } else if (baseEl.type === "circle") {
       rs.startCx = elState.cx as number;
       rs.startCy = elState.cy as number;
       rs.startR = elState.r as number;
-    } else if (baseEl.type === 'text') {
+    } else if (baseEl.type === "text") {
       const bbox = textBBoxOnCanvas(canvasEl, id);
       rs.startX = bbox?.x ?? (elState.x as number);
       rs.startY = bbox?.y ?? (elState.y as number);
@@ -372,46 +404,54 @@ function onMouseDown(e: MouseEvent): void {
       return;
     }
     resizeState = rs;
-    setSelection({ kind: 'element', elementId: id });
+    setSelection({ kind: "element", elementId: id });
     render();
     return;
   }
 
-  const vertexHandle = target?.closest<SVGElement>('[data-vertex-handle]');
+  const vertexHandle = target?.closest<SVGElement>("[data-vertex-handle]");
   if (vertexHandle) {
     e.preventDefault();
-    const id = vertexHandle.dataset.elemId ?? '';
-    const vi = Number(vertexHandle.dataset.vertexIndex ?? '-1');
+    const id = vertexHandle.dataset.elemId ?? "";
+    const vi = Number(vertexHandle.dataset.vertexIndex ?? "-1");
     const snap = getCurrentSnapshot();
     const elState = snap.get(id);
     if (!elState || vi < 0) return;
     vertexDragState = {
       elementId: id,
       vertexIndex: vi,
-      originalPoints: String(elState.points ?? ''),
+      originalPoints: String(elState.points ?? ""),
     };
-    setSelection({ kind: 'element', elementId: id });
+    setSelection({ kind: "element", elementId: id });
     render();
     return;
   }
 
-  const endpointHandle = target?.closest<SVGElement>('[data-endpoint-handle]');
+  const endpointHandle = target?.closest<SVGElement>("[data-endpoint-handle]");
   if (endpointHandle) {
     e.preventDefault();
-    const id = endpointHandle.dataset.elemId ?? '';
-    const end = (endpointHandle.dataset.endpointHandle === 'end' ? 'end' : 'start') as 'start' | 'end';
+    const id = endpointHandle.dataset.elemId ?? "";
+    const end = (
+      endpointHandle.dataset.endpointHandle === "end" ? "end" : "start"
+    ) as "start" | "end";
     const pt = svgPoint(e.clientX, e.clientY);
     if (!pt) return;
-    endpointDragState = { elementId: id, end, currentX: pt.x, currentY: pt.y, snapTarget: null };
-    setSelection({ kind: 'element', elementId: id });
+    endpointDragState = {
+      elementId: id,
+      end,
+      currentX: pt.x,
+      currentY: pt.y,
+      snapTarget: null,
+    };
+    setSelection({ kind: "element", elementId: id });
     render();
     return;
   }
 
-  const midHandle = target?.closest<SVGElement>('[data-line-mid-handle]');
+  const midHandle = target?.closest<SVGElement>("[data-line-mid-handle]");
   if (midHandle) {
     e.preventDefault();
-    const id = midHandle.dataset.elemId ?? '';
+    const id = midHandle.dataset.elemId ?? "";
     const snap = getCurrentSnapshot();
     const elState = snap.get(id);
     const baseEl = def.elements.find((x) => x.id === id);
@@ -427,15 +467,15 @@ function onMouseDown(e: MouseEvent): void {
       extras: collectDragExtras(id, def, snap),
     };
     if (!isElementSelected(getSelection(), id)) {
-      setSelection({ kind: 'element', elementId: id });
+      setSelection({ kind: "element", elementId: id });
     }
     return;
   }
 
-  const rotateHandle = target?.closest<SVGElement>('[data-rotate-handle]');
+  const rotateHandle = target?.closest<SVGElement>("[data-rotate-handle]");
   if (rotateHandle) {
     e.preventDefault();
-    const id = rotateHandle.dataset.rotateHandle ?? '';
+    const id = rotateHandle.dataset.rotateHandle ?? "";
     const snap = getCurrentSnapshot();
     const state = snap.get(id);
     const baseEl = def.elements.find((x) => x.id === id);
@@ -444,7 +484,8 @@ function onMouseDown(e: MouseEvent): void {
     if (!center) return;
     const pt = svgPoint(e.clientX, e.clientY);
     if (!pt) return;
-    const startAngle = (Math.atan2(pt.y - center.y, pt.x - center.x) * 180) / Math.PI;
+    const startAngle =
+      (Math.atan2(pt.y - center.y, pt.x - center.x) * 180) / Math.PI;
     rotateState = {
       elementId: id,
       centerX: center.x,
@@ -455,18 +496,18 @@ function onMouseDown(e: MouseEvent): void {
     return;
   }
 
-  const anchorHandle = target?.closest<SVGElement>('[data-anchor-handle]');
+  const anchorHandle = target?.closest<SVGElement>("[data-anchor-handle]");
   if (anchorHandle) {
     e.preventDefault();
-    const fromId = anchorHandle.dataset.elemId ?? '';
-    const fromAnchor = (anchorHandle.dataset.anchor ?? 'auto') as Anchor;
+    const fromId = anchorHandle.dataset.elemId ?? "";
+    const fromAnchor = (anchorHandle.dataset.anchor ?? "auto") as Anchor;
     const pt = svgPoint(e.clientX, e.clientY);
     if (!pt) return;
     connectState = {
       fromId,
       fromAnchor,
-      startX: Number(anchorHandle.getAttribute('cx')) || pt.x,
-      startY: Number(anchorHandle.getAttribute('cy')) || pt.y,
+      startX: Number(anchorHandle.getAttribute("cx")) || pt.x,
+      startY: Number(anchorHandle.getAttribute("cy")) || pt.y,
       currentX: pt.x,
       currentY: pt.y,
     };
@@ -480,7 +521,12 @@ function onMouseDown(e: MouseEvent): void {
     if (!e.shiftKey && e.target === canvasEl) {
       const pt = svgPoint(e.clientX, e.clientY);
       if (pt) {
-        marqueeState = { startX: pt.x, startY: pt.y, currentX: pt.x, currentY: pt.y };
+        marqueeState = {
+          startX: pt.x,
+          startY: pt.y,
+          currentX: pt.x,
+          currentY: pt.y,
+        };
       }
     }
     return;
@@ -490,8 +536,12 @@ function onMouseDown(e: MouseEvent): void {
   const elState = snap.get(id);
   const baseEl = def.elements.find((x) => x.id === id);
   if (!elState || !baseEl) return;
-  if ((baseEl.type === 'arrow' || baseEl.type === 'line') && baseEl.fromId && baseEl.toId) {
-    setSelection({ kind: 'element', elementId: id });
+  if (
+    (baseEl.type === "arrow" || baseEl.type === "line") &&
+    baseEl.fromId &&
+    baseEl.toId
+  ) {
+    setSelection({ kind: "element", elementId: id });
     return;
   }
   const anchor = readPositionAnchor(baseEl, elState);
@@ -502,15 +552,20 @@ function onMouseDown(e: MouseEvent): void {
     startMouseY: e.clientY,
     startElemX: anchor.x,
     startElemY: anchor.y,
-    originalPolygonPoints: baseEl.type === 'polygon' ? String(elState.points ?? '') : undefined,
+    originalPolygonPoints:
+      baseEl.type === "polygon" ? String(elState.points ?? "") : undefined,
     extras: collectDragExtras(id, def, snap),
   };
   if (!isElementSelected(getSelection(), id)) {
-    setSelection({ kind: 'element', elementId: id });
+    setSelection({ kind: "element", elementId: id });
   }
 }
 
-function collectDragExtras(anchorId: string, def: ReturnType<typeof getDef>, snap: SnapshotMap): DragExtra[] {
+function collectDragExtras(
+  anchorId: string,
+  def: ReturnType<typeof getDef>,
+  snap: SnapshotMap,
+): DragExtra[] {
   if (!def) return [];
   const sel = getSelection();
   const ids = getSelectedElementIds(sel).filter((id) => id !== anchorId);
@@ -525,7 +580,8 @@ function collectDragExtras(anchorId: string, def: ReturnType<typeof getDef>, sna
       id,
       startX: a.x,
       startY: a.y,
-      originalPolygonPoints: el.type === 'polygon' ? String(st.points ?? '') : undefined,
+      originalPolygonPoints:
+        el.type === "polygon" ? String(st.points ?? "") : undefined,
     });
   }
   return extras;
@@ -541,8 +597,11 @@ function onMouseMove(e: MouseEvent): void {
     if (!pt) return;
     const pts = vertexDragState.originalPoints.trim().split(/\s+/);
     if (vertexDragState.vertexIndex < pts.length) {
-      pts[vertexDragState.vertexIndex] = `${pt.x.toFixed(1)},${pt.y.toFixed(1)}`;
-      setElementValueAtTime(vertexDragState.elementId, { points: pts.join(' ') });
+      pts[vertexDragState.vertexIndex] =
+        `${pt.x.toFixed(1)},${pt.y.toFixed(1)}`;
+      setElementValueAtTime(vertexDragState.elementId, {
+        points: pts.join(" "),
+      });
     }
     return;
   }
@@ -551,33 +610,55 @@ function onMouseMove(e: MouseEvent): void {
     if (!pt) return;
     endpointDragState.currentX = pt.x;
     endpointDragState.currentY = pt.y;
-    endpointDragState.snapTarget = findSnapTarget(pt.x, pt.y, endpointDragState.elementId);
+    endpointDragState.snapTarget = findSnapTarget(
+      pt.x,
+      pt.y,
+      endpointDragState.elementId,
+    );
     const def = getDef();
     if (!def) return;
-    const baseEl = def.elements.find((x) => x.id === endpointDragState!.elementId);
+    const baseEl = def.elements.find(
+      (x) => x.id === endpointDragState!.elementId,
+    );
     if (!baseEl) return;
-    const finalX = endpointDragState.snapTarget ? endpointDragState.snapTarget.x : pt.x;
-    const finalY = endpointDragState.snapTarget ? endpointDragState.snapTarget.y : pt.y;
-    if (baseEl.type === 'line' || baseEl.type === 'arrow') {
+    const finalX = endpointDragState.snapTarget
+      ? endpointDragState.snapTarget.x
+      : pt.x;
+    const finalY = endpointDragState.snapTarget
+      ? endpointDragState.snapTarget.y
+      : pt.y;
+    if (baseEl.type === "line" || baseEl.type === "arrow") {
       if (endpointDragState.snapTarget) {
-        if (endpointDragState.end === 'start') {
+        if (endpointDragState.end === "start") {
           setElementValueAtTime(baseEl.id, {
             fromId: endpointDragState.snapTarget.elementId,
             fromAnchor: endpointDragState.snapTarget.anchor,
-            x1: undefined, y1: undefined,
+            x1: undefined,
+            y1: undefined,
           });
         } else {
           setElementValueAtTime(baseEl.id, {
             toId: endpointDragState.snapTarget.elementId,
             toAnchor: endpointDragState.snapTarget.anchor,
-            x2: undefined, y2: undefined,
+            x2: undefined,
+            y2: undefined,
           });
         }
       } else {
-        if (endpointDragState.end === 'start') {
-          updateElementBase(baseEl.id, { fromId: undefined, fromAnchor: undefined, x1: finalX, y1: finalY });
+        if (endpointDragState.end === "start") {
+          updateElementBase(baseEl.id, {
+            fromId: undefined,
+            fromAnchor: undefined,
+            x1: finalX,
+            y1: finalY,
+          });
         } else {
-          updateElementBase(baseEl.id, { toId: undefined, toAnchor: undefined, x2: finalX, y2: finalY });
+          updateElementBase(baseEl.id, {
+            toId: undefined,
+            toAnchor: undefined,
+            x2: finalX,
+            y2: finalY,
+          });
         }
       }
     }
@@ -587,7 +668,10 @@ function onMouseMove(e: MouseEvent): void {
   if (rotateState) {
     const pt = svgPoint(e.clientX, e.clientY);
     if (!pt) return;
-    const angle = (Math.atan2(pt.y - rotateState.centerY, pt.x - rotateState.centerX) * 180) / Math.PI;
+    const angle =
+      (Math.atan2(pt.y - rotateState.centerY, pt.x - rotateState.centerX) *
+        180) /
+      Math.PI;
     const delta = angle - rotateState.startAngle;
     setElementValueAtTime(rotateState.elementId, {
       rotation: Math.round((rotateState.startRotation + delta + 360) % 360),
@@ -630,7 +714,13 @@ function onMouseMove(e: MouseEvent): void {
     const eEl = def.elements.find((x) => x.id === extra.id);
     const eState = snap.get(extra.id);
     if (!eEl || !eState) continue;
-    applyMove(eEl, eState, Math.round(extra.startX + dx), Math.round(extra.startY + dy), extra.originalPolygonPoints);
+    applyMove(
+      eEl,
+      eState,
+      Math.round(extra.startX + dx),
+      Math.round(extra.startY + dy),
+      extra.originalPolygonPoints,
+    );
   }
 }
 
@@ -649,29 +739,31 @@ function onMouseUp(e: MouseEvent): void {
   }
   if (connectState) {
     const target = e.target as Element | null;
-    const anchorHandle = target?.closest<SVGElement>('[data-anchor-handle]');
+    const anchorHandle = target?.closest<SVGElement>("[data-anchor-handle]");
     const elemId = anchorHandle?.dataset.elemId ?? findElementId(e.target);
-    const toAnchor = (anchorHandle?.dataset.anchor ?? 'auto') as Anchor;
+    const toAnchor = (anchorHandle?.dataset.anchor ?? "auto") as Anchor;
     if (elemId && elemId !== connectState.fromId) {
       const def = getDef();
       if (def) {
-        const newId = uniqueElementId('arrow');
+        const newId = uniqueElementId("arrow");
         addElement({
-          type: 'arrow',
+          type: "arrow",
           id: newId,
-          rotation: 0, appearances: [], tracks: [],
+          rotation: 0,
+          appearances: [],
+          tracks: [],
           fromId: connectState.fromId,
           toId: elemId,
           fromAnchor: connectState.fromAnchor,
           toAnchor,
-          stroke: '#6366f1',
+          stroke: "#6366f1",
           strokeWidth: 2,
           curvature: 0,
-          labelColor: '#0b0b0f',
+          labelColor: "#0b0b0f",
           labelOffsetX: 0,
           labelOffsetY: 4,
-          headStart: 'none',
-          headEnd: 'arrow',
+          headStart: "none",
+          headEnd: "arrow",
         });
       }
     }
@@ -702,11 +794,11 @@ function onMouseUp(e: MouseEvent): void {
           }
         }
         if (matchedIds.length === 1) {
-          setSelection({ kind: 'element', elementId: matchedIds[0] });
+          setSelection({ kind: "element", elementId: matchedIds[0] });
         } else if (matchedIds.length > 1) {
-          setSelection({ kind: 'elements', elementIds: matchedIds });
+          setSelection({ kind: "elements", elementIds: matchedIds });
         } else {
-          setSelection({ kind: 'none' });
+          setSelection({ kind: "none" });
         }
       }
     }
@@ -723,11 +815,21 @@ function applyMove(
   y: number,
   polygonOriginal?: string,
 ): void {
-  if (baseEl.type === 'rect' || baseEl.type === 'image' || baseEl.type === 'text') {
+  if (
+    baseEl.type === "rect" ||
+    baseEl.type === "image" ||
+    baseEl.type === "text"
+  ) {
     setElementValueAtTime(baseEl.id, { x, y });
-  } else if (baseEl.type === 'circle') {
+  } else if (baseEl.type === "circle") {
     setElementValueAtTime(baseEl.id, { cx: x, cy: y });
-  } else if ((baseEl.type === 'line' || baseEl.type === 'arrow') && typeof state.x1 === 'number' && typeof state.y1 === 'number' && typeof state.x2 === 'number' && typeof state.y2 === 'number') {
+  } else if (
+    (baseEl.type === "line" || baseEl.type === "arrow") &&
+    typeof state.x1 === "number" &&
+    typeof state.y1 === "number" &&
+    typeof state.x2 === "number" &&
+    typeof state.y2 === "number"
+  ) {
     const dx = x - (state.x1 as number);
     const dy = y - (state.y1 as number);
     setElementValueAtTime(baseEl.id, {
@@ -736,9 +838,9 @@ function applyMove(
       x2: (state.x2 as number) + dx,
       y2: (state.y2 as number) + dy,
     });
-  } else if (baseEl.type === 'path') {
+  } else if (baseEl.type === "path") {
     setElementValueAtTime(baseEl.id, { x, y });
-  } else if (baseEl.type === 'polygon') {
+  } else if (baseEl.type === "polygon") {
     const orig = polygonOriginal ?? dragState?.originalPolygonPoints;
     if (!orig) return;
     const startFirst = firstPolygonPoint(orig);
@@ -747,7 +849,7 @@ function applyMove(
     const dy = y - startFirst.y;
     const newPoints = shiftPolygonPoints(orig, dx, dy);
     setElementValueAtTime(baseEl.id, { points: newPoints });
-  } else if (baseEl.type === 'group') {
+  } else if (baseEl.type === "group") {
     const dx = x - baseEl.x;
     const dy = y - baseEl.y;
     moveGroupBy(baseEl.id, dx, dy);
@@ -758,19 +860,28 @@ function readPositionAnchor(
   baseEl: AnimationElement,
   state: Record<string, unknown>,
 ): { x: number; y: number } | null {
-  if (baseEl.type === 'rect' || baseEl.type === 'image' || baseEl.type === 'text') {
+  if (
+    baseEl.type === "rect" ||
+    baseEl.type === "image" ||
+    baseEl.type === "text"
+  ) {
     return { x: state.x as number, y: state.y as number };
   }
-  if (baseEl.type === 'circle') return { x: state.cx as number, y: state.cy as number };
-  if ((baseEl.type === 'line' || baseEl.type === 'arrow') && typeof state.x1 === 'number') {
+  if (baseEl.type === "circle")
+    return { x: state.cx as number, y: state.cy as number };
+  if (
+    (baseEl.type === "line" || baseEl.type === "arrow") &&
+    typeof state.x1 === "number"
+  ) {
     return { x: state.x1 as number, y: state.y1 as number };
   }
-  if (baseEl.type === 'path') return { x: (state.x as number) ?? 0, y: (state.y as number) ?? 0 };
-  if (baseEl.type === 'polygon') {
-    const first = firstPolygonPoint(String(state.points ?? ''));
+  if (baseEl.type === "path")
+    return { x: (state.x as number) ?? 0, y: (state.y as number) ?? 0 };
+  if (baseEl.type === "polygon") {
+    const first = firstPolygonPoint(String(state.points ?? ""));
     return first;
   }
-  if (baseEl.type === 'group') {
+  if (baseEl.type === "group") {
     return { x: baseEl.x, y: baseEl.y };
   }
   return null;
@@ -781,24 +892,47 @@ function elementBBox(
   baseEl: AnimationElement,
   state: Record<string, unknown>,
 ): { x: number; y: number; w: number; h: number } | null {
-  if (baseEl.type === 'rect' || baseEl.type === 'image') {
-    return { x: state.x as number, y: state.y as number, w: state.width as number, h: state.height as number };
+  if (baseEl.type === "rect" || baseEl.type === "image") {
+    return {
+      x: state.x as number,
+      y: state.y as number,
+      w: state.width as number,
+      h: state.height as number,
+    };
   }
-  if (baseEl.type === 'circle') {
+  if (baseEl.type === "circle") {
     const r = state.r as number;
-    return { x: (state.cx as number) - r, y: (state.cy as number) - r, w: r * 2, h: r * 2 };
+    return {
+      x: (state.cx as number) - r,
+      y: (state.cy as number) - r,
+      w: r * 2,
+      h: r * 2,
+    };
   }
-  if (baseEl.type === 'text') {
+  if (baseEl.type === "text") {
     const bbox = textBBoxOnCanvas(canvasEl, baseEl.id);
     if (bbox) return bbox;
     // fallback: approximate
-    return { x: state.x as number, y: state.y as number, w: 100, h: (state.fontSize as number) ?? 16 };
+    return {
+      x: state.x as number,
+      y: state.y as number,
+      w: 100,
+      h: (state.fontSize as number) ?? 16,
+    };
   }
-  if (baseEl.type === 'line' || baseEl.type === 'arrow') {
+  if (baseEl.type === "line" || baseEl.type === "arrow") {
     const coords =
-      baseEl.type === 'line'
-        ? resolveLineCoords(state as unknown as LineElement, getCurrentSnapshot(), new Map())
-        : resolveArrowCoords(state as unknown as ArrowElement, getCurrentSnapshot(), new Map());
+      baseEl.type === "line"
+        ? resolveLineCoords(
+            state as unknown as LineElement,
+            getCurrentSnapshot(),
+            new Map(),
+          )
+        : resolveArrowCoords(
+            state as unknown as ArrowElement,
+            getCurrentSnapshot(),
+            new Map(),
+          );
     if (!coords) return null;
     return {
       x: Math.min(coords.x1, coords.x2),
@@ -807,10 +941,10 @@ function elementBBox(
       h: Math.abs(coords.y2 - coords.y1),
     };
   }
-  if (baseEl.type === 'polygon') {
-    return polygonBoundingBox(String(state.points ?? ''));
+  if (baseEl.type === "polygon") {
+    return polygonBoundingBox(String(state.points ?? ""));
   }
-  if (baseEl.type === 'path') {
+  if (baseEl.type === "path") {
     return pathBBoxOnCanvas(canvasEl, baseEl.id);
   }
   return null;
@@ -851,51 +985,72 @@ function handleResizeMove(e: MouseEvent): void {
   const h = resizeState.handle;
   const uniform = e.shiftKey;
 
-  if (baseEl.type === 'rect' || baseEl.type === 'image') {
+  if (baseEl.type === "rect" || baseEl.type === "image") {
     let newX = resizeState.startX;
     let newY = resizeState.startY;
     let newW = resizeState.startW;
     let newH = resizeState.startH;
-    if (h.includes('w')) { newX = resizeState.startX + dx; newW = resizeState.startW - dx; }
-    if (h.includes('e')) { newW = resizeState.startW + dx; }
-    if (h.includes('n')) { newY = resizeState.startY + dy; newH = resizeState.startH - dy; }
-    if (h.includes('s')) { newH = resizeState.startH + dy; }
-    if (uniform && (h === 'nw' || h === 'ne' || h === 'se' || h === 'sw')) {
+    if (h.includes("w")) {
+      newX = resizeState.startX + dx;
+      newW = resizeState.startW - dx;
+    }
+    if (h.includes("e")) {
+      newW = resizeState.startW + dx;
+    }
+    if (h.includes("n")) {
+      newY = resizeState.startY + dy;
+      newH = resizeState.startH - dy;
+    }
+    if (h.includes("s")) {
+      newH = resizeState.startH + dy;
+    }
+    if (uniform && (h === "nw" || h === "ne" || h === "se" || h === "sw")) {
       const aspect = resizeState.aspect;
       const fromW = Math.abs(newW);
       const fromH = Math.abs(newH);
       if (fromW / aspect > fromH) {
         const targetH = Math.max(1, Math.round(fromW / aspect));
-        if (h.includes('n')) newY = resizeState.startY + resizeState.startH - targetH;
+        if (h.includes("n"))
+          newY = resizeState.startY + resizeState.startH - targetH;
         newH = targetH;
       } else {
         const targetW = Math.max(1, Math.round(fromH * aspect));
-        if (h.includes('w')) newX = resizeState.startX + resizeState.startW - targetW;
+        if (h.includes("w"))
+          newX = resizeState.startX + resizeState.startW - targetW;
         newW = targetW;
       }
     }
-    if (newW < 0) { newX = newX + newW; newW = -newW; }
-    if (newH < 0) { newY = newY + newH; newH = -newH; }
+    if (newW < 0) {
+      newX = newX + newW;
+      newW = -newW;
+    }
+    if (newH < 0) {
+      newY = newY + newH;
+      newH = -newH;
+    }
     newW = Math.max(2, Math.round(newW));
     newH = Math.max(2, Math.round(newH));
     setElementValueAtTime(baseEl.id, {
-      x: Math.round(newX), y: Math.round(newY), width: newW, height: newH,
+      x: Math.round(newX),
+      y: Math.round(newY),
+      width: newW,
+      height: newH,
     });
     return;
   }
 
-  if (baseEl.type === 'circle') {
+  if (baseEl.type === "circle") {
     const cx = resizeState.startCx ?? 0;
     const cy = resizeState.startCy ?? 0;
     const r0 = resizeState.startR ?? 1;
     let r1: number;
-    if (h === 'e') r1 = Math.max(2, r0 + dx);
-    else if (h === 'w') r1 = Math.max(2, r0 - dx);
-    else if (h === 's') r1 = Math.max(2, r0 + dy);
-    else if (h === 'n') r1 = Math.max(2, r0 - dy);
+    if (h === "e") r1 = Math.max(2, r0 + dx);
+    else if (h === "w") r1 = Math.max(2, r0 - dx);
+    else if (h === "s") r1 = Math.max(2, r0 + dy);
+    else if (h === "n") r1 = Math.max(2, r0 - dy);
     else {
-      const ddx = (h.includes('e') ? dx : -dx);
-      const ddy = (h.includes('s') ? dy : -dy);
+      const ddx = h.includes("e") ? dx : -dx;
+      const ddy = h.includes("s") ? dy : -dy;
       const dd = uniform ? Math.max(ddx, ddy) : (ddx + ddy) / 2;
       r1 = Math.max(2, r0 + dd);
     }
@@ -903,10 +1058,12 @@ function handleResizeMove(e: MouseEvent): void {
     return;
   }
 
-  if (baseEl.type === 'text') {
+  if (baseEl.type === "text") {
     const startFs = resizeState.startFontSize ?? 16;
     const startH0 = Math.max(1, resizeState.startH);
-    const newH = h.includes('n') ? Math.max(1, startH0 - dy) : Math.max(1, startH0 + dy);
+    const newH = h.includes("n")
+      ? Math.max(1, startH0 - dy)
+      : Math.max(1, startH0 + dy);
     const ratio = newH / startH0;
     const newFontSize = Math.max(6, Math.round(startFs * ratio));
     setElementValueAtTime(baseEl.id, { fontSize: newFontSize });
@@ -918,15 +1075,18 @@ function render(): void {
   if (!canvasEl) return;
   const def = getDef();
   if (!def) {
-    canvasEl.innerHTML = '';
-    canvasEl.removeAttribute('viewBox');
-    canvasEl.style.width = '0';
-    canvasEl.style.height = '0';
+    canvasEl.innerHTML = "";
+    canvasEl.removeAttribute("viewBox");
+    canvasEl.style.width = "0";
+    canvasEl.style.height = "0";
     return;
   }
-  canvasEl.setAttribute('viewBox', `0 0 ${def.canvas.width} ${def.canvas.height}`);
-  canvasEl.style.width = (def.canvas.width * canvasZoom) + 'px';
-  canvasEl.style.height = (def.canvas.height * canvasZoom) + 'px';
+  canvasEl.setAttribute(
+    "viewBox",
+    `0 0 ${def.canvas.width} ${def.canvas.height}`,
+  );
+  canvasEl.style.width = def.canvas.width * canvasZoom + "px";
+  canvasEl.style.height = def.canvas.height * canvasZoom + "px";
   canvasEl.style.backgroundColor = def.canvas.background;
 
   canvasEl.innerHTML = `<defs>${HEAD_MARKER_DEFS}</defs>`;
@@ -940,32 +1100,60 @@ function render(): void {
     if (!state) continue;
     const g = renderElement(el, state, snap, elementsById);
     if (g) {
-      if (!state.visible) g.setAttribute('opacity', '0.25');
+      if (!state.visible) g.setAttribute("opacity", "0.25");
       canvasEl.appendChild(g);
     }
   }
 
   const selection = getSelection();
-  if (selection.kind === 'element') {
+  if (selection.kind === "element") {
     const selEl = elementsById.get(selection.elementId);
     if (selEl && isGroup(selEl)) {
       const groupOutline = renderGroupOutline(selection.elementId);
       if (groupOutline) canvasEl.appendChild(groupOutline);
     } else {
-      const outline = renderSelectionOutline(canvasEl, selection.elementId, snap, elementsById);
+      const outline = renderSelectionOutline(
+        canvasEl,
+        selection.elementId,
+        snap,
+        elementsById,
+      );
       if (outline) canvasEl.appendChild(outline);
-      const handle = renderRotationHandle(canvasEl, selection.elementId, snap, elementsById);
+      const handle = renderRotationHandle(
+        canvasEl,
+        selection.elementId,
+        snap,
+        elementsById,
+      );
       if (handle) canvasEl.appendChild(handle);
-      const endpoints = renderLineEndpointHandles(selection.elementId, snap, elementsById);
+      const endpoints = renderLineEndpointHandles(
+        selection.elementId,
+        snap,
+        elementsById,
+      );
       if (endpoints) canvasEl.appendChild(endpoints);
-      const vertices = renderPolygonVertexHandles(selection.elementId, snap, elementsById);
+      const vertices = renderPolygonVertexHandles(
+        selection.elementId,
+        snap,
+        elementsById,
+      );
       if (vertices) canvasEl.appendChild(vertices);
-      const resize = renderResizeHandles(canvasEl, selection.elementId, snap, elementsById);
+      const resize = renderResizeHandles(
+        canvasEl,
+        selection.elementId,
+        snap,
+        elementsById,
+      );
       if (resize) canvasEl.appendChild(resize);
     }
-  } else if (selection.kind === 'elements') {
+  } else if (selection.kind === "elements") {
     for (const elId of selection.elementIds) {
-      const outline = renderSelectionOutline(canvasEl, elId, snap, elementsById);
+      const outline = renderSelectionOutline(
+        canvasEl,
+        elId,
+        snap,
+        elementsById,
+      );
       if (outline) canvasEl.appendChild(outline);
     }
   }
@@ -980,7 +1168,10 @@ function render(): void {
     if (guides) canvasEl.appendChild(guides);
   }
 
-  if (hoveredElementId && (!connectState || hoveredElementId !== connectState.fromId)) {
+  if (
+    hoveredElementId &&
+    (!connectState || hoveredElementId !== connectState.fromId)
+  ) {
     const anchors = renderAnchorDots(hoveredElementId, snap, elementsById);
     if (anchors) canvasEl.appendChild(anchors);
   }
@@ -990,16 +1181,16 @@ function render(): void {
   }
 
   if (connectState) {
-    const tempLine = document.createElementNS(SVG_NS, 'line');
-    tempLine.setAttribute('x1', String(connectState.startX));
-    tempLine.setAttribute('y1', String(connectState.startY));
-    tempLine.setAttribute('x2', String(connectState.currentX));
-    tempLine.setAttribute('y2', String(connectState.currentY));
-    tempLine.setAttribute('stroke', '#6366f1');
-    tempLine.setAttribute('stroke-width', '2');
-    tempLine.setAttribute('stroke-dasharray', '5 3');
-    tempLine.setAttribute('marker-end', 'url(#studio-arrow)');
-    tempLine.style.pointerEvents = 'none';
+    const tempLine = document.createElementNS(SVG_NS, "line");
+    tempLine.setAttribute("x1", String(connectState.startX));
+    tempLine.setAttribute("y1", String(connectState.startY));
+    tempLine.setAttribute("x2", String(connectState.currentX));
+    tempLine.setAttribute("y2", String(connectState.currentY));
+    tempLine.setAttribute("stroke", "#6366f1");
+    tempLine.setAttribute("stroke-width", "2");
+    tempLine.setAttribute("stroke-dasharray", "5 3");
+    tempLine.setAttribute("marker-end", "url(#studio-arrow)");
+    tempLine.style.pointerEvents = "none";
     canvasEl.appendChild(tempLine);
   }
 
@@ -1009,16 +1200,16 @@ function render(): void {
     const mw = Math.abs(marqueeState.currentX - marqueeState.startX);
     const mh = Math.abs(marqueeState.currentY - marqueeState.startY);
     if (mw > 0 || mh > 0) {
-      const marqueeRect = document.createElementNS(SVG_NS, 'rect');
-      marqueeRect.setAttribute('x', String(mx));
-      marqueeRect.setAttribute('y', String(my));
-      marqueeRect.setAttribute('width', String(mw));
-      marqueeRect.setAttribute('height', String(mh));
-      marqueeRect.setAttribute('fill', 'rgba(99, 102, 241, 0.08)');
-      marqueeRect.setAttribute('stroke', '#6366f1');
-      marqueeRect.setAttribute('stroke-width', '1');
-      marqueeRect.setAttribute('stroke-dasharray', '4 3');
-      marqueeRect.style.pointerEvents = 'none';
+      const marqueeRect = document.createElementNS(SVG_NS, "rect");
+      marqueeRect.setAttribute("x", String(mx));
+      marqueeRect.setAttribute("y", String(my));
+      marqueeRect.setAttribute("width", String(mw));
+      marqueeRect.setAttribute("height", String(mh));
+      marqueeRect.setAttribute("fill", "rgba(99, 102, 241, 0.08)");
+      marqueeRect.setAttribute("stroke", "#6366f1");
+      marqueeRect.setAttribute("stroke-width", "1");
+      marqueeRect.setAttribute("stroke-dasharray", "4 3");
+      marqueeRect.style.pointerEvents = "none";
       canvasEl.appendChild(marqueeRect);
     }
   }
@@ -1038,7 +1229,7 @@ function findSnapTarget(
   for (const baseEl of def.elements) {
     if (baseEl.id === excludeElementId) continue;
     // Skip other lines/arrows, only snap to shapes
-    if (baseEl.type === 'line' || baseEl.type === 'arrow') continue;
+    if (baseEl.type === "line" || baseEl.type === "arrow") continue;
     const state = snap.get(baseEl.id);
     if (!state || !state.visible) continue;
     const points = getAnchorPoints(baseEl, state as Record<string, unknown>);
@@ -1047,14 +1238,19 @@ function findSnapTarget(
 
   const nearest = findNearestAnchor({ x, y }, allAnchors, SNAP_RADIUS);
   if (!nearest) return null;
-  return { elementId: nearest.elementId, anchor: nearest.anchor, x: nearest.x, y: nearest.y };
+  return {
+    elementId: nearest.elementId,
+    anchor: nearest.anchor,
+    x: nearest.x,
+    y: nearest.y,
+  };
 }
 
 function renderGroupOutline(groupId: string): SVGElement | null {
   const box = groupBbox(groupId);
   if (!box) return null;
-  const g = document.createElementNS(SVG_NS, 'g');
-  g.setAttribute('data-elem-id', groupId);
+  const g = document.createElementNS(SVG_NS, "g");
+  g.setAttribute("data-elem-id", groupId);
   const pad = 6;
   const x = box.x - pad;
   const y = box.y - pad;
@@ -1076,11 +1272,16 @@ function renderGroupOutline(groupId: string): SVGElement | null {
   return g;
 }
 
-function makeG(elementId: string, rotation: number, cx: number, cy: number): SVGGElement {
-  const g = document.createElementNS(SVG_NS, 'g');
-  g.setAttribute('data-elem-id', elementId);
-  g.classList.add('element-handle');
-  if (rotation) g.setAttribute('transform', `rotate(${rotation} ${cx} ${cy})`);
+function makeG(
+  elementId: string,
+  rotation: number,
+  cx: number,
+  cy: number,
+): SVGGElement {
+  const g = document.createElementNS(SVG_NS, "g");
+  g.setAttribute("data-elem-id", elementId);
+  g.classList.add("element-handle");
+  if (rotation) g.setAttribute("transform", `rotate(${rotation} ${cx} ${cy})`);
   return g;
 }
 
@@ -1091,7 +1292,7 @@ function renderElement(
   byId: Map<string, AnimationElement>,
 ): SVGGElement | null {
   const rotation = (state.rotation as number) || 0;
-  if (baseEl.type === 'rect') {
+  if (baseEl.type === "rect") {
     const r = state as unknown as RectElement;
     const cx = r.x + r.width / 2;
     const cy = r.y + r.height / 2;
@@ -1099,51 +1300,67 @@ function renderElement(
     g.innerHTML = `
       <rect x="${r.x}" y="${r.y}" width="${r.width}" height="${r.height}" rx="${r.cornerRadius}"
         fill="${r.fill}" stroke="${r.stroke}" stroke-width="${r.strokeWidth}" />
-      ${r.label ? `<text x="${cx}" y="${cy + 5}" text-anchor="middle"
-        font-size="${r.labelSize}" font-weight="600" fill="${r.labelColor}">${escapeXml(r.label)}</text>` : ''}
-      ${r.subtitle ? `<text x="${cx}" y="${cy + r.labelSize + 8}"
-        text-anchor="middle" font-size="10" fill="${r.labelColor}" opacity="0.7">${escapeXml(r.subtitle)}</text>` : ''}
+      ${
+        r.label
+          ? `<text x="${cx}" y="${cy + 5}" text-anchor="middle"
+        font-size="${r.labelSize}" font-weight="600" fill="${r.labelColor}">${escapeXml(r.label)}</text>`
+          : ""
+      }
+      ${
+        r.subtitle
+          ? `<text x="${cx}" y="${cy + r.labelSize + 8}"
+        text-anchor="middle" font-size="10" fill="${r.labelColor}" opacity="0.7">${escapeXml(r.subtitle)}</text>`
+          : ""
+      }
     `;
     return g;
   }
-  if (baseEl.type === 'circle') {
+  if (baseEl.type === "circle") {
     const c = state as unknown as CircleElement;
     const g = makeG(baseEl.id, rotation, c.cx, c.cy);
     g.innerHTML = `
       <circle cx="${c.cx}" cy="${c.cy}" r="${c.r}" fill="${c.fill}" stroke="${c.stroke}"
         stroke-width="${c.strokeWidth}" />
-      ${c.label ? `<text x="${c.cx}" y="${c.cy + 5}" text-anchor="middle"
-        font-size="${c.labelSize}" font-weight="600" fill="${c.labelColor}">${escapeXml(c.label)}</text>` : ''}
+      ${
+        c.label
+          ? `<text x="${c.cx}" y="${c.cy + 5}" text-anchor="middle"
+        font-size="${c.labelSize}" font-weight="600" fill="${c.labelColor}">${escapeXml(c.label)}</text>`
+          : ""
+      }
     `;
     return g;
   }
-  if (baseEl.type === 'line') {
+  if (baseEl.type === "line") {
     const l = state as unknown as LineElement;
     const coords = resolveLineCoords(l, snap, byId);
     if (!coords) return null;
     const g = makeG(baseEl.id, 0, 0, 0);
     g.style.color = l.stroke;
-    const dash = l.strokeDasharray ? `stroke-dasharray="${l.strokeDasharray}"` : '';
-    const mStart = markerUrlFor(l.headStart, 'start');
-    const mEnd = markerUrlFor(l.headEnd, 'end');
-    const mAttr = `${mStart ? `marker-start="${mStart}"` : ''} ${mEnd ? `marker-end="${mEnd}"` : ''}`;
+    const dash = l.strokeDasharray
+      ? `stroke-dasharray="${l.strokeDasharray}"`
+      : "";
+    const mStart = markerUrlFor(l.headStart, "start");
+    const mEnd = markerUrlFor(l.headEnd, "end");
+    const mAttr = `${mStart ? `marker-start="${mStart}"` : ""} ${mEnd ? `marker-end="${mEnd}"` : ""}`;
     g.innerHTML = `<line x1="${coords.x1}" y1="${coords.y1}" x2="${coords.x2}" y2="${coords.y2}"
       stroke="currentColor" stroke-width="${l.strokeWidth}" ${dash} ${mAttr} />`;
     return g;
   }
-  if (baseEl.type === 'arrow') {
+  if (baseEl.type === "arrow") {
     const a = state as unknown as ArrowElement;
     const coords = resolveArrowCoords(a, snap, byId);
     if (!coords) return null;
     const g = makeG(baseEl.id, 0, 0, 0);
     g.style.color = a.stroke;
-    const dash = a.strokeDasharray ? `stroke-dasharray="${a.strokeDasharray}"` : '';
+    const dash = a.strokeDasharray
+      ? `stroke-dasharray="${a.strokeDasharray}"`
+      : "";
     const midX = (coords.x1 + coords.x2) / 2;
     const midY = (coords.y1 + coords.y2) / 2;
     const isCurved = (a.curvature || 0) !== 0;
-    const mStart = markerUrlFor(a.headStart ?? 'none', 'start');
-    const mEnd = markerUrlFor(a.headEnd ?? 'arrow', 'end');
-    const mAttr = `${mStart ? `marker-start="${mStart}"` : ''} ${mEnd ? `marker-end="${mEnd}"` : ''}`;
+    const mStart = markerUrlFor(a.headStart ?? "none", "start");
+    const mEnd = markerUrlFor(a.headEnd ?? "arrow", "end");
+    const mAttr = `${mStart ? `marker-start="${mStart}"` : ""} ${mEnd ? `marker-end="${mEnd}"` : ""}`;
     let pathHtml: string;
     if (isCurved) {
       const dx = coords.x2 - coords.x1;
@@ -1159,21 +1376,25 @@ function renderElement(
     }
     g.innerHTML = `
       ${pathHtml}
-      ${a.label ? `<g>
+      ${
+        a.label
+          ? `<g>
         <rect x="${midX - 80}" y="${midY - 11}" width="160" height="22" rx="4" fill="white" stroke="currentColor" stroke-opacity="0.4"/>
         <text x="${midX}" y="${midY + 4}" text-anchor="middle" font-size="12" font-family="ui-monospace, monospace" fill="${a.labelColor}">${escapeXml(a.label)}</text>
-      </g>` : ''}
+      </g>`
+          : ""
+      }
     `;
     return g;
   }
-  if (baseEl.type === 'text') {
+  if (baseEl.type === "text") {
     const t = state as unknown as TextElement;
     const g = makeG(baseEl.id, rotation, t.x, t.y);
     g.innerHTML = `<text x="${t.x}" y="${t.y}" font-size="${t.fontSize}" font-weight="${t.fontWeight}"
       fill="${t.color}" text-anchor="${t.textAnchor}">${escapeXml(t.content)}</text>`;
     return g;
   }
-  if (baseEl.type === 'image') {
+  if (baseEl.type === "image") {
     const i = state as unknown as ImageElement;
     const cx = i.x + i.width / 2;
     const cy = i.y + i.height / 2;
@@ -1181,7 +1402,7 @@ function renderElement(
     // v1 keeps sources in the document's asset registry, so the href is resolved rather
     // than read off the element.
     const resolved = resolveAsset(i.assetId, getDef()?.assets ?? {});
-    const href = resolved.status === 'resolved' ? (resolved.href ?? '') : '';
+    const href = resolved.status === "resolved" ? (resolved.href ?? "") : "";
     g.innerHTML = href
       ? `<image href="${escapeXml(href)}" x="${i.x}" y="${i.y}" width="${i.width}"
       height="${i.height}" preserveAspectRatio="${i.preserveAspectRatio}" opacity="${i.opacity}" />`
@@ -1189,16 +1410,18 @@ function renderElement(
       stroke="currentColor" stroke-width="1" stroke-dasharray="4 4" opacity="0.4" />`;
     return g;
   }
-  if (baseEl.type === 'path') {
-    const p = state as unknown as import('@shinkeonkim/clotho').PathElement;
+  if (baseEl.type === "path") {
+    const p = state as unknown as import("@shinkeonkim/clotho").PathElement;
     const g = makeG(baseEl.id, rotation, p.x, p.y);
-    const dash = p.strokeDasharray ? `stroke-dasharray="${p.strokeDasharray}"` : '';
-    const xform = (p.x || p.y) ? `transform="translate(${p.x} ${p.y})"` : '';
+    const dash = p.strokeDasharray
+      ? `stroke-dasharray="${p.strokeDasharray}"`
+      : "";
+    const xform = p.x || p.y ? `transform="translate(${p.x} ${p.y})"` : "";
     g.innerHTML = `<path d="${escapeXml(p.d)}" fill="${p.fill}" stroke="${p.stroke}" stroke-width="${p.strokeWidth}" ${dash} opacity="${p.opacity}" ${xform} pointer-events="all" />`;
     return g;
   }
-  if (baseEl.type === 'polygon') {
-    const pg = state as unknown as import('@shinkeonkim/clotho').PolygonElement;
+  if (baseEl.type === "polygon") {
+    const pg = state as unknown as import("@shinkeonkim/clotho").PolygonElement;
     const g = makeG(baseEl.id, rotation, 0, 0);
     g.innerHTML = `<polygon points="${escapeXml(pg.points)}" fill="${pg.fill}" stroke="${pg.stroke}" stroke-width="${pg.strokeWidth}" opacity="${pg.opacity}" pointer-events="all" />`;
     return g;
@@ -1206,8 +1429,13 @@ function renderElement(
   return null;
 }
 
-import { showPreview as _showPreview, hidePreview as _hidePreview } from './canvas-preview';
-export function showPreview(def: import('@shinkeonkim/clotho').AnimationDocument): void {
+import {
+  showPreview as _showPreview,
+  hidePreview as _hidePreview,
+} from "./canvas-preview";
+export function showPreview(
+  def: import("@shinkeonkim/clotho").AnimationDocument,
+): void {
   _showPreview(canvasEl, def);
 }
 export function hidePreview(): void {

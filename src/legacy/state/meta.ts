@@ -1,43 +1,49 @@
-import type { AnimationDocument } from '@shinkeonkim/clotho';
-import { encodeImageAsset, inlineAssetFromDataUri } from '@shinkeonkim/clotho';
-import { mutateDef, state } from './internals';
-import { getDef } from './core';
+import type { AnimationDocument } from "@shinkeonkim/clotho";
+import { encodeImageAsset, inlineAssetFromDataUri } from "@shinkeonkim/clotho";
+import { mutateDef, state } from "./internals";
+import { getDef } from "./core";
 
-export function updateMeta(patch: Partial<Pick<AnimationDocument, 'title' | 'description'>>): void {
-  const keys = Object.keys(patch).join(', ');
+export function updateMeta(
+  patch: Partial<Pick<AnimationDocument, "title" | "description">>,
+): void {
+  const keys = Object.keys(patch).join(", ");
   mutateDef(
     (def) => {
       Object.assign(def, patch);
     },
     `메타 수정: ${keys}`,
-    'meta',
+    "meta",
   );
 }
 
-export function updateCanvas(patch: Partial<AnimationDocument['canvas']>): void {
-  const keys = Object.keys(patch).join(', ');
+export function updateCanvas(
+  patch: Partial<AnimationDocument["canvas"]>,
+): void {
+  const keys = Object.keys(patch).join(", ");
   mutateDef(
     (def) => {
       def.canvas = { ...def.canvas, ...patch };
     },
     `캔버스: ${keys}`,
-    'canvas',
+    "canvas",
   );
 }
 
-export function updateSettings(patch: Partial<AnimationDocument['settings']>): void {
-  const keys = Object.keys(patch).join(', ');
+export function updateSettings(
+  patch: Partial<AnimationDocument["settings"]>,
+): void {
+  const keys = Object.keys(patch).join(", ");
   mutateDef(
     (def) => {
       def.settings = { ...def.settings, ...patch };
     },
     `설정: ${keys}`,
-    'settings',
+    "settings",
   );
 }
 
 export function uniqueElementId(type: string): string {
-  if (!state.def) return type + '-1';
+  if (!state.def) return type + "-1";
   const used = new Set(state.def.elements.map((e) => e.id));
   let i = 1;
   while (used.has(`${type}-${i}`)) i += 1;
@@ -45,7 +51,7 @@ export function uniqueElementId(type: string): string {
 }
 
 export function uniqueChapterId(): string {
-  if (!state.def) return 'chapter-1';
+  if (!state.def) return "chapter-1";
   const used = new Set(state.def.chapters.map((c) => c.id));
   let i = 1;
   while (used.has(`chapter-${i}`)) i += 1;
@@ -53,13 +59,12 @@ export function uniqueChapterId(): string {
 }
 
 export function uniqueEffectId(): string {
-  if (!state.def) return 'effect-1';
+  if (!state.def) return "effect-1";
   const used = new Set(state.def.effects.map((e) => e.id));
   let i = 1;
   while (used.has(`effect-${i}`)) i += 1;
   return `effect-${i}`;
 }
-
 
 /**
  * Register an external image URL as a document asset and return its id.
@@ -73,16 +78,16 @@ export function registerExternalAsset(url: string): string {
   const def = getDef();
   if (def) {
     for (const [id, asset] of Object.entries(def.assets)) {
-      if (asset.kind === 'external' && asset.url === url) return id;
+      if (asset.kind === "external" && asset.url === url) return id;
     }
   }
   const id = uniqueAssetId();
   mutateDef(
     (draft) => {
-      draft.assets[id] = { kind: 'external', url };
+      draft.assets[id] = { kind: "external", url };
     },
     `에셋 등록: ${id}`,
-    'asset',
+    "asset",
   );
   return id;
 }
@@ -96,7 +101,7 @@ export function registerInlineAsset(bytes: Uint8Array, mime: string): string {
       draft.assets[id] = asset;
     },
     `에셋 등록: ${id}`,
-    'asset',
+    "asset",
   );
   return id;
 }
@@ -125,7 +130,7 @@ export function registerDataUriAsset(dataUri: string): string {
       draft.assets[id] = inline;
     },
     `에셋 등록: ${id}`,
-    'asset',
+    "asset",
   );
   return id;
 }

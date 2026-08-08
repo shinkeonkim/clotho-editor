@@ -1,7 +1,7 @@
-import type { AnimationDocument, SnapshotMap } from '@shinkeonkim/clotho';
-import { computeSnapshot } from '@shinkeonkim/clotho';
-import type { Selection } from './types';
-import { emit, state, past, future } from './internals';
+import type { AnimationDocument, SnapshotMap } from "@shinkeonkim/clotho";
+import { computeSnapshot } from "@shinkeonkim/clotho";
+import type { Selection } from "./types";
+import { emit, state, past, future } from "./internals";
 
 export function isDraft(): boolean {
   return state.isDraft;
@@ -11,7 +11,7 @@ export function setDraft(def: AnimationDocument): void {
   state.def = def;
   state.dirty = false;
   state.isDraft = true;
-  state.selection = { kind: 'none' };
+  state.selection = { kind: "none" };
   state.currentTime = 0;
   past.length = 0;
   future.length = 0;
@@ -48,7 +48,7 @@ export function setDef(def: AnimationDocument | null, markDirty = false): void {
   state.def = def;
   state.dirty = markDirty;
   state.isDraft = false;
-  state.selection = { kind: 'none' };
+  state.selection = { kind: "none" };
   state.currentTime = 0;
   past.length = 0;
   future.length = 0;
@@ -66,14 +66,14 @@ export function setSelection(sel: Selection): void {
 }
 
 export function getSelectedElementIds(sel: Selection): string[] {
-  if (sel.kind === 'element') return [sel.elementId];
-  if (sel.kind === 'elements') return sel.elementIds;
+  if (sel.kind === "element") return [sel.elementId];
+  if (sel.kind === "elements") return sel.elementIds;
   return [];
 }
 
 export function isElementSelected(sel: Selection, id: string): boolean {
-  if (sel.kind === 'element') return sel.elementId === id;
-  if (sel.kind === 'elements') return sel.elementIds.includes(id);
+  if (sel.kind === "element") return sel.elementId === id;
+  if (sel.kind === "elements") return sel.elementIds.includes(id);
   return false;
 }
 
@@ -81,13 +81,13 @@ export function toggleSelectionFor(sel: Selection, id: string): Selection {
   const cur = getSelectedElementIds(sel);
   if (cur.includes(id)) {
     const next = cur.filter((x) => x !== id);
-    if (next.length === 0) return { kind: 'none' };
-    if (next.length === 1) return { kind: 'element', elementId: next[0] };
-    return { kind: 'elements', elementIds: next };
+    if (next.length === 0) return { kind: "none" };
+    if (next.length === 1) return { kind: "element", elementId: next[0] };
+    return { kind: "elements", elementIds: next };
   }
   const next = [...cur, id];
-  if (next.length === 1) return { kind: 'element', elementId: next[0] };
-  return { kind: 'elements', elementIds: next };
+  if (next.length === 1) return { kind: "element", elementId: next[0] };
+  return { kind: "elements", elementIds: next };
 }
 
 export function getCurrentSnapshot(): SnapshotMap {

@@ -129,8 +129,8 @@ Studio는 두 저장소에 거의 동일한 코드로 존재한다.
 
 ---
 
-## 5. 전제 조건
+## 6. 전제 조건
 
-`@shinkeonkim/clotho` 배포(clotho TASKS 6.7) 또는 워크스페이스 링크가 필요하다.
-현재 `package.json`은 `workspace:*`로 두었으므로, 두 저장소를 한 워크스페이스에 두거나
-`file:../clotho`로 바꿔서 개발할 수 있다.
+`@shinkeonkim/clotho`가 설치 가능해야 한다. 배포 전에는 `package.json`의 의존이
+`"file:../clotho"`이며, 이 상태로 typecheck·build·테스트가 전부 통과한다. 배포 후
+버전 지정으로 바꾼다.

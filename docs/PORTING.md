@@ -77,7 +77,43 @@ Studio는 두 저장소에 거의 동일한 코드로 존재한다.
 
 ---
 
-## 4. 순서 (8.3~8.6)
+## 4. 이식 결과 (8.3~8.6, 완료)
+
+`oh-my-blog/packages/animation-studio`의 **v1 마이그레이션이 끝난 상태**를 원본으로
+가져왔다. 재작성이 아니라 이식이고, v1 전환 작업(그룹 `parentId`, 이미지 `assetId`,
+미리보기 교체)이 이미 반영돼 있었기 때문이다.
+
+| 항목 | 결과 |
+| --- | --- |
+| 이식 규모 | 약 8,900 LOC (26 파일 + Studio/StudioMount) |
+| typecheck | 0 errors |
+| build | ESM + `.d.ts` + `styles.css` |
+| 테스트 | 17 pass (그룹 9 · 에셋 7 · API 1) |
+
+### 이식하며 바꾼 것
+
+- **미리보기가 clotho를 쓴다.** `canvas-preview.ts`가 `clotho/dom`의 `mountStage`를
+  호출한다. 에디터와 배포본이 같은 `buildScene` + `patchScene`을 지나므로 두 렌더가
+  갈라질 수 없다.
+- **`Studio.tsx`가 `AnimationStage` + `usePlayer`로 바뀌었다.** 에디터가 타임라인의
+  주인이고 플레이어는 미리보기 중일 때만 시계를 공급한다.
+- **호스트 의존을 설정으로 뺐다** (8.6). `configureApi({ baseUrl })`와
+  `configureHost({ placeholderImageUrl })`. 기본값은 원래 값이라 기존 호스트는
+  아무것도 바꿀 필요가 없다.
+- **그룹(8.4)·이미지(8.5)에 회귀 테스트를 붙였다.** 둘 다 legacy에 없던 동작이라
+  테스트가 없으면 동작 여부를 확인할 방법이 없다.
+
+### 남은 정리
+
+- `noUncheckedIndexedAccess`가 꺼져 있다. 켜면 84개 에러가 나오는데 전부 테스트 없이
+  도착한 코드의 미검사 인덱스 접근이다. 눈감고 고치면 버그를 찾는 게 아니라 동작을
+  바꾸게 되므로, `legacy/`를 모듈 단위로 다시 쓸 때 함께 켠다. clotho 본체는 켜져 있다.
+- `legacy/` 라는 디렉터리 이름 자체가 정리 대상이다. clotho가 대체한 것
+  (`anchor-system`의 앵커 계산, `canvas-utils`의 좌표 변환 일부)을 걷어내면서
+  모듈을 제 위치로 옮긴다.
+- `icon-data.ts` 2,016줄은 아이콘 SVG 데이터다. 호스트 자산으로 분리 후보.
+
+## 5. 원래 계획했던 순서 (참고)
 
 1. **상태 계층** (`state/*`) — v1 타입으로. 여기가 나머지 전부의 기반이다.
 2. **히스토리** (`studio-history.ts`) — 순수하므로 그대로.

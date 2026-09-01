@@ -43,6 +43,10 @@ Vite/Next.js/React SPA에 둘 다 삽입할 수 있고, 브라우저 전용 코�
 bun run visual-check
 ```
 
+npm 배포는 `vX.Y.Z` GitHub Release와 `.github/workflows/publish.yml`을 통해 수행한다.
+npm Trusted Publisher와 GitHub의 `npm-production` 승인 environment를 먼저 설정해야 하며,
+같은 버전의 `@kokoa/clotho`가 공개된 뒤 editor Release를 publish한다.
+
 ## 개발
 
 ```bash

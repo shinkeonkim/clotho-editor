@@ -46,6 +46,11 @@ export {
   mountEditorPlugins,
   validateEditorPlugin,
 } from "./plugin-host";
+export {
+  createTemplateEditorPlugin,
+  initialParameterValue,
+  parameterInputValue,
+} from "./template-editor-plugin";
 export type {
   DocumentImporter,
   EditorPluginContext,

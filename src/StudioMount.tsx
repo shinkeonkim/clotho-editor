@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
+import type { AnimationTemplate } from "@kokoa/clotho";
 import type { AnimationRepository } from "./repository";
 import { configureAnimationRepository } from "./legacy/api";
 import type { ImageUploadResolver } from "./legacy/studio-image-upload";
@@ -9,6 +10,7 @@ import type {
   EditorPluginDefinition,
   EditorPluginPermissionResolver,
 } from "./plugin-host";
+import { createTemplateEditorPlugin } from "./template-editor-plugin";
 // The stylesheet ships as a separate entry rather than an import, so a consumer that
 // only wants the headless pieces does not pull CSS into its bundle:
 //   import "@kokoa/clotho-editor/styles.css";
@@ -21,9 +23,12 @@ export interface StudioMountProps {
   importDocument?: DocumentImporter;
   plugins?: readonly EditorPluginDefinition[];
   resolvePluginPermissions?: EditorPluginPermissionResolver;
+  /** Trusted build-time templates shown as a parameter panel. */
+  templates?: readonly AnimationTemplate[];
 }
 
 const EMPTY_EDITOR_PLUGINS: readonly EditorPluginDefinition[] = [];
+const EMPTY_TEMPLATES: readonly AnimationTemplate[] = [];
 const DENY_PLUGIN_PERMISSIONS: EditorPluginPermissionResolver = () => ({});
 
 const CANVAS_PRESETS: {
@@ -253,8 +258,23 @@ export function StudioMount({
   importDocument,
   plugins = EMPTY_EDITOR_PLUGINS,
   resolvePluginPermissions = DENY_PLUGIN_PERMISSIONS,
+  templates = EMPTY_TEMPLATES,
 }: StudioMountProps): React.JSX.Element {
   const inited = useRef(false);
+  const mountedPlugins = useMemo(
+    () =>
+      templates.length > 0
+        ? [createTemplateEditorPlugin(templates), ...plugins]
+        : plugins,
+    [plugins, templates],
+  );
+  const permissionResolver = useMemo<EditorPluginPermissionResolver>(
+    () => (plugin) =>
+      plugin.id === "dev.clotho.templates"
+        ? { ui: true, documentRead: true, documentWrite: true }
+        : resolvePluginPermissions(plugin),
+    [resolvePluginPermissions],
+  );
 
   useEffect(() => {
     if (inited.current) return;
@@ -269,8 +289,8 @@ export function StudioMount({
         editorTitle,
         resolveImage,
         importDocument,
-        plugins,
-        resolvePluginPermissions,
+        plugins: mountedPlugins,
+        resolvePluginPermissions: permissionResolver,
       });
     });
     return () => {
@@ -283,10 +303,10 @@ export function StudioMount({
     editorTitle,
     importDocument,
     initialId,
-    plugins,
+    mountedPlugins,
     repository,
     resolveImage,
-    resolvePluginPermissions,
+    permissionResolver,
   ]);
 
   return (

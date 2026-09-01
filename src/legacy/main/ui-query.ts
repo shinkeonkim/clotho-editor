@@ -11,6 +11,8 @@ export function queryUi(): StudioUi | null {
   const status = $<HTMLElement>("studio-status");
   const saveBtn = $<HTMLButtonElement>("studio-save");
   const exportBtn = $<HTMLButtonElement>("studio-export-json");
+  const importBtn = $<HTMLButtonElement>("studio-import-json");
+  const importFileInput = $<HTMLInputElement>("studio-import-file");
   const deleteBtn = $<HTMLButtonElement>("studio-delete");
   const newBtn = $<HTMLButtonElement>("studio-new");
   const openBtn = $<HTMLButtonElement>("studio-open");
@@ -50,6 +52,8 @@ export function queryUi(): StudioUi | null {
     !status ||
     !saveBtn ||
     !exportBtn ||
+    !importBtn ||
+    !importFileInput ||
     !deleteBtn ||
     !newBtn ||
     !openBtn ||
@@ -91,6 +95,8 @@ export function queryUi(): StudioUi | null {
     status,
     saveBtn,
     exportBtn,
+    importBtn,
+    importFileInput,
     deleteBtn,
     newBtn,
     openBtn,

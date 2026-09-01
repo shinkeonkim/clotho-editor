@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import type { AnimationRepository } from "./repository";
+import { configureAnimationRepository } from "./legacy/api";
 // The stylesheet ships as a separate entry rather than an import, so a consumer that
 // only wants the headless pieces does not pull CSS into its bundle:
 //   import "@kokoa/clotho-editor/styles.css";
 
 export interface StudioMountProps {
   initialId?: string;
+  repository?: AnimationRepository;
 }
 
 const CANVAS_PRESETS: {
@@ -50,6 +53,8 @@ const SKELETON = `
       <span id="studio-status" class="studio-status" aria-live="polite">대기 중</span>
       <button type="button" id="studio-save" class="studio-btn studio-btn-primary" aria-label="저장" disabled>💾 저장 (⌘S)</button>
       <button type="button" id="studio-export-json" class="studio-btn" aria-label="현재 애니메이션을 JSON 파일로 내보내기" disabled>⬇ JSON 내보내기</button>
+      <button type="button" id="studio-import-json" class="studio-btn" aria-label="JSON 파일에서 애니메이션 가져오기">⬆ JSON 가져오기</button>
+      <input type="file" id="studio-import-file" accept="application/json,.json" hidden />
       <button type="button" id="studio-delete" class="studio-btn studio-btn-danger" aria-label="삭제" disabled>🗑 삭제</button>
     </div>
   </header>
@@ -112,7 +117,7 @@ const SKELETON = `
     </aside>
   </div>
 
-  <div id="studio-timeline-resizer" class="studio-timeline-resizer" role="separator" aria-orientation="horizontal" aria-label="타임라인 영역 크기 조정"></div>
+  <div id="studio-timeline-resizer" class="studio-timeline-resizer" role="separator" aria-orientation="horizontal" aria-label="타임라인 영역 크기 조정" tabindex="0"><span class="studio-timeline-resizer-grip" aria-hidden="true"><i></i><i></i><i></i></span></div>
   <footer class="studio-timeline-wrap">
     <div class="studio-timeline-header">
       <button type="button" id="studio-play" class="studio-btn">▶ Play</button>
@@ -217,12 +222,14 @@ const SKELETON = `
 
 export function StudioMount({
   initialId,
+  repository,
 }: StudioMountProps): React.JSX.Element {
   const inited = useRef(false);
 
   useEffect(() => {
     if (inited.current) return;
     inited.current = true;
+    if (repository) configureAnimationRepository(repository);
     let disposed = false;
     void import("./legacy/main").then(({ initStudio }) => {
       if (disposed) return;
@@ -233,7 +240,7 @@ export function StudioMount({
       document.body.classList.remove("editor-active");
       document.documentElement.classList.remove("editor-active");
     };
-  }, [initialId]);
+  }, [initialId, repository]);
 
   return (
     <section className="studio-shell w-full" data-pagefind-ignore="all">

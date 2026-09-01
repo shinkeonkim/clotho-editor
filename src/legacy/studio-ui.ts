@@ -5,6 +5,8 @@ export interface StudioUi {
   status: HTMLElement;
   saveBtn: HTMLButtonElement;
   exportBtn: HTMLButtonElement;
+  importBtn: HTMLButtonElement;
+  importFileInput: HTMLInputElement;
   deleteBtn: HTMLButtonElement;
   newBtn: HTMLButtonElement;
   openBtn: HTMLButtonElement;

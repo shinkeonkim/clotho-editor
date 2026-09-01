@@ -5,6 +5,7 @@ import {
   getSelection,
   isDirty,
   isDraft,
+  markClean,
   setDef,
   setSelection,
   subscribe,
@@ -46,6 +47,8 @@ import {
 import { isPlaying, stopPreview, togglePlay } from "./main/playback";
 import { bindKeyboardShortcuts } from "./main/keyboard-shortcuts";
 import { downloadAnimationJson } from "../export-json";
+import { animationDocumentSchema } from "@kokoa/clotho";
+import { importAnimation } from "./api";
 
 export { getVisibleElementIds } from "./main/selection-nav";
 
@@ -228,6 +231,28 @@ export function initStudio(opts?: { initialId?: string }): void {
     downloadAnimationJson(def);
     setStatus(ui, `${def.id}.json 파일을 내려받았습니다.`, "ok");
   });
+  ui.importBtn.addEventListener("click", () => ui.importFileInput.click());
+  ui.importFileInput.addEventListener("change", () => {
+    const file = ui.importFileInput.files?.[0];
+    ui.importFileInput.value = "";
+    if (!file) return;
+    void file
+      .text()
+      .then((text) => animationDocumentSchema.parse(JSON.parse(text)))
+      .then((def) => importAnimation(def))
+      .then((def) => {
+        setDef(def);
+        markClean();
+        setStatus(ui, `${def.id}.json 파일을 가져왔습니다.`, "ok");
+      })
+      .catch((error: unknown) => {
+        setStatus(
+          ui,
+          `JSON 가져오기 실패: ${error instanceof Error ? error.message : String(error)}`,
+          "error",
+        );
+      });
+  });
   ui.deleteBtn.addEventListener("click", () => void deleteCurrent(ui));
   ui.undoBtn.addEventListener("click", () => undo());
   ui.redoBtn.addEventListener("click", () => redo());
@@ -258,6 +283,11 @@ export function initStudio(opts?: { initialId?: string }): void {
     if (dialog === ui.newDialog) dialog.removeAttribute("data-mode");
   });
 
+  document.addEventListener("click", (e) => {
+    const dialog = e.target;
+    if (dialog instanceof HTMLDialogElement && dialog.open) dialog.close();
+  });
+
   bindKeyboardShortcuts(ui);
 
   window.addEventListener("beforeunload", (e) => {
@@ -279,6 +309,9 @@ function reflectState(ui: StudioUi): void {
   ui.redoBtn.disabled = !canRedo();
   const def = getDef();
   if (def) {
+    ui.titleInput.disabled = false;
+    ui.canvasWidthInput.disabled = false;
+    ui.canvasHeightInput.disabled = false;
     if (document.activeElement !== ui.titleInput) {
       ui.titleInput.value = def.title;
     }
@@ -295,6 +328,9 @@ function reflectState(ui: StudioUi): void {
     ui.exportBtn.disabled = false;
     ui.deleteBtn.disabled = isDraft();
   } else {
+    ui.titleInput.disabled = true;
+    ui.canvasWidthInput.disabled = true;
+    ui.canvasHeightInput.disabled = true;
     ui.titleInput.value = "";
     ui.canvasWidthInput.value = "";
     ui.canvasHeightInput.value = "";

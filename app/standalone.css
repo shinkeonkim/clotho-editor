@@ -10,4 +10,26 @@ body,
 
 body {
   min-width: 1024px;
+  --color-bg: #f1f5f9;
+  --color-surface: #ffffff;
+  --color-surface-elevated: #f8fafc;
+  --color-border: #cbd5e1;
+  --color-fg: #0f172a;
+  --color-fg-muted: #64748b;
+  --color-accent: #4f46e5;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  background: var(--color-bg);
+  color: var(--color-fg);
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    --color-bg: #0f172a;
+    --color-surface: #111827;
+    --color-surface-elevated: #1f2937;
+    --color-border: #475569;
+    --color-fg: #f8fafc;
+    --color-fg-muted: #94a3b8;
+    --color-accent: #818cf8;
+  }
 }

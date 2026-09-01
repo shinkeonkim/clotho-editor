@@ -30,6 +30,17 @@ configureHost({ placeholderImageUrl: "/uploads/placeholder.png" });
 
 `Studio`는 문서를 저장하는 방법을 사용하는 application에서 정할 수 있는 내장형 컴포넌트다. 기존 API 경로를 그대로 사용하는 완성된 화면이 필요하면 `<StudioMount initialId="document-id" />`를 사용한다. 두 컴포넌트 모두 Vite, Next.js, React SPA에 넣을 수 있으며 브라우저에서만 필요한 코드는 컴포넌트가 화면에 연결된 뒤 초기화된다.
 
+`StudioMount`의 저장 방식은 `AnimationRepository`로 교체할 수 있다. 서버에서 관리하는 application은 `configureApi`로 기존 HTTP API를 연결할 수 있고, 독립 실행형 편집기는 `createLocalStorageRepository`를 주입할 수 있다. 별도 데이터베이스나 Git 기반 저장소를 사용하려면 `list`, `load`, `create`, `save`, `delete`를 구현한 repository를 전달하면 된다.
+
+```tsx
+const repository = createLocalStorageRepository({
+  storageKey: "my-editor.animations",
+  examples,
+});
+
+<StudioMount repository={repository} />;
+```
+
 두 에디터의 `JSON 내보내기` 버튼은 현재 문서를 검증한 뒤 `{문서 ID}.json` 파일로 내려받는다. 화면을 직접 만들 때는 `animationDocumentToJson`, `animationDocumentFileName`, `downloadAnimationJson`을 사용할 수 있다.
 
 재생 설정 화면에서는 현재 단계 설명과 전체 단계 목록을 표시할지 선택할 수 있다. 단계 목록의 위치도 `좌측 | 우측 | 상단 | 하단` 중에서 고를 수 있다. 네 가지 배치를 한 화면에서 확인하려면 다음 명령을 실행한다.

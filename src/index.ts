@@ -30,5 +30,12 @@ export {
 // Host wiring: where documents are stored and which assets the editor reaches for.
 // Both default to what the original Studio used, so an existing host needs no change.
 export { configureApi, apiBaseUrl } from "./legacy/api";
+export { configureAnimationRepository } from "./legacy/api";
+export { createLocalStorageRepository } from "./repository";
+export type {
+  AnimationRepository,
+  AnimationSummary,
+  LocalStorageRepositoryOptions,
+} from "./repository";
 export { configureHost, placeholderImageUrl } from "./legacy/host";
 export type { HostOptions } from "./legacy/host";

@@ -1,4 +1,6 @@
 import { animationDocumentSchema, type AnimationDocument } from "@kokoa/clotho";
+import type { AnimationRepository, AnimationSummary } from "../repository";
+export type { AnimationRepository, AnimationSummary } from "../repository";
 
 // Where documents live is the host's business, not the editor's.
 //
@@ -11,6 +13,7 @@ let BASE = DEFAULT_BASE;
 /** Point the editor at the host's animation endpoints. Call once at startup. */
 export function configureApi(options: { baseUrl?: string }): void {
   if (options.baseUrl) BASE = options.baseUrl.replace(/\/+$/, "");
+  repository = httpRepository;
 }
 
 /** The base currently in use, for hosts that need to build matching links. */
@@ -19,13 +22,6 @@ export function apiBaseUrl(): string {
 }
 
 const revisions = new Map<string, number>();
-
-export interface AnimationSummary {
-  id: string;
-  title: string;
-  description: string;
-  updatedAt?: string;
-}
 
 export class MissingAnimationRevisionError extends Error {}
 export class AnimationStudioApiError extends Error {}
@@ -60,76 +56,105 @@ function parseAnimationEnvelope(value: unknown): {
   };
 }
 
-export async function listAnimations(): Promise<AnimationSummary[]> {
-  const res = await fetch(BASE);
-  const data = await readJson(res);
-  if (!isRecord(data) || !Array.isArray(data.items))
-    throw new TypeError("Animation list response is malformed");
-  return data.items.map((item) => {
-    if (
-      !isRecord(item) ||
-      typeof item.id !== "string" ||
-      typeof item.title !== "string" ||
-      typeof item.description !== "string"
-    ) {
-      throw new TypeError("Animation summary is malformed");
-    }
-    return {
-      id: item.id,
-      title: item.title,
-      description: item.description,
-      ...(typeof item.updatedAt === "string"
-        ? { updatedAt: item.updatedAt }
-        : {}),
-    };
-  });
+const httpRepository: AnimationRepository = {
+  list: async (): Promise<AnimationSummary[]> => {
+    const res = await fetch(BASE);
+    const data = await readJson(res);
+    if (!isRecord(data) || !Array.isArray(data.items))
+      throw new TypeError("Animation list response is malformed");
+    return data.items.map((item) => {
+      if (
+        !isRecord(item) ||
+        typeof item.id !== "string" ||
+        typeof item.title !== "string" ||
+        typeof item.description !== "string"
+      ) {
+        throw new TypeError("Animation summary is malformed");
+      }
+      return {
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        ...(typeof item.updatedAt === "string"
+          ? { updatedAt: item.updatedAt }
+          : {}),
+      };
+    });
+  },
+
+  load: async (id: string): Promise<AnimationDocument> => {
+    const res = await fetch(`${BASE}/${encodeURIComponent(id)}`);
+    const data = parseAnimationEnvelope(await readJson(res));
+    revisions.set(data.def.id, data.revision);
+    return data.def;
+  },
+
+  save: async (def: AnimationDocument): Promise<AnimationDocument> => {
+    const revision = revisions.get(def.id);
+    if (revision === undefined)
+      throw new MissingAnimationRevisionError(
+        `Animation '${def.id}' has no loaded revision`,
+      );
+    const res = await fetch(`${BASE}/${encodeURIComponent(def.id)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ def, revision }),
+    });
+    const data = parseAnimationEnvelope(await readJson(res));
+    revisions.set(data.def.id, data.revision);
+    return data.def;
+  },
+
+  create: async (id: string, title: string): Promise<AnimationDocument> => {
+    const res = await fetch(BASE, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, title }),
+    });
+    const data = parseAnimationEnvelope(await readJson(res));
+    revisions.set(data.def.id, data.revision);
+    return data.def;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    const res = await fetch(`${BASE}/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    });
+    await readJson(res);
+    revisions.delete(id);
+  },
+};
+
+let repository: AnimationRepository = httpRepository;
+
+export function configureAnimationRepository(next: AnimationRepository): void {
+  repository = next;
 }
 
-export async function loadAnimation(id: string): Promise<AnimationDocument> {
-  const res = await fetch(`${BASE}/${encodeURIComponent(id)}`);
-  const data = parseAnimationEnvelope(await readJson(res));
-  revisions.set(data.def.id, data.revision);
-  return data.def;
-}
-
-export async function saveAnimation(
+export const listAnimations = (): Promise<AnimationSummary[]> =>
+  repository.list();
+export const loadAnimation = (id: string): Promise<AnimationDocument> =>
+  repository.load(id);
+export const saveAnimation = (
   def: AnimationDocument,
-): Promise<AnimationDocument> {
-  const revision = revisions.get(def.id);
-  if (revision === undefined)
-    throw new MissingAnimationRevisionError(
-      `Animation '${def.id}' has no loaded revision`,
-    );
-  const res = await fetch(`${BASE}/${encodeURIComponent(def.id)}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ def, revision }),
-  });
-  const data = parseAnimationEnvelope(await readJson(res));
-  revisions.set(data.def.id, data.revision);
-  return data.def;
-}
-
-export async function createAnimation(
+): Promise<AnimationDocument> => repository.save(def);
+export const createAnimation = (
   id: string,
   title: string,
-): Promise<AnimationDocument> {
-  const res = await fetch(BASE, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id, title }),
-  });
-  const data = parseAnimationEnvelope(await readJson(res));
-  revisions.set(data.def.id, data.revision);
-  return data.def;
-}
+): Promise<AnimationDocument> => repository.create(id, title);
+export const deleteAnimation = (id: string): Promise<void> =>
+  repository.delete(id);
 
-export async function deleteAnimation(id: string): Promise<void> {
-  const res = await fetch(`${BASE}/${encodeURIComponent(id)}`, {
-    method: "DELETE",
-  });
-  await readJson(res);
-  revisions.delete(id);
+export async function importAnimation(
+  def: AnimationDocument,
+): Promise<AnimationDocument> {
+  const parsed = animationDocumentSchema.parse(def);
+  try {
+    await repository.load(parsed.id);
+  } catch {
+    await repository.create(parsed.id, parsed.title || parsed.id);
+  }
+  return repository.save(parsed);
 }
 
 export async function duplicateAnimation(

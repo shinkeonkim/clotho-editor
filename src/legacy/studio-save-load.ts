@@ -25,7 +25,12 @@ export function startDraft(): void {
     .replace(/[-:.TZ]/g, "")
     .slice(0, 14);
   const id = `draft-${stamp}`;
-  const def = animationDocumentSchema.parse({ id, title: "", description: "" });
+  const def = animationDocumentSchema.parse({
+    clothoVersion: 1,
+    id,
+    title: "",
+    description: "",
+  });
   setDraft(def);
 }
 

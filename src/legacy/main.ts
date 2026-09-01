@@ -197,6 +197,10 @@ export function initStudio(
 
   initPalette();
   initHistoryPanel();
+  // Plugin views are allowed to read the active document as soon as they mount.
+  // Keep that lifecycle contract even when the host did not provide an initial ID:
+  // the untitled draft is the editor's real initial document, not an empty gap.
+  if (!getDef()) startDraft();
   const pluginMount = mountEditorPlugins(
     ui.app,
     opts.plugins ?? [],
@@ -346,8 +350,7 @@ export function initStudio(
 
   if (opts.initialId) {
     void loadAnimation(ui, opts.initialId);
-  } else if (!getDef()) {
-    startDraft();
+  } else if (isDraft()) {
     setStatus(ui, "임시 작업 (Draft), 저장 시 ID/제목 입력", "ok");
   } else {
     setStatus(ui, "준비됨", "ok");

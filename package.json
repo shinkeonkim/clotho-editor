@@ -47,7 +47,7 @@
     "release:check": "bun scripts/release-check.ts"
   },
   "peerDependencies": {
-    "@kokoa/clotho": "^0.1.0",
+    "@kokoa/clotho": "^0.1.2",
     "react": "^18.0.0 || ^19.0.0",
     "react-dom": "^18.0.0 || ^19.0.0"
   },
@@ -60,7 +60,7 @@
     }
   },
   "devDependencies": {
-    "@kokoa/clotho": "file:../clotho",
+    "@kokoa/clotho": "^0.1.2",
     "@types/bun": "^1.1.14",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",

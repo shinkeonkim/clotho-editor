@@ -32,7 +32,8 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && bun run app:build",
+    "build:package": "tsup",
     "dev": "tsup --watch",
     "visual-check": "bun examples/visual-check.html",
     "test": "bun test",

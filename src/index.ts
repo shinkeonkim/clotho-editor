@@ -41,3 +41,20 @@ export type {
 export { configureHost, placeholderImageUrl } from "./legacy/host";
 export type { HostOptions } from "./legacy/host";
 export type { ImageUploadResolver } from "./legacy/studio-image-upload";
+export {
+  createEditorPluginContext,
+  mountEditorPlugins,
+  validateEditorPlugin,
+} from "./plugin-host";
+export type {
+  DocumentImporter,
+  EditorPluginContext,
+  EditorPluginDefinition,
+  EditorPluginHostState,
+  EditorPluginManifestLike,
+  EditorPluginMountResult,
+  EditorPluginPermissionResolver,
+  EditorPluginPermissions,
+  EditorPluginSlot,
+  EditorPluginView,
+} from "./plugin-host";

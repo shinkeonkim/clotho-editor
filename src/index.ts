@@ -51,6 +51,7 @@ export {
   initialParameterValue,
   parameterInputValue,
 } from "./template-editor-plugin";
+export { createVisualRegressionPlugin } from "./visual-regression-plugin";
 export type {
   DocumentImporter,
   EditorPluginContext,

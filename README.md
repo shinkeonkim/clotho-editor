@@ -57,11 +57,13 @@ bun run build
 
 ```bash
 bun run app:dev
-bun run app:build
-bun run worker:dev
+bun run build:app
+bun run dev:cloudflare
 ```
 
-실제 배포가 필요할 때만 `bun run worker:deploy`를 실행한다. 이 저장소의 설정에는 custom domain을 넣지 않았으므로 Cloudflare Dashboard의 해당 Worker에서 `clotho-editor.shinkeonkim.com`을 Custom Domain으로 연결하면 된다. Dashboard에서 관리한 설정이 이후 CLI 배포로 덮어써지지 않도록 `routes` 항목도 두지 않았다.
+Cloudflare Dashboard의 Build command에는 `bun run build:app`, Deploy command에는 `npx wrangler deploy`를 지정한다. 로컬에서 직접 배포할 때만 `bun run deploy:cloudflare`를 실행한다. npm 패키지를 만드는 `bun run build`와 Cloudflare 앱을 만드는 `bun run build:app`은 서로 독립적이다.
+
+이 저장소의 설정에는 custom domain을 넣지 않았으므로 Cloudflare Dashboard의 해당 Worker에서 `clotho-editor.shinkeonkim.com`을 Custom Domain으로 연결하면 된다. Dashboard에서 관리한 설정이 이후 CLI 배포로 덮어써지지 않도록 `routes` 항목도 두지 않았다.
 
 ## 라이선스
 

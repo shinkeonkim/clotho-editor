@@ -32,8 +32,7 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "tsup && bun run app:build",
-    "build:package": "tsup",
+    "build": "tsup",
     "dev": "tsup --watch",
     "visual-check": "bun examples/visual-check.html",
     "test": "bun test",
@@ -42,9 +41,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "app:dev": "bun app/index.html",
-    "app:build": "bun build ./app/index.html --outdir ./worker-dist --target browser --minify",
-    "worker:dev": "bun run app:build && wrangler dev",
-    "worker:deploy": "bun run app:build && wrangler deploy",
+    "build:app": "bun build ./app/index.html --outdir ./worker-dist --target browser --minify",
+    "dev:cloudflare": "bun run build:app && wrangler dev",
+    "deploy:cloudflare": "bun run build:app && wrangler deploy",
     "release:check": "bun scripts/release-check.ts"
   },
   "peerDependencies": {

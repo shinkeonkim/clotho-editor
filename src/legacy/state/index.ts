@@ -57,6 +57,7 @@ export {
   updateMeta,
   updateLocales,
   updateData,
+  updateResponsive,
   updateCanvas,
   updateSettings,
   uniqueElementId,

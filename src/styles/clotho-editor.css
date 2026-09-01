@@ -2095,3 +2095,30 @@ body.studio-player-popout #clotho-player-preview {
   border-radius: 0.5rem;
   background: var(--color-surface-raised, var(--color-surface));
 }
+
+.studio-responsive-grid {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.65rem;
+}
+
+.studio-responsive-grid figure {
+  margin: 0;
+  padding: 0.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.45rem;
+  overflow: hidden;
+  background: var(--color-canvas);
+}
+
+.studio-responsive-grid figcaption {
+  margin-bottom: 0.35rem;
+  color: var(--color-fg-muted);
+  font-size: 0.7rem;
+}
+
+.studio-responsive-grid svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}

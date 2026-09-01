@@ -37,6 +37,18 @@ export function updateData(data: Record<string, DataValue>): void {
   );
 }
 
+export function updateResponsive(
+  responsive: NonNullable<AnimationDocument["responsive"]>,
+): void {
+  mutateDef(
+    (def) => {
+      def.responsive = responsive;
+    },
+    "Responsive Stage 변경",
+    "canvas",
+  );
+}
+
 export function updateCanvas(
   patch: Partial<AnimationDocument["canvas"]>,
 ): void {

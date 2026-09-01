@@ -23,6 +23,7 @@ import {
   updateMeta,
   updateLocales,
   updateData,
+  updateResponsive,
   updateSettings,
   createLayout,
   detachFromLayout,
@@ -301,6 +302,11 @@ function renderInner(): void {
         "샘플 데이터 (JSON)",
         "meta.data",
         JSON.stringify(def.data, null, 2),
+      ),
+      textareaField(
+        "Responsive variants (JSON)",
+        "meta.responsive",
+        JSON.stringify(def.responsive ?? [], null, 2),
       ),
       `<p class="studio-props-empty">JSON Pointer로 요소 속성에 연결합니다. 이 데이터는 미리보기와 내보내기에 함께 저장됩니다.</p>`,
     ].join("");
@@ -919,6 +925,16 @@ function apply(key: string, value: string | number | boolean): void {
         updateData(parsed as Record<string, DataValue>);
     } catch {
       /* keep the last valid sample while JSON is being edited */
+    }
+  } else if (key === "meta.responsive") {
+    try {
+      const parsed = JSON.parse(String(value)) as unknown;
+      if (Array.isArray(parsed))
+        updateResponsive(
+          parsed as NonNullable<AnimationDocument["responsive"]>,
+        );
+    } catch {
+      /* keep the last valid variants while JSON is being edited */
     }
   } else if (key === "meta.duration") updateDuration(Number(value));
   else if (key === "canvas.width") updateCanvas({ width: Number(value) });

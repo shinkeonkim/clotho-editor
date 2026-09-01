@@ -23,7 +23,9 @@ beforeEach(() => {
 describe("데이터 연결 편집", () => {
   test("sample data와 binding을 원본 문서에 보존하고 canvas snapshot에 적용한다", () => {
     updateElementBase("size", {
-      bindings: [{ property: "content", pointer: "/queue/size", formatter: "string" }],
+      bindings: [
+        { property: "content", pointer: "/queue/size", formatter: "string" },
+      ],
     });
     updateData({ queue: { size: 7 } });
 

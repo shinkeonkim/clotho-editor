@@ -58,6 +58,11 @@ export {
   replaceStoryNodeDocument,
 } from "./story-editor-plugin";
 export type { StoryEditorOptions } from "./story-editor-plugin";
+export {
+  createResponsiveInspectorPlugin,
+  addDefaultResponsiveVariants,
+  RESPONSIVE_VIEWPORTS,
+} from "./responsive-inspector-plugin";
 export type {
   DocumentImporter,
   EditorPluginContext,

@@ -66,6 +66,52 @@ function parseLocales(value: string): string[] {
     });
 }
 
+function annotationTokens(...values: string[]): string[] {
+  const tokens = values.flatMap((value) =>
+    [...value.matchAll(/\{([a-z][a-z0-9_-]*)\}/g)].map((match) => match[1]!),
+  );
+  return [...new Set(tokens)];
+}
+
+function annotationReferenceFields(
+  keyPrefix: "el" | "chapter",
+  values: string[],
+  references: Readonly<Record<string, string | readonly string[]>> = {},
+): string[] {
+  const tokens = annotationTokens(...values);
+  if (tokens.length === 0) {
+    return [
+      '<p class="studio-props-empty studio-annotation-hint">문구에 {token}을 입력하면 장면 요소와 연결할 수 있습니다.</p>',
+    ];
+  }
+  return [
+    '<p class="studio-props-empty studio-annotation-hint">대상 element id를 쉼표로 구분하세요. 여러 요소를 함께 강조할 수 있습니다.</p>',
+    ...tokens.map((token) => {
+      const target = references[token];
+      const value =
+        typeof target === "string" ? target : (target?.join(", ") ?? "");
+      return textField(
+        `{${token}} 대상`,
+        `${keyPrefix}.reference.${token}`,
+        value,
+      );
+    }),
+  ];
+}
+
+function parseReferenceTargets(value: string): string | string[] | undefined {
+  const targets = [
+    ...new Set(
+      value
+        .split(",")
+        .map((id) => id.trim())
+        .filter(Boolean),
+    ),
+  ];
+  if (targets.length === 0) return undefined;
+  return targets.length === 1 ? targets[0] : targets;
+}
+
 export function initProperties(root: HTMLElement): void {
   panelEl = root;
   subscribe(render);
@@ -349,12 +395,18 @@ function renderInner(): void {
       setSelection({ kind: "none" });
       return;
     }
+    const chapterReferences = (
+      ch as typeof ch & {
+        references?: Record<string, string | string[]>;
+      }
+    ).references;
     panelEl.innerHTML = `
       ${timeHint}
       <div class="studio-props-header"><span class="studio-props-header-title">${escapeHtml(ch.id)}</span><span class="studio-props-header-type">chapter</span></div>
       ${numberField("time (ms)", "chapter.time", ch.time, 50)}
       ${textField("label", "chapter.label", ch.label)}
       ${textField("subtitle", "chapter.subtitle", ch.subtitle)}
+      ${annotationReferenceFields("chapter", [ch.label, ch.subtitle], chapterReferences).join("")}
       <button type="button" class="studio-btn studio-btn-danger" data-delete-chapter style="margin-top:0.6rem">🗑 chapter 삭제</button>
     `;
     return;
@@ -585,6 +637,7 @@ function renderBaseFields(
     const localized = el as AnimationElement & {
       locales?: string[];
       translations?: Record<string, string>;
+      references?: Record<string, string | string[]>;
     };
     const documentLocales =
       (def as AnimationDocument & { locales?: string[] }).locales ??
@@ -603,6 +656,11 @@ function renderBaseFields(
           `el.translation.${locale}`,
           localized.translations?.[locale] ?? "",
         ),
+      ),
+      ...annotationReferenceFields(
+        "el",
+        [el.content, ...Object.values(localized.translations ?? {})],
+        localized.references,
       ),
     ];
   })();
@@ -765,6 +823,18 @@ function apply(key: string, value: string | number | boolean): void {
       updateElementBase(sel.elementId, { translations });
       return;
     }
+    if (prop.startsWith("reference.") && el.type === "text") {
+      const token = prop.slice("reference.".length);
+      const annotated = el as AnimationElement & {
+        references?: Record<string, string | string[]>;
+      };
+      const references = { ...(annotated.references ?? {}) };
+      const targets = parseReferenceTargets(String(value));
+      if (targets) references[token] = targets;
+      else delete references[token];
+      updateElementBase(sel.elementId, { references });
+      return;
+    }
     if (prop === "polygonSides" && el.type === "polygon") {
       const points = el.points
         .trim()
@@ -810,6 +880,18 @@ function apply(key: string, value: string | number | boolean): void {
     updateChapter(sel.chapterId, { label: String(value) });
   } else if (key === "chapter.subtitle" && sel.kind === "chapter") {
     updateChapter(sel.chapterId, { subtitle: String(value) });
+  } else if (key.startsWith("chapter.reference.") && sel.kind === "chapter") {
+    const chapter = def.chapters.find(({ id }) => id === sel.chapterId);
+    if (!chapter) return;
+    const token = key.slice("chapter.reference.".length);
+    const annotated = chapter as typeof chapter & {
+      references?: Record<string, string | string[]>;
+    };
+    const references = { ...(annotated.references ?? {}) };
+    const targets = parseReferenceTargets(String(value));
+    if (targets) references[token] = targets;
+    else delete references[token];
+    updateChapter(sel.chapterId, { references } as Partial<typeof chapter>);
   } else if (key.startsWith("effect.") && sel.kind === "effect") {
     const prop = key.slice(7);
     const patch: Record<string, unknown> = {};
@@ -880,6 +962,7 @@ function onClick(e: Event): void {
       time: getCurrentTime(),
       label: `Chapter ${id.split("-")[1]}`,
       subtitle: "",
+      references: {},
     });
     return;
   }

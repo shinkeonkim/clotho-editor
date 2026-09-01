@@ -81,6 +81,7 @@ export function Studio({ initial, onSave }: StudioProps): React.JSX.Element {
       rotation: 0,
       content: "New",
       translations: {},
+      references: {},
       fontSize: 24,
       color: "#4f46e5",
       textAnchor: "start",

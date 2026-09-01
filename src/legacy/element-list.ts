@@ -331,6 +331,7 @@ export function makeDefaultElement(
         y: cy,
         content: id,
         translations: {},
+        references: {},
         fontSize: 18,
         fontWeight: 400,
         color: "#18181b",

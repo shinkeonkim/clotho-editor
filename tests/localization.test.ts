@@ -3,6 +3,7 @@ import { animationDocumentSchema } from "@kokoa/clotho";
 import {
   getDef,
   setDef,
+  updateChapter,
   updateElementBase,
   updateLocales,
 } from "../src/legacy/state";
@@ -22,6 +23,7 @@ beforeEach(() => {
           content: "안녕하세요",
         },
       ],
+      chapters: [{ id: "insert", time: 0, label: "{queue}에 삽입" }],
     }),
   );
 });
@@ -54,6 +56,27 @@ describe("text 국제화 편집", () => {
     if (text.type !== "text") return;
     expect(text.locales).toContain("fr");
     expect(text.translations.ja).toBe("こんにちは");
+    expect(animationDocumentSchema.safeParse(def).success).toBe(true);
+  });
+
+  test("text와 chapter의 주석 대상을 저장한다", () => {
+    updateElementBase("greeting", {
+      content: "{queue}를 확인합니다",
+      references: { queue: "queue-box" },
+    });
+    updateChapter("insert", {
+      references: { queue: ["queue-box", "front-node"] },
+    });
+
+    const def = getDef()!;
+    const text = def.elements[0];
+    expect(text.type).toBe("text");
+    if (text.type !== "text") return;
+    expect(text.references.queue).toBe("queue-box");
+    expect(def.chapters[0]?.references.queue).toEqual([
+      "queue-box",
+      "front-node",
+    ]);
     expect(animationDocumentSchema.safeParse(def).success).toBe(true);
   });
 });

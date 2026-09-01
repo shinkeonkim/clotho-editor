@@ -52,6 +52,12 @@ export {
   parameterInputValue,
 } from "./template-editor-plugin";
 export { createVisualRegressionPlugin } from "./visual-regression-plugin";
+export {
+  createStoryEditorPlugin,
+  appendStoryEdge,
+  replaceStoryNodeDocument,
+} from "./story-editor-plugin";
+export type { StoryEditorOptions } from "./story-editor-plugin";
 export type {
   DocumentImporter,
   EditorPluginContext,

@@ -11,6 +11,10 @@ import type {
   EditorPluginPermissionResolver,
 } from "./plugin-host";
 import { createTemplateEditorPlugin } from "./template-editor-plugin";
+import {
+  createStoryEditorPlugin,
+  type StoryEditorOptions,
+} from "./story-editor-plugin";
 // The stylesheet ships as a separate entry rather than an import, so a consumer that
 // only wants the headless pieces does not pull CSS into its bundle:
 //   import "@kokoa/clotho-editor/styles.css";
@@ -25,6 +29,8 @@ export interface StudioMountProps {
   resolvePluginPermissions?: EditorPluginPermissionResolver;
   /** Trusted build-time templates shown as a parameter panel. */
   templates?: readonly AnimationTemplate[];
+  /** Optional multi-document Story Graph edited alongside the active node timeline. */
+  story?: StoryEditorOptions;
 }
 
 const EMPTY_EDITOR_PLUGINS: readonly EditorPluginDefinition[] = [];
@@ -259,18 +265,20 @@ export function StudioMount({
   plugins = EMPTY_EDITOR_PLUGINS,
   resolvePluginPermissions = DENY_PLUGIN_PERMISSIONS,
   templates = EMPTY_TEMPLATES,
+  story,
 }: StudioMountProps): React.JSX.Element {
   const inited = useRef(false);
   const mountedPlugins = useMemo(
-    () =>
-      templates.length > 0
-        ? [createTemplateEditorPlugin(templates), ...plugins]
-        : plugins,
-    [plugins, templates],
+    () => [
+      ...(templates.length > 0 ? [createTemplateEditorPlugin(templates)] : []),
+      ...(story ? [createStoryEditorPlugin(story)] : []),
+      ...plugins,
+    ],
+    [plugins, templates, story],
   );
   const permissionResolver = useMemo<EditorPluginPermissionResolver>(
     () => (plugin) =>
-      plugin.id === "dev.clotho.templates"
+      plugin.id === "dev.clotho.templates" || plugin.id === "dev.clotho.story"
         ? { ui: true, documentRead: true, documentWrite: true }
         : resolvePluginPermissions(plugin),
     [resolvePluginPermissions],

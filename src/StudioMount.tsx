@@ -1,9 +1,20 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
+import type { AnimationTemplate } from "@kokoa/clotho";
 import type { AnimationRepository } from "./repository";
 import { configureAnimationRepository } from "./legacy/api";
 import type { ImageUploadResolver } from "./legacy/studio-image-upload";
+import type {
+  DocumentImporter,
+  EditorPluginDefinition,
+  EditorPluginPermissionResolver,
+} from "./plugin-host";
+import { createTemplateEditorPlugin } from "./template-editor-plugin";
+import {
+  createStoryEditorPlugin,
+  type StoryEditorOptions,
+} from "./story-editor-plugin";
 // The stylesheet ships as a separate entry rather than an import, so a consumer that
 // only wants the headless pieces does not pull CSS into its bundle:
 //   import "@kokoa/clotho-editor/styles.css";
@@ -13,7 +24,18 @@ export interface StudioMountProps {
   repository?: AnimationRepository;
   editorTitle?: string;
   resolveImage?: ImageUploadResolver;
+  importDocument?: DocumentImporter;
+  plugins?: readonly EditorPluginDefinition[];
+  resolvePluginPermissions?: EditorPluginPermissionResolver;
+  /** Trusted build-time templates shown as a parameter panel. */
+  templates?: readonly AnimationTemplate[];
+  /** Optional multi-document Story Graph edited alongside the active node timeline. */
+  story?: StoryEditorOptions;
 }
+
+const EMPTY_EDITOR_PLUGINS: readonly EditorPluginDefinition[] = [];
+const EMPTY_TEMPLATES: readonly AnimationTemplate[] = [];
+const DENY_PLUGIN_PERMISSIONS: EditorPluginPermissionResolver = () => ({});
 
 const CANVAS_PRESETS: {
   id: string;
@@ -46,6 +68,7 @@ const SKELETON = `
   <header class="studio-header">
     <h1 id="studio-editor-title" class="studio-header-title">Clotho Editor</h1>
     <div class="studio-header-actions">
+      <span class="studio-plugin-toolbar" data-editor-plugin-slot="toolbar"></span>
       <button type="button" id="studio-open" class="studio-btn" aria-label="저장된 애니메이션 열기">📁 열기</button>
       <button type="button" id="studio-new" class="studio-btn" aria-label="새 애니메이션 만들기">＋ 새 애니메이션</button>
       <button type="button" id="studio-undo" class="studio-btn studio-btn-icon" aria-label="실행 취소" title="실행 취소 (⌘Z)" disabled>↶</button>
@@ -78,6 +101,7 @@ const SKELETON = `
         <div class="studio-tool-with-option"><button type="button" class="studio-tool-btn" data-add-element="polygon" title="다각형 (Y)" aria-label="다각형 도구"><span>⬢ Polygon</span><kbd>Y</kbd></button><label>변 <input type="number" id="studio-polygon-sides" min="3" max="24" value="6" aria-label="다각형의 변 개수" /></label></div>
         <button type="button" class="studio-tool-btn" id="studio-open-icons" title="아이콘 라이브러리" aria-label="아이콘 라이브러리 추가">🎨 Icons</button>
       </div>
+      <div class="studio-plugin-panels" data-editor-plugin-slot="panel"></div>
       <div class="studio-tools-section">
         <div class="studio-tools-title">캔버스 크기</div>
         <div class="studio-canvas-size-row">
@@ -119,6 +143,7 @@ const SKELETON = `
       <div id="studio-props-content" class="studio-props-content">
         <p class="studio-props-empty">요소 또는 step 을 선택하세요.</p>
       </div>
+      <div class="studio-plugin-inspectors" data-editor-plugin-slot="inspector"></div>
     </aside>
   </div>
 
@@ -236,24 +261,61 @@ export function StudioMount({
   repository,
   editorTitle = "Clotho Editor",
   resolveImage,
+  importDocument,
+  plugins = EMPTY_EDITOR_PLUGINS,
+  resolvePluginPermissions = DENY_PLUGIN_PERMISSIONS,
+  templates = EMPTY_TEMPLATES,
+  story,
 }: StudioMountProps): React.JSX.Element {
   const inited = useRef(false);
+  const mountedPlugins = useMemo(
+    () => [
+      ...(templates.length > 0 ? [createTemplateEditorPlugin(templates)] : []),
+      ...(story ? [createStoryEditorPlugin(story)] : []),
+      ...plugins,
+    ],
+    [plugins, templates, story],
+  );
+  const permissionResolver = useMemo<EditorPluginPermissionResolver>(
+    () => (plugin) =>
+      plugin.id === "dev.clotho.templates" || plugin.id === "dev.clotho.story"
+        ? { ui: true, documentRead: true, documentWrite: true }
+        : resolvePluginPermissions(plugin),
+    [resolvePluginPermissions],
+  );
 
   useEffect(() => {
     if (inited.current) return;
     inited.current = true;
     if (repository) configureAnimationRepository(repository);
     let disposed = false;
+    let cleanup: (() => void) | undefined;
     void import("./legacy/main").then(({ initStudio }) => {
       if (disposed) return;
-      initStudio({ initialId, editorTitle, resolveImage });
+      cleanup = initStudio({
+        initialId,
+        editorTitle,
+        resolveImage,
+        importDocument,
+        plugins: mountedPlugins,
+        resolvePluginPermissions: permissionResolver,
+      });
     });
     return () => {
       disposed = true;
+      cleanup?.();
       document.body.classList.remove("editor-active");
       document.documentElement.classList.remove("editor-active");
     };
-  }, [editorTitle, initialId, repository, resolveImage]);
+  }, [
+    editorTitle,
+    importDocument,
+    initialId,
+    mountedPlugins,
+    repository,
+    resolveImage,
+    permissionResolver,
+  ]);
 
   return (
     <section className="studio-shell w-full" data-pagefind-ignore="all">

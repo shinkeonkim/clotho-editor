@@ -1,5 +1,5 @@
 import type { AnimationDocument, SnapshotMap } from "@kokoa/clotho";
-import { computeSnapshot } from "@kokoa/clotho";
+import { compileDataBindings, computeSnapshot } from "@kokoa/clotho";
 import type { Selection } from "./types";
 import { emit, state, past, future } from "./internals";
 
@@ -92,5 +92,8 @@ export function toggleSelectionFor(sel: Selection, id: string): Selection {
 
 export function getCurrentSnapshot(): SnapshotMap {
   if (!state.def) return new Map();
-  return computeSnapshot(state.def, state.currentTime);
+  return computeSnapshot(
+    compileDataBindings(state.def).document,
+    state.currentTime,
+  );
 }

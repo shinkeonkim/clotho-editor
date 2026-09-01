@@ -11,7 +11,10 @@ npm install @kokoa/clotho @kokoa/clotho-editor react react-dom
 ```
 
 ```tsx
-import { StudioMount, createLocalStorageRepository } from "@kokoa/clotho-editor";
+import {
+  StudioMount,
+  createLocalStorageRepository,
+} from "@kokoa/clotho-editor";
 import "@kokoa/clotho/styles.css";
 import "@kokoa/clotho-editor/styles.css";
 
@@ -58,6 +61,55 @@ const repository: AnimationRepository = {
 ```
 
 저장 버튼의 동작 자체를 바꾸려면 repository의 `create`와 `save`를 구현합니다. 예제 목록은 repository의 `list`와 `load`에서 제공하므로 editor package 안에 application별 API 경로를 넣을 필요가 없습니다.
+
+## Plugin host
+
+application 전용 도구는 `plugins`로 추가할 수 있습니다. plugin은 toolbar, 왼쪽 panel, inspector와 command palette에 기능을 붙일 수 있지만, 문서를 읽거나 바꾸려면 host가 권한을 명시적으로 허용해야 합니다. 저장소, selection, undo/redo와 같은 편집기의 기본 기능은 plugin으로 분리하지 않습니다.
+
+```tsx
+import { StudioMount, type EditorPluginDefinition } from "@kokoa/clotho-editor";
+
+const reviewPlugin: EditorPluginDefinition = {
+  manifest: {
+    id: "com.example.review",
+    version: "1.0.0",
+    capabilities: ["editor"],
+    editor: { toolbarItems: ["review"] },
+  },
+  toolbarItems: {
+    review: ({ container, document }) => {
+      const button = document.createElement("button");
+      button.textContent = "검토 요청";
+      container.append(button);
+    },
+  },
+};
+
+<StudioMount
+  plugins={[reviewPlugin]}
+  resolvePluginPermissions={(manifest) =>
+    manifest.id === "com.example.review" ? { ui: true, documentRead: true } : {}
+  }
+/>;
+```
+
+Clotho compiler plugin이 새로운 JSON 입력 형식을 처리해야 한다면 `importDocument`에서 compiler pipeline을 연결합니다. 이 경계 덕분에 Editor는 application의 plugin registry나 backend에 의존하지 않습니다.
+
+```tsx
+import { createPluginRegistry, runPluginPipeline } from "@kokoa/clotho/plugins";
+
+const registry = createPluginRegistry(compilerPlugins);
+
+<StudioMount
+  importDocument={(input) => {
+    const result = runPluginPipeline(input, { registry });
+    if (!result.ok) throw result.error;
+    return result.document;
+  }}
+/>;
+```
+
+현재 plugin API는 신뢰할 수 있는 application code를 위한 실험적 API입니다. 외부에서 받은 plugin은 별도 Worker나 격리 환경에서 실행한 뒤 JSON 결과만 Editor로 전달해야 합니다.
 
 ## 주요 기능
 

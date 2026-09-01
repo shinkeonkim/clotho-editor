@@ -56,6 +56,8 @@ export {
 export {
   updateMeta,
   updateLocales,
+  updateData,
+  updateResponsive,
   updateCanvas,
   updateSettings,
   uniqueElementId,
@@ -65,3 +67,15 @@ export {
   registerInlineAsset,
   registerDataUriAsset,
 } from "./meta";
+export {
+  createLayout,
+  detachFromLayout,
+  findLayoutCollisions,
+  layoutIdsFor,
+} from "./layouts";
+export {
+  addCheckpoint,
+  updateCheckpoint,
+  deleteCheckpoint,
+  uniqueCheckpointId,
+} from "./checkpoints";

@@ -53,6 +53,12 @@ import { importAnimation } from "./api";
 import type { ImageUploadResolver } from "./studio-image-upload";
 import { setupTimelinePopout } from "./timeline-popout";
 import { setupPlayerPopout } from "./player-popout";
+import {
+  mountEditorPlugins,
+  type DocumentImporter,
+  type EditorPluginDefinition,
+  type EditorPluginPermissionResolver,
+} from "../plugin-host";
 
 export { getVisibleElementIds } from "./main/selection-nav";
 
@@ -72,15 +78,15 @@ export function initStudio(
     initialId?: string;
     editorTitle?: string;
     resolveImage?: ImageUploadResolver;
+    importDocument?: DocumentImporter;
+    plugins?: readonly EditorPluginDefinition[];
+    resolvePluginPermissions?: EditorPluginPermissionResolver;
   } = {},
-): void {
+): () => void {
   const ui = queryUi();
   if (!ui) {
     console.error("[studio] missing required elements");
-    return;
-  }
-  if (false) {
-    window.__studio__ = { setDef, setSelection, getDef, getSelection };
+    return () => {};
   }
   document.body.classList.add("editor-active");
   document.documentElement.classList.add("editor-active");
@@ -191,6 +197,21 @@ export function initStudio(
 
   initPalette();
   initHistoryPanel();
+  // Plugin views are allowed to read the active document as soon as they mount.
+  // Keep that lifecycle contract even when the host did not provide an initial ID:
+  // the untitled draft is the editor's real initial document, not an empty gap.
+  if (!getDef()) startDraft();
+  const pluginMount = mountEditorPlugins(
+    ui.app,
+    opts.plugins ?? [],
+    opts.resolvePluginPermissions ?? (() => ({})),
+    {
+      getDocument: getDef,
+      replaceDocument: setDef,
+      getSelection,
+      setSelection,
+    },
+  );
   registerCommands([
     {
       id: "open",
@@ -237,6 +258,7 @@ export function initStudio(
       run: () => setGridEnabled(!isGridEnabled()),
     },
     { id: "help", label: "⌨ 단축키 보기", hint: "? / Shift+/", run: openHelp },
+    ...pluginMount.commands,
   ]);
   ui.saveBtn.addEventListener("click", () => void saveCurrent(ui));
   ui.exportBtn.addEventListener("click", () => {
@@ -252,7 +274,12 @@ export function initStudio(
     if (!file) return;
     void file
       .text()
-      .then((text) => animationDocumentSchema.parse(JSON.parse(text)))
+      .then((text) => JSON.parse(text) as unknown)
+      .then((input) =>
+        opts.importDocument
+          ? opts.importDocument(input)
+          : animationDocumentSchema.parse(input),
+      )
       .then((def) => importAnimation(def))
       .then((def) => {
         setDef(def);
@@ -323,12 +350,12 @@ export function initStudio(
 
   if (opts.initialId) {
     void loadAnimation(ui, opts.initialId);
-  } else if (!getDef()) {
-    startDraft();
+  } else if (isDraft()) {
     setStatus(ui, "임시 작업 (Draft), 저장 시 ID/제목 입력", "ok");
   } else {
     setStatus(ui, "준비됨", "ok");
   }
+  return () => pluginMount.dispose();
 }
 
 function reflectState(ui: StudioUi): void {

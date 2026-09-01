@@ -188,22 +188,6 @@ export function groupElements(ids: string[]): string | null {
   const valid = ids.filter((id) => def.elements.some((e) => e.id === id));
   if (valid.length < 2) return null;
   const newId = uniqueElementId("group");
-  const bbox = (() => {
-    let minX = Infinity,
-      minY = Infinity;
-    for (const id of valid) {
-      const el = def.elements.find((e) => e.id === id);
-      if (!el) continue;
-      const b = elementBbox(el);
-      if (!b) continue;
-      if (b.x < minX) minX = b.x;
-      if (b.y < minY) minY = b.y;
-    }
-    return {
-      x: Number.isFinite(minX) ? minX : 0,
-      y: Number.isFinite(minY) ? minY : 0,
-    };
-  })();
   const group: GroupElement = {
     type: "group",
     id: newId,
@@ -211,6 +195,7 @@ export function groupElements(ids: string[]): string | null {
     rotation: 0,
     appearances: [],
     tracks: [],
+    bindings: [],
     // Children keep their absolute coordinates, so the group's own transform starts at
     // the identity. Setting x/y here would shift every member on the next render.
     x: 0,

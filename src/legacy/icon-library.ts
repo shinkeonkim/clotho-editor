@@ -241,6 +241,7 @@ export class IconLibraryDialog {
       rotation: 0,
       appearances: [],
       tracks: [],
+      bindings: [],
       x: cx - 32,
       y: cy - 32,
       width: 64,

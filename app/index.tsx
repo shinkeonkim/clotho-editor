@@ -1,5 +1,11 @@
 import { createRoot } from "react-dom/client";
 import { StudioMount } from "../src/StudioMount";
+import {
+  createLinterPlugin,
+  createPerformanceProfilerPlugin,
+  createResponsiveInspectorPlugin,
+  createVisualRegressionPlugin,
+} from "../src";
 import { createLocalStorageRepository } from "../src/repository";
 import { exampleAnimations } from "./examples";
 import "../src/styles/clotho-editor.css";
@@ -12,5 +18,29 @@ if (!root) throw new Error("에디터를 표시할 요소를 찾지 못했습니
 const repository = createLocalStorageRepository({
   examples: exampleAnimations,
 });
+const requestedAnimation = new URL(window.location.href).searchParams.get(
+  "animation",
+);
+const initialId = exampleAnimations.some(({ id }) => id === requestedAnimation)
+  ? requestedAnimation!
+  : "incident-walkthrough";
 
-createRoot(root).render(<StudioMount repository={repository} />);
+const qaPlugins = [
+  createResponsiveInspectorPlugin(),
+  createPerformanceProfilerPlugin(),
+  createLinterPlugin(),
+  createVisualRegressionPlugin(),
+];
+
+createRoot(root).render(
+  <StudioMount
+    initialId={initialId}
+    repository={repository}
+    plugins={qaPlugins}
+    resolvePluginPermissions={() => ({
+      ui: true,
+      documentRead: true,
+      documentWrite: true,
+    })}
+  />,
+);

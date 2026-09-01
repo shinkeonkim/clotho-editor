@@ -24,6 +24,8 @@ const KIND_ICON: Record<HistoryKind, string> = {
   effect: "✨",
   asset: "\u{1F5BC}",
   group: "⬚",
+  layout: "▦",
+  checkpoint: "◆",
   other: "·",
 };
 

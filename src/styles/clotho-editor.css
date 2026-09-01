@@ -2051,3 +2051,132 @@ body.studio-player-popout #clotho-player-preview {
     margin-top: 0.4rem;
   }
 }
+
+.studio-plugin-toolbar {
+  display: contents;
+}
+
+.studio-plugin-panels,
+.studio-plugin-inspectors {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.studio-plugin-panels > section,
+.studio-plugin-inspectors > section {
+  padding: 0.65rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.55rem;
+  background: var(--color-surface);
+}
+
+.studio-template-panel {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.studio-template-select {
+  width: 100%;
+  padding: 0.35rem 0.45rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.3rem;
+  background: var(--color-surface);
+  color: var(--color-fg);
+}
+
+.studio-template-status[data-error="true"] {
+  color: var(--color-danger);
+}
+
+.studio-checkpoint-card {
+  margin-bottom: 0.7rem;
+  padding: 0.65rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  background: var(--color-surface-raised, var(--color-surface));
+}
+
+.studio-responsive-grid {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.65rem;
+}
+
+.studio-responsive-grid figure {
+  margin: 0;
+  padding: 0.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.45rem;
+  overflow: hidden;
+  background: var(--color-canvas);
+}
+
+.studio-responsive-grid figcaption {
+  margin-bottom: 0.35rem;
+  color: var(--color-fg-muted);
+  font-size: 0.7rem;
+}
+
+.studio-responsive-grid svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.studio-profile {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.55rem 0;
+}
+.studio-profile > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.studio-profile dt {
+  color: var(--color-fg-muted);
+}
+.studio-profile dd {
+  margin: 0;
+  font-family: var(--font-mono);
+}
+
+.studio-lint-list {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0;
+  list-style: none;
+}
+.studio-lint-list button {
+  width: 100%;
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.45rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.4rem;
+  background: var(--color-surface);
+  color: var(--color-fg);
+  text-align: left;
+}
+.studio-lint-list span {
+  color: var(--color-fg-muted);
+  font-size: 0.72rem;
+}
+.studio-lint-list em {
+  color: var(--color-accent);
+  font-size: 0.68rem;
+  font-style: normal;
+}
+.studio-lint-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+}
+.studio-lint-compare figure {
+  min-width: 0;
+  margin: 0;
+}
+.studio-lint-compare svg {
+  width: 100%;
+  height: auto;
+}

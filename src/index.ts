@@ -41,3 +41,43 @@ export type {
 export { configureHost, placeholderImageUrl } from "./legacy/host";
 export type { HostOptions } from "./legacy/host";
 export type { ImageUploadResolver } from "./legacy/studio-image-upload";
+export {
+  createEditorPluginContext,
+  mountEditorPlugins,
+  validateEditorPlugin,
+} from "./plugin-host";
+export {
+  createTemplateEditorPlugin,
+  initialParameterValue,
+  parameterInputValue,
+} from "./template-editor-plugin";
+export { createVisualRegressionPlugin } from "./visual-regression-plugin";
+export {
+  createStoryEditorPlugin,
+  appendStoryEdge,
+  replaceStoryNodeDocument,
+} from "./story-editor-plugin";
+export type { StoryEditorOptions } from "./story-editor-plugin";
+export {
+  createResponsiveInspectorPlugin,
+  addDefaultResponsiveVariants,
+  RESPONSIVE_VIEWPORTS,
+} from "./responsive-inspector-plugin";
+export {
+  createPerformanceProfilerPlugin,
+  profileAnimation,
+} from "./performance-profiler-plugin";
+export type { SceneProfile } from "./performance-profiler-plugin";
+export { createLinterPlugin } from "./linter-plugin";
+export type {
+  DocumentImporter,
+  EditorPluginContext,
+  EditorPluginDefinition,
+  EditorPluginHostState,
+  EditorPluginManifestLike,
+  EditorPluginMountResult,
+  EditorPluginPermissionResolver,
+  EditorPluginPermissions,
+  EditorPluginSlot,
+  EditorPluginView,
+} from "./plugin-host";

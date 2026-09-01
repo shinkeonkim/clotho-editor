@@ -56,6 +56,7 @@ export {
 export {
   updateMeta,
   updateLocales,
+  updateData,
   updateCanvas,
   updateSettings,
   uniqueElementId,

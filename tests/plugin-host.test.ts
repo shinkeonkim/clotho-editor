@@ -16,6 +16,7 @@ const document = {
   tags: [],
   duration: 1000,
   locales: ["ko", "en"],
+  data: {},
   canvas: { width: 800, height: 500, background: "transparent" },
   assets: {},
   elements: [],

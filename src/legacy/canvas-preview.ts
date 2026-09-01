@@ -1,4 +1,4 @@
-import type { AnimationDocument } from "@kokoa/clotho";
+import { compileDataBindings, type AnimationDocument } from "@kokoa/clotho";
 
 // Preview now renders through clotho's DOM adapter rather than a React island.
 //
@@ -56,7 +56,7 @@ export function showPreview(
   previewRoot.style.cssText = `position:absolute;left:0;top:0;width:${def.canvas.width}px;height:${def.canvas.height}px;background:${bg};z-index:2;overflow:hidden;`;
   parent.style.position = "relative";
   parent.appendChild(previewRoot);
-  void mountPreview(previewRoot, def, options);
+  void mountPreview(previewRoot, compileDataBindings(def).document, options);
 }
 
 export function hidePreview(canvasEl: SVGSVGElement | null): void {

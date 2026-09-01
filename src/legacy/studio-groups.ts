@@ -211,6 +211,7 @@ export function groupElements(ids: string[]): string | null {
     rotation: 0,
     appearances: [],
     tracks: [],
+    bindings: [],
     // Children keep their absolute coordinates, so the group's own transform starts at
     // the identity. Setting x/y here would shift every member on the next render.
     x: 0,

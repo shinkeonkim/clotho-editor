@@ -979,6 +979,7 @@ function onMouseUp(e: MouseEvent): void {
           rotation: 0,
           appearances: [],
           tracks: [],
+          bindings: [],
           fromId: connectState.fromId,
           toId: elemId,
           fromAnchor: connectState.fromAnchor,

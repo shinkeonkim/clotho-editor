@@ -22,6 +22,7 @@ import {
   updateElementBase,
   updateMeta,
   updateLocales,
+  updateData,
   updateSettings,
   createLayout,
   detachFromLayout,
@@ -42,7 +43,10 @@ import type {
   EntryMode,
   ExitMode,
   Checkpoint,
+  DataBinding,
+  DataValue,
 } from "@kokoa/clotho";
+import { bindablePropertiesFor } from "@kokoa/clotho";
 import { captureFocusWithin, restoreFocusWithin } from "./studio-focus";
 import {
   alignSelected,
@@ -210,6 +214,10 @@ function textField(
   </label>`;
 }
 
+function textareaField(label: string, key: string, value: string): string {
+  return `<label class="studio-field"><span>${escapeHtml(label)}</span><textarea rows="7" spellcheck="false" data-prop-key="${escapeHtml(key)}">${escapeHtml(value)}</textarea></label>`;
+}
+
 function numberField(
   label: string,
   key: string,
@@ -289,6 +297,12 @@ function renderInner(): void {
         "canvas.background",
         def.canvas.background,
       ),
+      textareaField(
+        "샘플 데이터 (JSON)",
+        "meta.data",
+        JSON.stringify(def.data, null, 2),
+      ),
+      `<p class="studio-props-empty">JSON Pointer로 요소 속성에 연결합니다. 이 데이터는 미리보기와 내보내기에 함께 저장됩니다.</p>`,
     ].join("");
     const settingsHeader = `<span class="studio-props-header-title">설정</span>`;
     const settingsBody = [
@@ -553,6 +567,7 @@ function renderElementForm(def: AnimationDocument, el: AnimationElement): void {
   const baseFields = renderBaseFields(def, el);
   const appearances = renderAppearances(def, el);
   const tracks = renderTracks(el);
+  const bindings = renderBindings(el);
 
   const baseHeader = `<span class="studio-props-header-title">${escapeHtml(el.id)}</span><span class="studio-props-header-type">${escapeHtml(el.type)}</span>`;
   const apHeader = `<span class="studio-props-header-title">출현 (Appearances)</span><button type="button" class="studio-btn studio-btn-small" data-add-appearance>＋</button>`;
@@ -563,11 +578,47 @@ function renderElementForm(def: AnimationDocument, el: AnimationElement): void {
     ${section("el-base", baseHeader, baseFields)}
     ${section("el-appearances", apHeader, appearances)}
     ${section("el-tracks", tracksHeader, tracks)}
+    ${section("el-bindings", `<span class="studio-props-header-title">데이터 연결 (${el.bindings.length})</span>`, bindings)}
     <div class="studio-props-empty" style="font-size:0.72rem;margin-top:0.5rem">
       base 속성을 변경하면 → t=${getCurrentTime()} ms 에 keyframe 추가<br/>
       트랙이 없는 속성은 base 값이 항상 사용됨
     </div>
   `;
+}
+
+function renderBindings(el: AnimationElement): string {
+  const properties = bindablePropertiesFor(el);
+  const rows = el.bindings
+    .map(
+      (binding, index) => `<div class="studio-appearance-row">
+    <div class="studio-appearance-row-head"><span class="studio-appearance-row-title">#${index + 1}</span><button type="button" class="studio-btn studio-btn-small studio-btn-danger" data-delete-binding="${index}">✕</button></div>
+    ${selectField(
+      "속성",
+      `binding.${index}.property`,
+      binding.property,
+      properties.map((value) => ({ value })),
+    )}
+    ${textField("JSON Pointer", `binding.${index}.pointer`, binding.pointer)}
+    ${selectField(
+      "표현 방식",
+      `binding.${index}.formatter`,
+      binding.formatter,
+      [
+        "identity",
+        "string",
+        "number",
+        "fixed",
+        "percent",
+        "uppercase",
+        "lowercase",
+        "color",
+      ].map((value) => ({ value })),
+    )}
+    ${textField("대체 값", `binding.${index}.fallback`, binding.fallback === undefined ? "" : String(binding.fallback))}
+  </div>`,
+    )
+    .join("");
+  return `${rows || '<p class="studio-props-empty">연결된 데이터가 없습니다.</p>'}<button type="button" class="studio-btn" data-add-binding ${properties.length === 0 ? "disabled" : ""}>＋ 데이터 연결</button>`;
 }
 
 function renderBaseFields(
@@ -814,13 +865,14 @@ function renderTracks(el: AnimationElement): string {
 }
 
 function onInput(e: Event): void {
-  const target = e.target as HTMLInputElement;
+  const target = e.target as
+    HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
   const key = target.dataset.propKey;
   if (!key) return;
   // Guard: skip text input events during IME composition
   if (target.type === "text" && (e as InputEvent).isComposing) return;
   if (target.type === "text" && isComposingFallback) return;
-  if (target.type === "color") {
+  if (target instanceof HTMLInputElement && target.type === "color") {
     const textInput = target.parentElement?.querySelector<HTMLInputElement>(
       `input[type="text"][data-prop-key="${CSS.escape(key)}"]`,
     );
@@ -828,8 +880,10 @@ function onInput(e: Event): void {
     return;
   }
   let value: string | number | boolean = target.value;
-  if (target.type === "number") value = Number(target.value);
-  else if (target.type === "checkbox") value = target.checked;
+  if (target instanceof HTMLInputElement && target.type === "number")
+    value = Number(target.value);
+  else if (target instanceof HTMLInputElement && target.type === "checkbox")
+    value = target.checked;
   apply(key, value);
 }
 
@@ -854,6 +908,18 @@ function apply(key: string, value: string | number | boolean): void {
   else if (key === "meta.locales") {
     const locales = parseLocales(String(value));
     if (locales.length > 0) updateLocales(locales);
+  } else if (key === "meta.data") {
+    try {
+      const parsed = JSON.parse(String(value)) as unknown;
+      if (
+        typeof parsed === "object" &&
+        parsed !== null &&
+        !Array.isArray(parsed)
+      )
+        updateData(parsed as Record<string, DataValue>);
+    } catch {
+      /* keep the last valid sample while JSON is being edited */
+    }
   } else if (key === "meta.duration") updateDuration(Number(value));
   else if (key === "canvas.width") updateCanvas({ width: Number(value) });
   else if (key === "canvas.height") updateCanvas({ height: Number(value) });
@@ -1005,6 +1071,23 @@ function apply(key: string, value: string | number | boolean): void {
     } else {
       updateElementBase(sel.elementId, { [prop]: value });
     }
+  } else if (key.startsWith("binding.") && sel.kind === "element") {
+    const [, indexText, property] = key.split(".");
+    const el = def.elements.find((item) => item.id === sel.elementId);
+    const binding = el?.bindings[Number(indexText)];
+    if (!el || !binding || !property) return;
+    const bindings = el.bindings.map((item, index) =>
+      index === Number(indexText)
+        ? {
+            ...item,
+            [property]:
+              property === "fallback"
+                ? parseBindingFallback(String(value))
+                : String(value),
+          }
+        : item,
+    ) as DataBinding[];
+    updateElementBase(el.id, { bindings });
   } else if (key.startsWith("ap.") && sel.kind === "element") {
     const [, idxStr, prop] = key.split(".");
     const idx = Number(idxStr);
@@ -1052,11 +1135,49 @@ function apply(key: string, value: string | number | boolean): void {
   }
 }
 
+function parseBindingFallback(
+  value: string,
+): string | number | boolean | undefined {
+  if (value === "") return undefined;
+  if (value === "true") return true;
+  if (value === "false") return false;
+  const number = Number(value);
+  return Number.isFinite(number) && value.trim() !== "" ? number : value;
+}
+
 function onClick(e: Event): void {
   const target = e.target as HTMLElement;
   const def = getDef();
   if (!def) return;
   const sel = getSelection();
+
+  if (target.closest("[data-add-binding]") && sel.kind === "element") {
+    const el = def.elements.find((item) => item.id === sel.elementId);
+    if (!el) return;
+    const property = bindablePropertiesFor(el).find(
+      (candidate) =>
+        !el.bindings.some((binding) => binding.property === candidate),
+    );
+    if (property)
+      updateElementBase(el.id, {
+        bindings: [
+          ...el.bindings,
+          { property, pointer: "", formatter: "identity" },
+        ],
+      });
+    return;
+  }
+  const deleteBinding = target.closest<HTMLElement>("[data-delete-binding]");
+  if (deleteBinding && sel.kind === "element") {
+    const el = def.elements.find((item) => item.id === sel.elementId);
+    if (el)
+      updateElementBase(el.id, {
+        bindings: el.bindings.filter(
+          (_, index) => index !== Number(deleteBinding.dataset.deleteBinding),
+        ),
+      });
+    return;
+  }
 
   const alignBtn = target.closest<HTMLElement>("[data-align]");
   if (alignBtn) {

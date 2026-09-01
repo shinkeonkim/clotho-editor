@@ -1,4 +1,4 @@
-import type { AnimationDocument } from "@kokoa/clotho";
+import type { AnimationDocument, DataValue } from "@kokoa/clotho";
 import { encodeImageAsset, inlineAssetFromDataUri } from "@kokoa/clotho";
 import { mutateDef, state } from "./internals";
 import { getDef } from "./core";
@@ -23,6 +23,16 @@ export function updateLocales(locales: string[]): void {
       (def as AnimationDocument & { locales: string[] }).locales = locales;
     },
     "문서 언어 변경",
+    "meta",
+  );
+}
+
+export function updateData(data: Record<string, DataValue>): void {
+  mutateDef(
+    (def) => {
+      def.data = data;
+    },
+    "샘플 데이터 변경",
     "meta",
   );
 }

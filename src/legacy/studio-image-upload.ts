@@ -67,6 +67,7 @@ export async function uploadAndInsertImage(
       rotation: 0,
       appearances: [],
       tracks: [],
+      bindings: [],
       x: Math.round(cx - w / 2),
       y: Math.round(cy - h / 2),
       width: w,

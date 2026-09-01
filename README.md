@@ -1,15 +1,12 @@
 # @kokoa/clotho-editor
 
-[clotho](../clotho) 애니메이션 문서를 위한 비주얼 에디터.
+[clotho](../clotho) 애니메이션 문서를 작성하고 미리 볼 수 있는 시각 편집기다.
 
 ## 상태
 
-두 블로그 저장소 안에 있던 Studio(약 8,900 LOC)를 clotho
-기반 독립 패키지로 옮겼다. typecheck 0 errors, 빌드·테스트 통과.
+두 블로그 저장소에서 사용하던 Studio 약 8,900줄을 clotho 기반의 독립 패키지로 옮겼다. 타입 검사, 빌드, 테스트를 모두 통과한다.
 
-이식에서 가장 의미 있는 변화는 **미리보기가 clotho를 쓴다**는 점이다. Studio는 자체
-캔버스 렌더를 갖고 있어 에디터에서 맞게 보이는 것이 사이트에서 다르게 보일 수 있었다.
-이제 `buildScene` + `patchScene`을 지나므로 에디터와 배포본이 갈라질 수 없다.
+가장 큰 변화는 **미리보기에도 clotho를 사용한다**는 점이다. 이전 Studio는 자체 canvas renderer를 사용했기 때문에 편집 화면과 실제 사이트의 화면이 다를 수 있었다. 이제 두 화면 모두 `buildScene`과 `patchScene`을 거치므로 같은 문서는 같은 결과로 표시된다.
 
 자세한 내용과 남은 정리 항목은 [`docs/PORTING.md`](./docs/PORTING.md).
 
@@ -31,21 +28,15 @@ configureHost({ placeholderImageUrl: "/uploads/placeholder.png" });
 <Studio initial={doc} onSave={handleSave} />;
 ```
 
-`Studio`는 저장 방식을 호스트가 소유하는 삽입형 컴포넌트다. 기존 API 경로를 그대로 쓰는
-완성형 화면이 필요하면 `<StudioMount initialId="document-id" />`를 사용한다. 일반적인
-Vite/Next.js/React SPA에 둘 다 삽입할 수 있고, 브라우저 전용 코드는 mount 이후에
-초기화된다.
+`Studio`는 문서를 저장하는 방법을 사용하는 application에서 정할 수 있는 내장형 컴포넌트다. 기존 API 경로를 그대로 사용하는 완성된 화면이 필요하면 `<StudioMount initialId="document-id" />`를 사용한다. 두 컴포넌트 모두 Vite, Next.js, React SPA에 넣을 수 있으며 브라우저에서만 필요한 코드는 컴포넌트가 화면에 연결된 뒤 초기화된다.
 
-플레이어 설정 패널에서는 caption/chapter list 표시 여부와 단계 목록 위치
-(`좌측 | 우측 | 상단 | 하단`)를 편집할 수 있다. 네 레이아웃을 한 화면에서 점검하려면:
+재생 설정 화면에서는 현재 단계 설명과 전체 단계 목록을 표시할지 선택할 수 있다. 단계 목록의 위치도 `좌측 | 우측 | 상단 | 하단` 중에서 고를 수 있다. 네 가지 배치를 한 화면에서 확인하려면 다음 명령을 실행한다.
 
 ```bash
 bun run visual-check
 ```
 
-npm 배포는 `vX.Y.Z` GitHub Release와 `.github/workflows/publish.yml`을 통해 수행한다.
-npm Trusted Publisher와 GitHub의 `npm-production` 승인 environment를 먼저 설정해야 하며,
-같은 버전의 `@kokoa/clotho`가 공개된 뒤 editor Release를 publish한다.
+npm 배포는 `vX.Y.Z` GitHub Release와 `.github/workflows/publish.yml`을 통해 진행한다. 먼저 npm Trusted Publisher와 GitHub의 `npm-production` 승인 environment를 설정해야 한다. 같은 버전의 `@kokoa/clotho`를 먼저 공개한 뒤 editor의 GitHub Release를 공개한다.
 
 ## 개발
 
@@ -56,9 +47,7 @@ bun test
 bun run build
 ```
 
-개발 시에는 devDependency가 이웃 `../clotho`를 가리킨다. 배포물에는 이 경로가 포함되지
-않고 `^0.1.0` peer 계약만 노출된다. 배포 순서와 검증은
-[`../clotho/docs/RELEASING.md`](../clotho/docs/RELEASING.md)를 따른다.
+개발 환경의 devDependency는 이웃한 `../clotho`를 가리킨다. 배포 패키지에는 이 로컬 경로가 들어가지 않으며 `^0.1.0` peer dependency만 공개된다. 배포 순서와 검증 방법은 [`../clotho/docs/RELEASING.md`](../clotho/docs/RELEASING.md)에 정리되어 있다.
 
 ## 라이선스
 

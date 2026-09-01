@@ -26,6 +26,7 @@ import { openHistoryPanel } from "../studio-history";
 import { openPalette } from "../studio-palette";
 import { saveCurrent } from "../studio-save-load";
 import { handleSelectAll, selectAdjacentElement } from "./selection-nav";
+import { setActiveTool, type StudioTool } from "../tool-state";
 
 export function bindKeyboardShortcuts(ui: StudioUi): void {
   document.addEventListener("keydown", (e) => {
@@ -36,9 +37,12 @@ export function bindKeyboardShortcuts(ui: StudioUi): void {
     const mod = e.metaKey || e.ctrlKey;
 
     if (e.key === "Escape") {
-      const sel = getSelection();
-      if (sel.kind !== "none") {
-        setSelection({ kind: "none" });
+      if (!inText) {
+        setActiveTool("select");
+        const sel = getSelection();
+        if (sel.kind !== "none") {
+          setSelection({ kind: "none" });
+        }
       }
       return;
     }
@@ -117,6 +121,26 @@ export function bindKeyboardShortcuts(ui: StudioUi): void {
       }
       if (selectAdjacentElement(e.shiftKey ? -1 : 1)) e.preventDefault();
       return;
+    }
+
+    if (!inText && !mod && !e.altKey) {
+      const toolShortcuts: Partial<Record<string, StudioTool>> = {
+        v: "select",
+        r: "rect",
+        o: "circle",
+        l: "line",
+        a: "arrow",
+        t: "text",
+        i: "image",
+        b: "path",
+        y: "polygon",
+      };
+      const tool = toolShortcuts[e.key.toLowerCase()];
+      if (tool) {
+        e.preventDefault();
+        setActiveTool(tool);
+        return;
+      }
     }
 
     if (!inText && !mod && (e.key === "g" || e.key === "G")) {

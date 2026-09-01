@@ -161,6 +161,7 @@ function onClick(e: Event): void {
     deleteElement(id);
     return;
   }
+  setActiveTool("select");
   const me = e as MouseEvent;
   if (me.shiftKey || me.ctrlKey || me.metaKey) {
     const sel = getSelection();

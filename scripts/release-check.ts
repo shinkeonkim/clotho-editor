@@ -6,6 +6,7 @@ const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8")) as {
   version: string;
   private?: boolean;
   dependencies?: Record<string, string>;
+  devDependencies?: Record<string, string>;
   peerDependencies?: Record<string, string>;
   publishConfig?: { access?: string };
 };
@@ -19,8 +20,12 @@ for (const [name, range] of Object.entries(pkg.dependencies ?? {})) {
   if (/^(file:|workspace:|link:)/.test(range))
     throw new Error(`${name} uses local-only dependency ${range}`);
 }
-if (pkg.peerDependencies?.["@kokoa/clotho"] !== "^0.1.0") {
-  throw new Error("editor peer range must match the first clotho release line");
+const clothoPeerRange = pkg.peerDependencies?.["@kokoa/clotho"];
+if (!clothoPeerRange) {
+  throw new Error("editor must declare @kokoa/clotho as a peer dependency");
+}
+if (pkg.devDependencies?.["@kokoa/clotho"] !== clothoPeerRange) {
+  throw new Error("@kokoa/clotho peer and development ranges must match");
 }
 
 const output = Bun.spawnSync(["bun", "pm", "pack", "--dry-run"], {

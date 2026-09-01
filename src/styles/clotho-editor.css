@@ -24,6 +24,13 @@ body.editor-active {
     overflow: hidden;
     box-shadow: 0 8px 30px rgb(15 23 42 / 10%);
   }
+  .studio-app.is-timeline-detached {
+    grid-template-rows: auto minmax(220px, 1fr) 0 0;
+  }
+  .studio-app.is-timeline-detached .studio-timeline-resizer,
+  .studio-app.is-timeline-detached .studio-timeline-wrap {
+    display: none;
+  }
   .studio-timeline-resizer {
     height: 6px;
     cursor: ns-resize;

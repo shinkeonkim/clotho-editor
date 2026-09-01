@@ -44,7 +44,7 @@ import {
   pathBBoxOnCanvas,
 } from "./canvas-utils";
 import { getAnchorPoints, findNearestAnchor } from "./anchor-system";
-import { getActiveTool } from "./tool-state";
+import { getActiveTool, setActiveTool } from "./tool-state";
 import { makeDefaultElement } from "./element-list";
 import {
   renderResizeHandles,
@@ -205,10 +205,15 @@ let toolDrawState: {
   currentX: number;
   currentY: number;
 } | null = null;
+let pathDraftState: {
+  points: Array<{ x: number; y: number }>;
+  current: { x: number; y: number } | null;
+} | null = null;
 
 export function initCanvas(root: SVGSVGElement): void {
   canvasEl = root;
   root.addEventListener("click", onCanvasClick);
+  root.addEventListener("dblclick", onPathDoubleClick);
   root.addEventListener("mousedown", onMouseDown);
   root.addEventListener("mouseover", onMouseOver);
   root.addEventListener("mouseleave", onMouseLeave);
@@ -216,6 +221,7 @@ export function initCanvas(root: SVGSVGElement): void {
   root.addEventListener("wheel", onCanvasWheel, { passive: false });
   document.addEventListener("mousemove", onMouseMove);
   document.addEventListener("mouseup", onMouseUp);
+  document.addEventListener("keydown", onPathKeyDown);
   subscribe(render);
   render();
 }
@@ -351,6 +357,7 @@ function onCanvasClick(e: MouseEvent): void {
   const id = findElementId(e.target);
   if (id) {
     const resolvedId = e.altKey ? id : (findContainingGroup(id)?.id ?? id);
+    setActiveTool("select");
     if (e.shiftKey || e.ctrlKey || e.metaKey) {
       setSelection(toggleSelectionFor(getSelection(), resolvedId));
     } else {
@@ -370,6 +377,16 @@ function onMouseDown(e: MouseEvent): void {
     const point = svgPoint(e.clientX, e.clientY);
     if (!point) return;
     e.preventDefault();
+    if (activeTool === "path") {
+      if (!pathDraftState) {
+        pathDraftState = { points: [point], current: point };
+      } else {
+        pathDraftState.points.push(point);
+        pathDraftState.current = point;
+      }
+      render();
+      return;
+    }
     if (activeTool === "line" || activeTool === "arrow") {
       toolDrawState = {
         tool: activeTool,
@@ -396,6 +413,16 @@ function onMouseDown(e: MouseEvent): void {
       Number(sidesInput?.value ?? 6),
     );
     if (element) addElement(element);
+    return;
+  }
+
+  if (
+    activeTool !== "select" &&
+    !(
+      (activeTool === "line" || activeTool === "arrow") &&
+      target?.closest("[data-anchor-handle]")
+    )
+  ) {
     return;
   }
 
@@ -631,6 +658,14 @@ function collectDragExtras(
 }
 
 function onMouseMove(e: MouseEvent): void {
+  if (pathDraftState && getActiveTool() === "path") {
+    const point = svgPoint(e.clientX, e.clientY);
+    if (point) {
+      pathDraftState.current = point;
+      render();
+    }
+    return;
+  }
   if (toolDrawState) {
     const point = svgPoint(e.clientX, e.clientY);
     if (!point) return;
@@ -773,6 +808,66 @@ function onMouseMove(e: MouseEvent): void {
       extra.originalPolygonPoints,
     );
   }
+}
+
+function onPathDoubleClick(e: MouseEvent): void {
+  if (!pathDraftState || getActiveTool() !== "path") return;
+  e.preventDefault();
+  const points = pathDraftState.points;
+  if (
+    points.length >= 2 &&
+    Math.hypot(
+      points.at(-1)!.x - points.at(-2)!.x,
+      points.at(-1)!.y - points.at(-2)!.y,
+    ) < 2
+  ) {
+    points.pop();
+  }
+  finishPathDraft();
+}
+
+function onPathKeyDown(e: KeyboardEvent): void {
+  if (!pathDraftState || getActiveTool() !== "path") return;
+  const target = e.target;
+  const isEditing =
+    target instanceof HTMLInputElement ||
+    target instanceof HTMLTextAreaElement ||
+    (target instanceof HTMLElement && target.isContentEditable);
+  if (isEditing) return;
+  if (e.key === "Enter") {
+    e.preventDefault();
+    finishPathDraft();
+  } else if (e.key === "Escape") {
+    e.preventDefault();
+    pathDraftState = null;
+    render();
+  }
+}
+
+function finishPathDraft(): void {
+  const draft = pathDraftState;
+  pathDraftState = null;
+  if (!draft || draft.points.length < 2) {
+    render();
+    return;
+  }
+  const origin = draft.points[0];
+  const element = makeDefaultElement(
+    "path",
+    uniqueElementId("path"),
+    origin.x,
+    origin.y,
+  );
+  if (element?.type === "path") {
+    const d = draft.points
+      .map((point, index) => {
+        const command = index === 0 ? "M" : "L";
+        return `${command} ${(point.x - origin.x).toFixed(1)} ${(point.y - origin.y).toFixed(1)}`;
+      })
+      .join(" ");
+    addElement({ ...element, x: origin.x, y: origin.y, d });
+  }
+  render();
 }
 
 function onMouseUp(e: MouseEvent): void {
@@ -1289,6 +1384,34 @@ function render(): void {
     preview.setAttribute("stroke-dasharray", "5 3");
     preview.style.pointerEvents = "none";
     canvasEl.appendChild(preview);
+  }
+  if (pathDraftState) {
+    const points = [
+      ...pathDraftState.points,
+      ...(pathDraftState.current ? [pathDraftState.current] : []),
+    ];
+    const preview = document.createElementNS(SVG_NS, "polyline");
+    preview.setAttribute(
+      "points",
+      points.map((point) => `${point.x},${point.y}`).join(" "),
+    );
+    preview.setAttribute("fill", "none");
+    preview.setAttribute("stroke", "#6366f1");
+    preview.setAttribute("stroke-width", "2");
+    preview.setAttribute("stroke-dasharray", "5 3");
+    preview.style.pointerEvents = "none";
+    canvasEl.appendChild(preview);
+    for (const point of pathDraftState.points) {
+      const anchor = document.createElementNS(SVG_NS, "circle");
+      anchor.setAttribute("cx", String(point.x));
+      anchor.setAttribute("cy", String(point.y));
+      anchor.setAttribute("r", "4");
+      anchor.setAttribute("fill", "#fff");
+      anchor.setAttribute("stroke", "#6366f1");
+      anchor.setAttribute("stroke-width", "2");
+      anchor.style.pointerEvents = "none";
+      canvasEl.appendChild(anchor);
+    }
   }
 
   if (marqueeState) {

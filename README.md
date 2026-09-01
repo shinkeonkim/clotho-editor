@@ -50,9 +50,11 @@ const repository = createLocalStorageRepository({
 />
 ```
 
-미리보기의 `무한 재생` 설정은 문서의 `settings.loop`에 저장된다. `타임라인 분리` 버튼은 실제 브라우저 탭이나 popup을 열며 `BroadcastChannel`로 문서, 현재 시간, 재생 명령을 동기화한다.
+미리보기의 `무한 재생` 설정은 문서의 `settings.loop`에 저장된다. `타임라인 분리` 버튼을 누르면 기존 타임라인 영역이 사라지고 별도 브라우저 창이 열린다. 두 화면은 `BroadcastChannel`로 문서, 현재 시간, 재생 명령을 동기화하며, 분리된 창의 `편집기에 다시 합치기` 버튼을 누르거나 창을 닫으면 타임라인이 원래 위치로 돌아온다.
 
-왼쪽 도구는 먼저 활성화한 뒤 canvas에서 사용한다. 기본 `선택 · 이동 · 크기` 도구에서는 요소를 선택하고 이동하거나 resize할 수 있으며 Line과 Arrow 도구에서는 canvas를 drag하거나 도형의 anchor를 연결할 수 있다. 그룹의 자식은 요소 목록과 timeline에서 들여쓰기되어 표시된다. 그룹 timeline은 여러 자식에 적용되는 transform과 visibility animation을 작성할 때 사용한다.
+왼쪽 도구는 먼저 활성화한 뒤 canvas에서 사용한다. 기존 요소를 누르면 자동으로 `선택 · 이동 · 크기` 도구로 돌아간다. `V`, `R`, `O`, `L`, `A`, `T`, `I`, `B`, `Y`로 선택, 사각형, 원, 선, 화살표, 텍스트, 이미지, Path, 다각형 도구를 활성화할 수 있으며 input, textarea, contenteditable에 입력하는 동안에는 단축키가 동작하지 않는다. 텍스트는 canvas에서 더블클릭해 바로 편집한다. Path는 점을 차례대로 누르고 더블클릭하거나 Enter를 눌러 완성하며 Esc를 누르면 작성을 취소한다.
+
+Shift, Command 또는 Ctrl을 누른 채 canvas나 요소 목록을 누르면 여러 요소를 선택하거나 선택에서 제외할 수 있다. 그룹의 자식은 요소 목록과 timeline에서 들여쓰기되어 표시된다. 그룹 timeline은 여러 자식에 적용되는 transform과 visibility animation을 작성할 때 사용한다.
 
 JSON을 내보낼 때는 어떤 image 요소에서도 참조하지 않는 `assets` 항목을 자동으로 제거한다. 이미지를 삭제한 뒤 별도의 정리 작업을 실행할 필요가 없다.
 

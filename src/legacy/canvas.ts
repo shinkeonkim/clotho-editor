@@ -50,6 +50,12 @@ import {
   shouldDeferElementPointerDown,
 } from "./ui-interactions";
 import {
+  dragBounds,
+  isShapeDrag,
+  regularPolygonPoints,
+  type DrawPoint,
+} from "./drawing-interactions";
+import {
   renderResizeHandles,
   renderRotationHandle,
   renderAnchorDots,
@@ -198,6 +204,7 @@ let vertexDragState: VertexDragState | null = null;
 let resizeState: ResizeState | null = null;
 let marqueeState: MarqueeState | null = null;
 let marqueeJustFinished = false;
+let toolJustFinished = false;
 let canvasEl: SVGSVGElement | null = null;
 let hoveredElementId: string | null = null;
 let canvasZoom = 1;
@@ -208,6 +215,14 @@ let toolDrawState: {
   currentX: number;
   currentY: number;
 } | null = null;
+type ElementDrawTool = "rect" | "circle" | "polygon" | "text" | "image";
+let elementDrawState: {
+  tool: ElementDrawTool;
+  start: DrawPoint;
+  current: DrawPoint;
+  polygonSides: number;
+} | null = null;
+let canvasRenderFrame: number | null = null;
 let pathDraftState: {
   points: Array<{ x: number; y: number }>;
   current: { x: number; y: number } | null;
@@ -324,6 +339,10 @@ function onCanvasClick(e: MouseEvent): void {
     marqueeJustFinished = false;
     return;
   }
+  if (toolJustFinished) {
+    toolJustFinished = false;
+    return;
+  }
   const target = e.target as Element | null;
   const addVertexHandle = target?.closest<SVGElement>("[data-vertex-add]");
   if (addVertexHandle) {
@@ -397,22 +416,25 @@ function onMouseDown(e: MouseEvent): void {
       render();
       return;
     }
-    if (activeTool === "image") {
-      document.getElementById("studio-image-file")?.click();
-      return;
-    }
     const sidesInput = document.getElementById(
       "studio-polygon-sides",
     ) as HTMLInputElement | null;
-    const element = makeDefaultElement(
-      activeTool,
-      uniqueElementId(activeTool),
-      point.x,
-      point.y,
-      Number(sidesInput?.value ?? 6),
-    );
-    if (element) addElement(element);
-    return;
+    if (
+      activeTool === "rect" ||
+      activeTool === "circle" ||
+      activeTool === "polygon" ||
+      activeTool === "text" ||
+      activeTool === "image"
+    ) {
+      elementDrawState = {
+        tool: activeTool,
+        start: point,
+        current: point,
+        polygonSides: Number(sidesInput?.value ?? 6),
+      };
+      requestCanvasRender();
+      return;
+    }
   }
 
   if (
@@ -680,6 +702,13 @@ function onMouseMove(e: MouseEvent): void {
     }
     return;
   }
+  if (elementDrawState) {
+    const point = svgPoint(e.clientX, e.clientY);
+    if (!point) return;
+    elementDrawState.current = point;
+    requestCanvasRender();
+    return;
+  }
   if (toolDrawState) {
     const point = svgPoint(e.clientX, e.clientY);
     if (!point) return;
@@ -885,6 +914,20 @@ function finishPathDraft(): void {
 }
 
 function onMouseUp(e: MouseEvent): void {
+  if (elementDrawState) {
+    const draw = elementDrawState;
+    const point = svgPoint(e.clientX, e.clientY);
+    if (point) draw.current = point;
+    elementDrawState = null;
+    if (canvasRenderFrame !== null) {
+      cancelAnimationFrame(canvasRenderFrame);
+      canvasRenderFrame = null;
+    }
+    toolJustFinished = true;
+    finishElementDraw(draw);
+    render();
+    return;
+  }
   if (toolDrawState) {
     const draw = toolDrawState;
     toolDrawState = null;
@@ -998,6 +1041,61 @@ function onMouseUp(e: MouseEvent): void {
   }
   dragState = null;
   rotateState = null;
+}
+
+function requestCanvasRender(): void {
+  if (canvasRenderFrame !== null) return;
+  canvasRenderFrame = requestAnimationFrame(() => {
+    canvasRenderFrame = null;
+    render();
+  });
+}
+
+function finishElementDraw(draw: NonNullable<typeof elementDrawState>): void {
+  if (draw.tool === "image") {
+    document.getElementById("studio-image-file")?.click();
+    return;
+  }
+  const dragged = isShapeDrag(draw.start, draw.current);
+  const bounds = dragBounds(draw.start, draw.current);
+  const center = dragged
+    ? { x: bounds.centerX, y: bounds.centerY }
+    : draw.start;
+  const element = makeDefaultElement(
+    draw.tool,
+    uniqueElementId(draw.tool),
+    center.x,
+    center.y,
+    draw.polygonSides,
+  );
+  if (!element) return;
+  if (dragged && element.type === "rect") {
+    addElement({
+      ...element,
+      x: bounds.x,
+      y: bounds.y,
+      width: Math.max(1, bounds.width),
+      height: Math.max(1, bounds.height),
+    });
+  } else if (dragged && element.type === "circle") {
+    addElement({
+      ...element,
+      cx: bounds.centerX,
+      cy: bounds.centerY,
+      r: Math.max(2, bounds.distance / 2),
+    });
+  } else if (dragged && element.type === "polygon") {
+    addElement({
+      ...element,
+      points: regularPolygonPoints(
+        { x: bounds.centerX, y: bounds.centerY },
+        Math.max(2, bounds.distance / 2),
+        draw.polygonSides,
+      ),
+    });
+  } else {
+    addElement(element);
+  }
 }
 
 function applyMove(
@@ -1393,6 +1491,42 @@ function render(): void {
     preview.setAttribute("y1", String(toolDrawState.startY));
     preview.setAttribute("x2", String(toolDrawState.currentX));
     preview.setAttribute("y2", String(toolDrawState.currentY));
+    preview.setAttribute("stroke", "#6366f1");
+    preview.setAttribute("stroke-width", "2");
+    preview.setAttribute("stroke-dasharray", "5 3");
+    preview.style.pointerEvents = "none";
+    canvasEl.appendChild(preview);
+  }
+  if (elementDrawState) {
+    const bounds = dragBounds(elementDrawState.start, elementDrawState.current);
+    const preview = document.createElementNS(
+      SVG_NS,
+      elementDrawState.tool === "circle"
+        ? "circle"
+        : elementDrawState.tool === "polygon"
+          ? "polygon"
+          : "rect",
+    );
+    if (elementDrawState.tool === "circle") {
+      preview.setAttribute("cx", String(bounds.centerX));
+      preview.setAttribute("cy", String(bounds.centerY));
+      preview.setAttribute("r", String(Math.max(2, bounds.distance / 2)));
+    } else if (elementDrawState.tool === "polygon") {
+      preview.setAttribute(
+        "points",
+        regularPolygonPoints(
+          { x: bounds.centerX, y: bounds.centerY },
+          Math.max(2, bounds.distance / 2),
+          elementDrawState.polygonSides,
+        ),
+      );
+    } else {
+      preview.setAttribute("x", String(bounds.x));
+      preview.setAttribute("y", String(bounds.y));
+      preview.setAttribute("width", String(Math.max(1, bounds.width)));
+      preview.setAttribute("height", String(Math.max(1, bounds.height)));
+    }
+    preview.setAttribute("fill", "rgba(99, 102, 241, 0.12)");
     preview.setAttribute("stroke", "#6366f1");
     preview.setAttribute("stroke-width", "2");
     preview.setAttribute("stroke-dasharray", "5 3");

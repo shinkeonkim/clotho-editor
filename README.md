@@ -61,6 +61,8 @@ import "@kokoa/clotho/styles.css";
 
 왼쪽 도구는 먼저 활성화한 뒤 canvas에서 사용한다. 기존 요소를 누르면 자동으로 `선택 · 이동 · 크기` 도구로 돌아간다. `V`, `R`, `O`, `L`, `A`, `T`, `I`, `B`, `Y`로 선택, 사각형, 원, 선, 화살표, 텍스트, 이미지, Path, 다각형 도구를 활성화할 수 있으며 input, textarea, contenteditable에 입력하는 동안에는 단축키가 동작하지 않는다. 텍스트는 canvas에서 더블클릭해 바로 편집한다. Path는 점을 차례대로 누르고 더블클릭하거나 Enter를 눌러 완성하며 Esc를 누르면 작성을 취소한다.
 
+사각형, 원과 다각형 도구는 pointer를 놓을 때 요소를 확정한다. 짧게 누르면 기본 크기로 만들고 drag하면 화면에 표시되는 임시 윤곽의 크기로 만든다. 임시 윤곽은 animation frame마다 최대 한 번만 갱신하므로 빠른 pointer 이벤트가 문서 변경이나 렌더를 반복해서 발생시키지 않는다. 색상 입력은 picker를 조작하는 동안 현재 input을 유지하고 선택을 확정했을 때 문서에 반영한다.
+
 Shift, Command 또는 Ctrl을 누른 채 canvas나 요소 목록을 누르면 여러 요소를 선택하거나 선택에서 제외할 수 있다. 그룹의 자식은 요소 목록과 timeline에서 들여쓰기되어 표시된다. 그룹 timeline은 여러 자식에 적용되는 transform과 visibility animation을 작성할 때 사용한다.
 
 JSON을 내보낼 때는 어떤 image 요소에서도 참조하지 않는 `assets` 항목을 자동으로 제거한다. 이미지를 삭제한 뒤 별도의 정리 작업을 실행할 필요가 없다.

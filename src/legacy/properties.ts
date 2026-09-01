@@ -618,6 +618,13 @@ function onInput(e: Event): void {
   // Guard: skip text input events during IME composition
   if (target.type === "text" && (e as InputEvent).isComposing) return;
   if (target.type === "text" && isComposingFallback) return;
+  if (target.type === "color") {
+    const textInput = target.parentElement?.querySelector<HTMLInputElement>(
+      `input[type="text"][data-prop-key="${CSS.escape(key)}"]`,
+    );
+    if (textInput) textInput.value = target.value;
+    return;
+  }
   let value: string | number | boolean = target.value;
   if (target.type === "number") value = Number(target.value);
   else if (target.type === "checkbox") value = target.checked;
@@ -625,6 +632,12 @@ function onInput(e: Event): void {
 }
 
 function onChange(e: Event): void {
+  const target = e.target;
+  if (target instanceof HTMLInputElement && target.type === "color") {
+    const key = target.dataset.propKey;
+    if (key) apply(key, target.value);
+    return;
+  }
   onInput(e);
 }
 

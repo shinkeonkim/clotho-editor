@@ -8,25 +8,25 @@
 
 Studio는 두 저장소에 거의 동일한 코드로 존재한다.
 
-| 위치 | LOC | 비고 |
-| --- | --: | --- |
-| `shinkeonkim.github.io/src/dev-only/studio/` | 8,980 | 테스트 2개 포함 |
+| 위치                                               |   LOC | 비고                  |
+| -------------------------------------------------- | ----: | --------------------- |
+| `shinkeonkim.github.io/src/dev-only/studio/`       | 8,980 | 테스트 2개 포함       |
 | `oh-my-blog/packages/animation-studio/src/legacy/` | 8,751 | 위를 패키지로 감싼 것 |
 
 **clotho 코어에 대한 의존 경계가 좁다.** 엔진에서 가져오는 심볼을 전수 조사한 결과:
 
-| 심볼 | 사용 파일 수 | clotho 대응 |
-| --- | --: | --- |
-| `AnimationElement` 및 요소별 타입 | 12 | 동일 |
-| `AnimationDef` | 11 | `AnimationDocument` |
-| `animationDefSchema` | 4 | `animationDocumentSchema` |
-| `SnapshotMap` | 4 | 동일 |
-| `Anchor` | 4 | 동일 |
-| `Appearance` / `PropertyTrack` / `TrackKeyframe` / `Chapter` / `AnimationEffect` | 각 1~3 | 동일 |
-| `EntryMode` / `ExitMode` | 각 1 | 동일 |
-| `computeSnapshot` / `activeAppearance` | 각 1 | 동일 |
-| `ID_RE` | 2 | 동일 |
-| `ANIM_DIR` (loader) | 2 | 호스트가 정한다 |
+| 심볼                                                                             | 사용 파일 수 | clotho 대응               |
+| -------------------------------------------------------------------------------- | -----------: | ------------------------- |
+| `AnimationElement` 및 요소별 타입                                                |           12 | 동일                      |
+| `AnimationDef`                                                                   |           11 | `AnimationDocument`       |
+| `animationDefSchema`                                                             |            4 | `animationDocumentSchema` |
+| `SnapshotMap`                                                                    |            4 | 동일                      |
+| `Anchor`                                                                         |            4 | 동일                      |
+| `Appearance` / `PropertyTrack` / `TrackKeyframe` / `Chapter` / `AnimationEffect` |       각 1~3 | 동일                      |
+| `EntryMode` / `ExitMode`                                                         |         각 1 | 동일                      |
+| `computeSnapshot` / `activeAppearance`                                           |         각 1 | 동일                      |
+| `ID_RE`                                                                          |            2 | 동일                      |
+| `ANIM_DIR` (loader)                                                              |            2 | 호스트가 정한다           |
 
 즉 **스키마와 런타임뿐이며 렌더러는 쓰지 않는다.** Studio는 자체 캔버스 미리보기를 갖고 있다(`canvas-preview.ts`). 이식은 import 경로 변경이 대부분이다.
 
@@ -47,14 +47,14 @@ Studio는 두 저장소에 거의 동일한 코드로 존재한다.
 
 이식하지 말고 clotho를 쓸 것:
 
-| Studio가 갖고 있던 것 | clotho |
-| --- | --- |
-| 자체 스냅샷 계산 | `computeSnapshot` |
-| 자체 캔버스 미리보기 렌더 | `buildScene` + `clotho/dom` `patchScene` |
-| 자체 타임라인 스크럽 시각 계산 | `createPlayer` — `seek()`가 그대로 스크럽이다 |
-| 자체 앵커 좌표 계산 (`anchor-system.ts`) | `anchorPoint` / `resolveEndpoints` |
-| 자체 좌표 변환 일부 (`canvas-utils.ts`) | `geometry/matrix` |
-| 저장 전 검증 | `validateDocument` — 미지의 속성까지 잡는다 |
+| Studio가 갖고 있던 것                    | clotho                                        |
+| ---------------------------------------- | --------------------------------------------- |
+| 자체 스냅샷 계산                         | `computeSnapshot`                             |
+| 자체 캔버스 미리보기 렌더                | `buildScene` + `clotho/dom` `patchScene`      |
+| 자체 타임라인 스크럽 시각 계산           | `createPlayer` — `seek()`가 그대로 스크럽이다 |
+| 자체 앵커 좌표 계산 (`anchor-system.ts`) | `anchorPoint` / `resolveEndpoints`            |
+| 자체 좌표 변환 일부 (`canvas-utils.ts`)  | `geometry/matrix`                             |
+| 저장 전 검증                             | `validateDocument` — 미지의 속성까지 잡는다   |
 
 `canvas-preview.ts`를 `patchScene`으로 바꾸면 **에디터 미리보기와 배포된 애니메이션이 같은 렌더 경로를 쓴다.** 지금은 두 구현이 갈라져 있어 에디터에서 맞게 보이는 것이 사이트에서 다르게 보일 수 있다.
 
@@ -62,14 +62,14 @@ Studio는 두 저장소에 거의 동일한 코드로 존재한다.
 
 ## 3. v1 때문에 반드시 바뀌는 것
 
-| 영역 | 변경 | 영향 |
-| --- | --- | --- |
-| `studio-groups.ts` (187줄) | `childIds` → `parentId` | 그룹 편집 UI 재작성. **legacy 그룹은 렌더된 적이 없으므로 여기서 처음으로 실제 동작한다** |
-| 이미지 요소 | `src` → `assetId` + `assets` 레지스트리 | 이미지 첨부 UI 신설 (`encodeImageAsset`) |
-| `studio-image-upload.ts` | 업로드 엔드포인트 전제 | `inline`(base64) / `external` / `ref` 3택 |
-| `state/types.ts` | `AnimationDef` | `AnimationDocument` |
-| 트랙 편집 | — | `interpolate` 모드 선택 UI 추가 가능 |
-| 검증 표시 | 없음 | `validateDocument` 결과를 패널에 표시 |
+| 영역                       | 변경                                    | 영향                                                                                      |
+| -------------------------- | --------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `studio-groups.ts` (187줄) | `childIds` → `parentId`                 | 그룹 편집 UI 재작성. **legacy 그룹은 렌더된 적이 없으므로 여기서 처음으로 실제 동작한다** |
+| 이미지 요소                | `src` → `assetId` + `assets` 레지스트리 | 이미지 첨부 UI 신설 (`encodeImageAsset`)                                                  |
+| `studio-image-upload.ts`   | 업로드 엔드포인트 전제                  | `inline`(base64) / `external` / `ref` 3택                                                 |
+| `state/types.ts`           | `AnimationDef`                          | `AnimationDocument`                                                                       |
+| 트랙 편집                  | —                                       | `interpolate` 모드 선택 UI 추가 가능                                                      |
+| 검증 표시                  | 없음                                    | `validateDocument` 결과를 패널에 표시                                                     |
 
 ---
 

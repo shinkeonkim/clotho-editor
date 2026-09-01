@@ -10,6 +10,7 @@ export function queryUi(): StudioUi | null {
   const idDisplay = $<HTMLElement>("studio-id-display");
   const status = $<HTMLElement>("studio-status");
   const saveBtn = $<HTMLButtonElement>("studio-save");
+  const exportBtn = $<HTMLButtonElement>("studio-export-json");
   const deleteBtn = $<HTMLButtonElement>("studio-delete");
   const newBtn = $<HTMLButtonElement>("studio-new");
   const openBtn = $<HTMLButtonElement>("studio-open");
@@ -48,6 +49,7 @@ export function queryUi(): StudioUi | null {
     !idDisplay ||
     !status ||
     !saveBtn ||
+    !exportBtn ||
     !deleteBtn ||
     !newBtn ||
     !openBtn ||
@@ -88,6 +90,7 @@ export function queryUi(): StudioUi | null {
     idDisplay,
     status,
     saveBtn,
+    exportBtn,
     deleteBtn,
     newBtn,
     openBtn,

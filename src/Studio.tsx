@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { AnimationDocument } from "@kokoa/clotho";
 import { AnimationStage, usePlayer } from "@kokoa/clotho/react";
+import { downloadAnimationJson } from "./export-json";
 
 type EditableElement = Record<string, unknown> & { id: string; type: string };
 type ElementList = AnimationDocument["elements"];
@@ -133,6 +134,13 @@ export function Studio({ initial, onSave }: StudioProps): React.JSX.Element {
 
       <div className="studio-preview">
         <div className="studio-preview-bar">
+          <button
+            type="button"
+            className="studio-btn"
+            onClick={() => downloadAnimationJson(def)}
+          >
+            JSON 내보내기
+          </button>
           <button
             type="button"
             className="studio-btn"

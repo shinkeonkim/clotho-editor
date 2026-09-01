@@ -639,11 +639,7 @@ function apply(key: string, value: string | number | boolean): void {
     updateSettings({ showChapterList: Boolean(value) });
   else if (key === "settings.chapterListPosition")
     updateSettings({
-      chapterListPosition: String(value) as
-        | "left"
-        | "right"
-        | "top"
-        | "bottom",
+      chapterListPosition: String(value) as "left" | "right" | "top" | "bottom",
     });
   else if (key.startsWith("el.") && sel.kind === "element") {
     const prop = key.slice(3);

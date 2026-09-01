@@ -45,6 +45,7 @@ import {
 } from "./main/panes";
 import { isPlaying, stopPreview, togglePlay } from "./main/playback";
 import { bindKeyboardShortcuts } from "./main/keyboard-shortcuts";
+import { downloadAnimationJson } from "../export-json";
 
 export { getVisibleElementIds } from "./main/selection-nav";
 
@@ -221,6 +222,12 @@ export function initStudio(opts?: { initialId?: string }): void {
     { id: "help", label: "⌨ 단축키 보기", hint: "? / Shift+/", run: openHelp },
   ]);
   ui.saveBtn.addEventListener("click", () => void saveCurrent(ui));
+  ui.exportBtn.addEventListener("click", () => {
+    const def = getDef();
+    if (!def) return;
+    downloadAnimationJson(def);
+    setStatus(ui, `${def.id}.json 파일을 내려받았습니다.`, "ok");
+  });
   ui.deleteBtn.addEventListener("click", () => void deleteCurrent(ui));
   ui.undoBtn.addEventListener("click", () => undo());
   ui.redoBtn.addEventListener("click", () => redo());
@@ -285,6 +292,7 @@ function reflectState(ui: StudioUi): void {
       ? "Draft"
       : ((def as { id?: string }).id ?? "");
     ui.saveBtn.disabled = false;
+    ui.exportBtn.disabled = false;
     ui.deleteBtn.disabled = isDraft();
   } else {
     ui.titleInput.value = "";
@@ -292,6 +300,7 @@ function reflectState(ui: StudioUi): void {
     ui.canvasHeightInput.value = "";
     ui.idDisplay.textContent = "";
     ui.saveBtn.disabled = true;
+    ui.exportBtn.disabled = true;
     ui.deleteBtn.disabled = true;
   }
 }

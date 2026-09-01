@@ -12,6 +12,11 @@ export { Studio } from "./Studio";
 export type { StudioProps } from "./Studio";
 export { StudioMount } from "./StudioMount";
 export type { StudioMountProps } from "./StudioMount";
+export {
+  animationDocumentFileName,
+  animationDocumentToJson,
+  downloadAnimationJson,
+} from "./export-json";
 
 // The headless pieces, for hosts building their own shell.
 export * from "./legacy/state";

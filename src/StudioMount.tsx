@@ -49,6 +49,7 @@ const SKELETON = `
       <span id="studio-id-display" class="studio-id-display"></span>
       <span id="studio-status" class="studio-status" aria-live="polite">대기 중</span>
       <button type="button" id="studio-save" class="studio-btn studio-btn-primary" aria-label="저장" disabled>💾 저장 (⌘S)</button>
+      <button type="button" id="studio-export-json" class="studio-btn" aria-label="현재 애니메이션을 JSON 파일로 내보내기" disabled>⬇ JSON 내보내기</button>
       <button type="button" id="studio-delete" class="studio-btn studio-btn-danger" aria-label="삭제" disabled>🗑 삭제</button>
     </div>
   </header>

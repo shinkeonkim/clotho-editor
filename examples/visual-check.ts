@@ -20,7 +20,15 @@ const base = animationDocumentSchema.parse({
       r: 24,
       fill: "#6366f1",
       appearances: [{ start: 0, end: 2000 }],
-      tracks: [{ property: "cx", keyframes: [{ time: 0, value: 80 }, { time: 2000, value: 400 }] }],
+      tracks: [
+        {
+          property: "cx",
+          keyframes: [
+            { time: 0, value: 80 },
+            { time: 2000, value: 400 },
+          ],
+        },
+      ],
     },
   ],
   chapters: [
@@ -28,7 +36,11 @@ const base = animationDocumentSchema.parse({
     { id: "two", time: 700, label: "처리", subtitle: "상태 갱신" },
     { id: "three", time: 1400, label: "완료", subtitle: "결과 출력" },
   ],
-  settings: { showCaption: true, showChapterList: true, chapterListPosition: "right" },
+  settings: {
+    showCaption: true,
+    showChapterList: true,
+    chapterListPosition: "right",
+  },
 });
 
 setDef(base);
@@ -43,9 +55,13 @@ for (const position of ["left", "right", "top", "bottom"] as const) {
   const host = document.createElement("div");
   figure.append(heading, host);
   previews.append(figure);
-  mountPlayer(host, { ...base, settings: { ...base.settings, chapterListPosition: position } }, {
-    player: { autoplay: false },
-  });
+  mountPlayer(
+    host,
+    { ...base, settings: { ...base.settings, chapterListPosition: position } },
+    {
+      player: { autoplay: false },
+    },
+  );
 }
 
 const style = document.createElement("style");

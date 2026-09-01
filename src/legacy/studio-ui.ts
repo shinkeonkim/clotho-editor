@@ -4,6 +4,7 @@ export interface StudioUi {
   idDisplay: HTMLElement;
   status: HTMLElement;
   saveBtn: HTMLButtonElement;
+  exportBtn: HTMLButtonElement;
   deleteBtn: HTMLButtonElement;
   newBtn: HTMLButtonElement;
   openBtn: HTMLButtonElement;

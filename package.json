@@ -40,6 +40,10 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "app:dev": "bun app/index.html",
+    "app:build": "bun build ./app/index.html --outdir ./worker-dist --target browser --minify",
+    "worker:dev": "bun run app:build && wrangler dev",
+    "worker:deploy": "bun run app:build && wrangler deploy",
     "release:check": "bun scripts/release-check.ts"
   },
   "peerDependencies": {
@@ -62,8 +66,9 @@
     "@types/react-dom": "^19.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "tsup": "^8.3.5",
     "typescript": "^5.7.2",
-    "tsup": "^8.3.5"
+    "wrangler": "^4.127.1"
   },
   "keywords": [
     "clotho",

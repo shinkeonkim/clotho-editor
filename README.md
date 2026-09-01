@@ -30,6 +30,8 @@ configureHost({ placeholderImageUrl: "/uploads/placeholder.png" });
 
 `Studio`는 문서를 저장하는 방법을 사용하는 application에서 정할 수 있는 내장형 컴포넌트다. 기존 API 경로를 그대로 사용하는 완성된 화면이 필요하면 `<StudioMount initialId="document-id" />`를 사용한다. 두 컴포넌트 모두 Vite, Next.js, React SPA에 넣을 수 있으며 브라우저에서만 필요한 코드는 컴포넌트가 화면에 연결된 뒤 초기화된다.
 
+두 에디터의 `JSON 내보내기` 버튼은 현재 문서를 검증한 뒤 `{문서 ID}.json` 파일로 내려받는다. 화면을 직접 만들 때는 `animationDocumentToJson`, `animationDocumentFileName`, `downloadAnimationJson`을 사용할 수 있다.
+
 재생 설정 화면에서는 현재 단계 설명과 전체 단계 목록을 표시할지 선택할 수 있다. 단계 목록의 위치도 `좌측 | 우측 | 상단 | 하단` 중에서 고를 수 있다. 네 가지 배치를 한 화면에서 확인하려면 다음 명령을 실행한다.
 
 ```bash
@@ -48,6 +50,18 @@ bun run build
 ```
 
 개발 환경의 devDependency는 이웃한 `../clotho`를 가리킨다. 배포 패키지에는 이 로컬 경로가 들어가지 않으며 `^0.1.0` peer dependency만 공개된다. 배포 순서와 검증 방법은 [`../clotho/docs/RELEASING.md`](../clotho/docs/RELEASING.md)에 정리되어 있다.
+
+## Cloudflare Workers 배포
+
+독립 에디터는 `app`에서 시작하며 Cloudflare Workers Static Assets용 설정은 [`wrangler.jsonc`](./wrangler.jsonc)에 들어 있다. 로컬에서 실제 화면을 확인하거나 배포 파일을 만들려면 다음 명령을 사용한다.
+
+```bash
+bun run app:dev
+bun run app:build
+bun run worker:dev
+```
+
+실제 배포가 필요할 때만 `bun run worker:deploy`를 실행한다. 이 저장소의 설정에는 custom domain을 넣지 않았으므로 Cloudflare Dashboard의 해당 Worker에서 `clotho-editor.shinkeonkim.com`을 Custom Domain으로 연결하면 된다. Dashboard에서 관리한 설정이 이후 CLI 배포로 덮어써지지 않도록 `routes` 항목도 두지 않았다.
 
 ## 라이선스
 

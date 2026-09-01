@@ -11,6 +11,20 @@ body.studio-timeline-popout {
   color: var(--color-fg, #0f172a);
 }
 
+body.studio-player-popout {
+  min-width: 0;
+  margin: 0;
+  padding: clamp(1rem, 3vw, 2.5rem);
+  box-sizing: border-box;
+  background: var(--color-bg, #f1f5f9);
+  color: var(--color-fg, #0f172a);
+}
+
+body.studio-player-popout #clotho-player-preview {
+  width: min(100%, 1200px);
+  margin: 0 auto;
+}
+
 @layer components {
   .studio-shell {
     height: calc(100vh - 80px);

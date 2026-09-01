@@ -52,6 +52,7 @@ import { animationDocumentSchema } from "@kokoa/clotho";
 import { importAnimation } from "./api";
 import type { ImageUploadResolver } from "./studio-image-upload";
 import { setupTimelinePopout } from "./timeline-popout";
+import { setupPlayerPopout } from "./player-popout";
 
 export { getVisibleElementIds } from "./main/selection-nav";
 
@@ -294,6 +295,7 @@ export function initStudio(
     }
   });
   setupTimelinePopout(ui, () => togglePlay(ui));
+  setupPlayerPopout(ui);
 
   ui.newCreateBtn.addEventListener("click", () => void createNew(ui));
 

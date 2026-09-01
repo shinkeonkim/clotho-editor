@@ -1,0 +1,325 @@
+{
+  "clothoVersion": 1,
+  "category": "gallery",
+  "canvas": {
+    "width": 720,
+    "height": 220,
+    "background": "transparent"
+  },
+  "settings": {
+    "loop": true,
+    "autoplay": true,
+    "showCaption": false,
+    "showChapterList": false
+  },
+  "id": "transitions",
+  "title": "Entry and exit modes",
+  "description": "All eight transition modes entering together and leaving together",
+  "duration": 4000,
+  "elements": [
+    {
+      "type": "rect",
+      "id": "m-0",
+      "x": 20,
+      "y": 60,
+      "width": 72,
+      "height": 72,
+      "fill": "#e0e7ff",
+      "stroke": "#6366f1",
+      "appearances": [
+        {
+          "start": 400,
+          "end": 2600,
+          "entryMode": "instant",
+          "entryDuration": 700,
+          "exitMode": "instant",
+          "exitDuration": 700
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "m-0-label",
+      "x": 56,
+      "y": 155,
+      "content": "instant",
+      "fontSize": 11,
+      "textAnchor": "middle",
+      "color": "#475569",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 4000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "rect",
+      "id": "m-1",
+      "x": 107,
+      "y": 60,
+      "width": 72,
+      "height": 72,
+      "fill": "#e0e7ff",
+      "stroke": "#6366f1",
+      "appearances": [
+        {
+          "start": 400,
+          "end": 2600,
+          "entryMode": "fade",
+          "entryDuration": 700,
+          "exitMode": "fade",
+          "exitDuration": 700
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "m-1-label",
+      "x": 143,
+      "y": 155,
+      "content": "fade",
+      "fontSize": 11,
+      "textAnchor": "middle",
+      "color": "#475569",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 4000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "rect",
+      "id": "m-2",
+      "x": 194,
+      "y": 60,
+      "width": 72,
+      "height": 72,
+      "fill": "#e0e7ff",
+      "stroke": "#6366f1",
+      "appearances": [
+        {
+          "start": 400,
+          "end": 2600,
+          "entryMode": "slide-left",
+          "entryDuration": 700,
+          "exitMode": "slide-left",
+          "exitDuration": 700
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "m-2-label",
+      "x": 230,
+      "y": 155,
+      "content": "slide-left",
+      "fontSize": 11,
+      "textAnchor": "middle",
+      "color": "#475569",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 4000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "rect",
+      "id": "m-3",
+      "x": 281,
+      "y": 60,
+      "width": 72,
+      "height": 72,
+      "fill": "#e0e7ff",
+      "stroke": "#6366f1",
+      "appearances": [
+        {
+          "start": 400,
+          "end": 2600,
+          "entryMode": "slide-right",
+          "entryDuration": 700,
+          "exitMode": "slide-right",
+          "exitDuration": 700
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "m-3-label",
+      "x": 317,
+      "y": 155,
+      "content": "slide-right",
+      "fontSize": 11,
+      "textAnchor": "middle",
+      "color": "#475569",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 4000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "rect",
+      "id": "m-4",
+      "x": 368,
+      "y": 60,
+      "width": 72,
+      "height": 72,
+      "fill": "#e0e7ff",
+      "stroke": "#6366f1",
+      "appearances": [
+        {
+          "start": 400,
+          "end": 2600,
+          "entryMode": "slide-up",
+          "entryDuration": 700,
+          "exitMode": "slide-up",
+          "exitDuration": 700
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "m-4-label",
+      "x": 404,
+      "y": 155,
+      "content": "slide-up",
+      "fontSize": 11,
+      "textAnchor": "middle",
+      "color": "#475569",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 4000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "rect",
+      "id": "m-5",
+      "x": 455,
+      "y": 60,
+      "width": 72,
+      "height": 72,
+      "fill": "#e0e7ff",
+      "stroke": "#6366f1",
+      "appearances": [
+        {
+          "start": 400,
+          "end": 2600,
+          "entryMode": "slide-down",
+          "entryDuration": 700,
+          "exitMode": "slide-down",
+          "exitDuration": 700
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "m-5-label",
+      "x": 491,
+      "y": 155,
+      "content": "slide-down",
+      "fontSize": 11,
+      "textAnchor": "middle",
+      "color": "#475569",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 4000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "rect",
+      "id": "m-6",
+      "x": 542,
+      "y": 60,
+      "width": 72,
+      "height": 72,
+      "fill": "#e0e7ff",
+      "stroke": "#6366f1",
+      "appearances": [
+        {
+          "start": 400,
+          "end": 2600,
+          "entryMode": "zoom",
+          "entryDuration": 700,
+          "exitMode": "zoom",
+          "exitDuration": 700
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "m-6-label",
+      "x": 578,
+      "y": 155,
+      "content": "zoom",
+      "fontSize": 11,
+      "textAnchor": "middle",
+      "color": "#475569",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 4000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "rect",
+      "id": "m-7",
+      "x": 629,
+      "y": 60,
+      "width": 72,
+      "height": 72,
+      "fill": "#e0e7ff",
+      "stroke": "#6366f1",
+      "appearances": [
+        {
+          "start": 400,
+          "end": 2600,
+          "entryMode": "pop",
+          "entryDuration": 700,
+          "exitMode": "pop",
+          "exitDuration": 700
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "m-7-label",
+      "x": 665,
+      "y": 155,
+      "content": "pop",
+      "fontSize": 11,
+      "textAnchor": "middle",
+      "color": "#475569",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 4000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    }
+  ]
+}

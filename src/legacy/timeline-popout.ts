@@ -1,5 +1,6 @@
 import type { StudioUi } from "./studio-ui";
 import { bindTimelinePointerDocument } from "./timeline";
+import { prepareStudioPopupDocument } from "./popup-document";
 
 const POPUP_FEATURES = "popup=yes,width=1200,height=620";
 
@@ -56,7 +57,10 @@ export function setupTimelinePopout(
     placeholder = document.createComment("clotho-timeline-home");
     timeline.before(placeholder);
 
-    preparePopupDocument(opened.document, document, ui.app);
+    prepareStudioPopupDocument(opened.document, document, ui.app, {
+      title: "Clotho Timeline",
+      bodyClass: "studio-timeline-popout",
+    });
     opened.document.body.appendChild(timeline);
     unbindPopupPointerEvents = bindTimelinePointerDocument(opened.document);
     opened.addEventListener("beforeunload", () => restoreTimeline(false), {
@@ -71,35 +75,4 @@ export function setupTimelinePopout(
     ui.detachTimelineBtn.textContent = "↙ 편집기에 다시 합치기";
     opened.focus();
   });
-}
-
-function preparePopupDocument(
-  popupDocument: Document,
-  sourceDocument: Document,
-  sourceApp: HTMLElement,
-): void {
-  popupDocument.open();
-  popupDocument.write(
-    '<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Clotho Timeline</title></head><body class="editor-active studio-timeline-popout"></body></html>',
-  );
-  popupDocument.close();
-
-  const base = popupDocument.createElement("base");
-  base.href = sourceDocument.baseURI;
-  popupDocument.head.prepend(base);
-
-  for (const source of sourceDocument.querySelectorAll(
-    'link[rel="stylesheet"], style',
-  )) {
-    popupDocument.head.appendChild(source.cloneNode(true));
-  }
-
-  const computed = getComputedStyle(sourceApp);
-  const target = popupDocument.documentElement.style;
-  for (let index = 0; index < computed.length; index += 1) {
-    const property = computed.item(index);
-    if (property.startsWith("--")) {
-      target.setProperty(property, computed.getPropertyValue(property));
-    }
-  }
 }

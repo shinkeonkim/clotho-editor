@@ -87,11 +87,14 @@ Studio는 두 저장소에 거의 동일한 코드로 존재한다.
 ### 이식하며 바꾼 것
 
 - **미리보기가 clotho를 쓴다.** `canvas-preview.ts`가 `clotho/dom`의 `mountStage`를 호출한다. 에디터와 배포본이 같은 `buildScene` + `patchScene`을 지나므로 두 렌더가 갈라질 수 없다.
+- **완성형 미리보기도 clotho를 쓴다.** `player-popout.ts`는 `clotho/dom`의 `mountPlayer`를 별도 창에 직접 마운트한다. 제목, 조작 버튼, caption과 chapter 목록을 포함해 실제 사용처의 컴포넌트 구조를 확인하는 경로다.
 - **`Studio.tsx`가 `AnimationStage` + `usePlayer`로 바뀌었다.** 에디터가 타임라인의 주인이고 플레이어는 미리보기 중일 때만 시계를 공급한다.
 - **호스트 의존을 설정으로 뺐다** (8.6). `configureApi({ baseUrl })`와 `configureHost({ placeholderImageUrl })`. 기본값은 원래 값이라 기존 호스트는 아무것도 바꿀 필요가 없다.
 - **그룹(8.4)·이미지(8.5)에 회귀 테스트를 붙였다.** 둘 다 legacy에 없던 동작이라 테스트가 없으면 동작 여부를 확인할 방법이 없다.
 
 ### 남은 정리
+
+- `canvas.ts`는 선택 영역, resize handle, anchor와 drag hit area를 그리기 위한 authoring surface다. 문서 검증, snapshot 계산, 재생 clock과 실제 출력은 Clotho가 담당한다. 장기적으로 Clotho scene node가 편집용 element ID를 노출하면 authoring surface도 `patchScene` 위의 overlay만 남길 수 있다.
 
 - `noUncheckedIndexedAccess`가 꺼져 있다. 켜면 84개 에러가 나오는데 전부 테스트 없이 도착한 코드의 미검사 인덱스 접근이다. 눈감고 고치면 버그를 찾는 게 아니라 동작을 바꾸게 되므로, `legacy/`를 모듈 단위로 다시 쓸 때 함께 켠다. clotho 본체는 켜져 있다.
 - `legacy/` 라는 디렉터리 이름 자체가 정리 대상이다. clotho가 대체한 것 (`anchor-system`의 앵커 계산, `canvas-utils`의 좌표 변환 일부)을 걷어내면서 모듈을 제 위치로 옮긴다.

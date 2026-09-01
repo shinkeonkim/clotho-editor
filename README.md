@@ -52,11 +52,25 @@ const repository = createLocalStorageRepository({
 
 미리보기의 `무한 재생` 설정은 문서의 `settings.loop`에 저장된다. `타임라인 분리` 버튼을 누르면 기존 타임라인 컴포넌트가 이벤트와 상태를 유지한 채 별도 브라우저 창으로 이동한다. 분리된 창에서도 재생, Chapter와 keyframe 편집, drag, 확대와 스크롤을 같은 방식으로 사용할 수 있다. `편집기에 다시 합치기` 버튼을 누르거나 창을 닫으면 컴포넌트가 원래 위치로 돌아온다.
 
+`실제 미리보기`는 편집용 canvas가 아니라 `@kokoa/clotho/dom`의 `mountPlayer`로 완성된 애니메이션 컴포넌트를 별도 창에 표시한다. 편집 중 문서가 바뀌면 미리보기 창도 최신 문서로 다시 렌더링한다. 사용하는 application에서는 editor stylesheet와 함께 Clotho player stylesheet도 불러와야 한다.
+
+```ts
+import "@kokoa/clotho-editor/styles.css";
+import "@kokoa/clotho/styles.css";
+```
+
 왼쪽 도구는 먼저 활성화한 뒤 canvas에서 사용한다. 기존 요소를 누르면 자동으로 `선택 · 이동 · 크기` 도구로 돌아간다. `V`, `R`, `O`, `L`, `A`, `T`, `I`, `B`, `Y`로 선택, 사각형, 원, 선, 화살표, 텍스트, 이미지, Path, 다각형 도구를 활성화할 수 있으며 input, textarea, contenteditable에 입력하는 동안에는 단축키가 동작하지 않는다. 텍스트는 canvas에서 더블클릭해 바로 편집한다. Path는 점을 차례대로 누르고 더블클릭하거나 Enter를 눌러 완성하며 Esc를 누르면 작성을 취소한다.
 
 Shift, Command 또는 Ctrl을 누른 채 canvas나 요소 목록을 누르면 여러 요소를 선택하거나 선택에서 제외할 수 있다. 그룹의 자식은 요소 목록과 timeline에서 들여쓰기되어 표시된다. 그룹 timeline은 여러 자식에 적용되는 transform과 visibility animation을 작성할 때 사용한다.
 
 JSON을 내보낼 때는 어떤 image 요소에서도 참조하지 않는 `assets` 항목을 자동으로 제거한다. 이미지를 삭제한 뒤 별도의 정리 작업을 실행할 필요가 없다.
+
+Cloudflare demo의 `열기` 화면에는 Clotho gallery의 JSON 문서 9개가 모두 들어 있다. JSON은 Clotho 저장소의 gallery source에서 생성하며 다음 명령으로 다시 동기화한다.
+
+```bash
+cd ../clotho
+bun examples/gallery/build.ts ../clotho-editor/app/gallery --documents-only
+```
 
 두 에디터의 `JSON 내보내기` 버튼은 현재 문서를 검증한 뒤 `{문서 ID}.json` 파일로 내려받는다. 화면을 직접 만들 때는 `animationDocumentToJson`, `animationDocumentFileName`, `downloadAnimationJson`을 사용할 수 있다.
 

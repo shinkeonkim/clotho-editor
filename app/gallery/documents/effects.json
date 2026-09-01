@@ -1,0 +1,132 @@
+{
+  "clothoVersion": 1,
+  "category": "gallery",
+  "canvas": {
+    "width": 720,
+    "height": 200,
+    "background": "transparent"
+  },
+  "settings": {
+    "loop": true,
+    "autoplay": true,
+    "showCaption": false,
+    "showChapterList": false
+  },
+  "id": "effects",
+  "title": "Effects",
+  "description": "highlight, pulse and flow, fired repeatedly",
+  "duration": 3000,
+  "elements": [
+    {
+      "type": "rect",
+      "id": "fx-hl",
+      "x": 40,
+      "y": 60,
+      "width": 160,
+      "height": 80,
+      "fill": "#e0e7ff",
+      "stroke": "#6366f1",
+      "label": "highlight",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 3000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "circle",
+      "id": "fx-pulse",
+      "cx": 360,
+      "cy": 100,
+      "r": 44,
+      "fill": "#fce7f3",
+      "stroke": "#db2777",
+      "label": "pulse",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 3000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "arrow",
+      "id": "fx-flow",
+      "x1": 500,
+      "y1": 100,
+      "x2": 680,
+      "y2": 100,
+      "stroke": "#16a34a",
+      "headEnd": "arrow",
+      "label": "flow",
+      "labelOffsetY": -12,
+      "appearances": [
+        {
+          "start": 0,
+          "end": 3000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    }
+  ],
+  "effects": [
+    {
+      "type": "highlight",
+      "id": "e1",
+      "elementId": "fx-hl",
+      "time": 300,
+      "color": "#facc15",
+      "duration": 700
+    },
+    {
+      "type": "highlight",
+      "id": "e2",
+      "elementId": "fx-hl",
+      "time": 1800,
+      "color": "#22d3ee",
+      "duration": 700
+    },
+    {
+      "type": "pulse",
+      "id": "e3",
+      "elementId": "fx-pulse",
+      "time": 500,
+      "scale": 1.25,
+      "duration": 600
+    },
+    {
+      "type": "pulse",
+      "id": "e4",
+      "elementId": "fx-pulse",
+      "time": 2000,
+      "scale": 1.25,
+      "duration": 600
+    },
+    {
+      "type": "flow",
+      "id": "e5",
+      "elementId": "fx-flow",
+      "time": 200,
+      "color": "#facc15",
+      "particles": 5,
+      "radius": 5,
+      "duration": 1200
+    },
+    {
+      "type": "flow",
+      "id": "e6",
+      "elementId": "fx-flow",
+      "time": 1600,
+      "color": "#facc15",
+      "particles": 5,
+      "radius": 5,
+      "duration": 1200
+    }
+  ]
+}

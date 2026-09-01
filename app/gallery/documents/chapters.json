@@ -1,0 +1,184 @@
+{
+  "clothoVersion": 1,
+  "category": "gallery",
+  "canvas": {
+    "width": 720,
+    "height": 220,
+    "background": "transparent"
+  },
+  "settings": {
+    "loop": true,
+    "autoplay": true,
+    "showCaption": true,
+    "showChapterList": true
+  },
+  "id": "chapters",
+  "title": "Chapters and captions",
+  "description": "Four labelled sections with the caption bar switched on",
+  "duration": 4800,
+  "chapters": [
+    {
+      "id": "c1",
+      "time": 0,
+      "label": "parse",
+      "subtitle": "text becomes a tree"
+    },
+    {
+      "id": "c2",
+      "time": 1200,
+      "label": "check",
+      "subtitle": "the tree is validated"
+    },
+    {
+      "id": "c3",
+      "time": 2400,
+      "label": "build",
+      "subtitle": "a scene is produced"
+    },
+    {
+      "id": "c4",
+      "time": 3600,
+      "label": "draw",
+      "subtitle": "an adapter emits it"
+    }
+  ],
+  "elements": [
+    {
+      "type": "rect",
+      "id": "st-0",
+      "x": 30,
+      "y": 70,
+      "width": 140,
+      "height": 72,
+      "fill": "#e0e7ff",
+      "stroke": "#6366f1",
+      "label": "parse",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 4800,
+          "entryMode": "slide-up",
+          "entryDuration": 400,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "arrow",
+      "id": "st-0-arr",
+      "fromId": "st-0",
+      "toId": "st-1",
+      "fromAnchor": "right",
+      "toAnchor": "left",
+      "stroke": "#94a3b8",
+      "headEnd": "arrow",
+      "appearances": [
+        {
+          "start": 1000,
+          "end": 4800,
+          "entryMode": "fade",
+          "entryDuration": 300,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "rect",
+      "id": "st-1",
+      "x": 202,
+      "y": 70,
+      "width": 140,
+      "height": 72,
+      "fill": "#e0e7ff",
+      "stroke": "#6366f1",
+      "label": "check",
+      "appearances": [
+        {
+          "start": 1200,
+          "end": 4800,
+          "entryMode": "slide-up",
+          "entryDuration": 400,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "arrow",
+      "id": "st-1-arr",
+      "fromId": "st-1",
+      "toId": "st-2",
+      "fromAnchor": "right",
+      "toAnchor": "left",
+      "stroke": "#94a3b8",
+      "headEnd": "arrow",
+      "appearances": [
+        {
+          "start": 2200,
+          "end": 4800,
+          "entryMode": "fade",
+          "entryDuration": 300,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "rect",
+      "id": "st-2",
+      "x": 374,
+      "y": 70,
+      "width": 140,
+      "height": 72,
+      "fill": "#e0e7ff",
+      "stroke": "#6366f1",
+      "label": "build",
+      "appearances": [
+        {
+          "start": 2400,
+          "end": 4800,
+          "entryMode": "slide-up",
+          "entryDuration": 400,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "arrow",
+      "id": "st-2-arr",
+      "fromId": "st-2",
+      "toId": "st-3",
+      "fromAnchor": "right",
+      "toAnchor": "left",
+      "stroke": "#94a3b8",
+      "headEnd": "arrow",
+      "appearances": [
+        {
+          "start": 3400,
+          "end": 4800,
+          "entryMode": "fade",
+          "entryDuration": 300,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "rect",
+      "id": "st-3",
+      "x": 546,
+      "y": 70,
+      "width": 140,
+      "height": 72,
+      "fill": "#e0e7ff",
+      "stroke": "#6366f1",
+      "label": "draw",
+      "appearances": [
+        {
+          "start": 3600,
+          "end": 4800,
+          "entryMode": "slide-up",
+          "entryDuration": 400,
+          "exitDuration": 0
+        }
+      ]
+    }
+  ]
+}

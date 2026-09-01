@@ -1,79 +1,29 @@
 import { animationDocumentSchema, type AnimationDocument } from "@kokoa/clotho";
+import chapters from "./gallery/documents/chapters.json";
+import connectors from "./gallery/documents/connectors.json";
+import easing from "./gallery/documents/easing.json";
+import effects from "./gallery/documents/effects.json";
+import elements from "./gallery/documents/elements.json";
+import groups from "./gallery/documents/groups.json";
+import interpolation from "./gallery/documents/interpolation.json";
+import iteration from "./gallery/documents/iteration.json";
+import transitions from "./gallery/documents/transitions.json";
 
-export const exampleAnimations: readonly AnimationDocument[] = [
-  animationDocumentSchema.parse({
-    clothoVersion: 1,
-    id: "welcome",
-    title: "clotho 시작하기",
-    description: "텍스트와 도형을 편집해 볼 수 있는 예시입니다.",
-    duration: 2400,
-    canvas: { width: 800, height: 500 },
-    elements: [
-      {
-        type: "rect",
-        id: "card",
-        x: 180,
-        y: 150,
-        width: 440,
-        height: 200,
-        fill: "#e0e7ff",
-        stroke: "#4f46e5",
-        strokeWidth: 3,
-        rx: 24,
-      },
-      {
-        type: "text",
-        id: "title",
-        x: 400,
-        y: 250,
-        content: "clotho editor",
-        fontSize: 42,
-        color: "#312e81",
-        textAnchor: "middle",
-      },
-    ],
-  }),
-  animationDocumentSchema.parse({
-    clothoVersion: 1,
-    id: "three-steps",
-    title: "세 단계 흐름",
-    description: "단계와 연결선을 구성하는 기본 예시입니다.",
-    duration: 3000,
-    canvas: { width: 800, height: 500 },
-    elements: [
-      {
-        type: "rect",
-        id: "one",
-        x: 80,
-        y: 200,
-        width: 160,
-        height: 90,
-        fill: "#dbeafe",
-        stroke: "#2563eb",
-        rx: 12,
-      },
-      {
-        type: "rect",
-        id: "two",
-        x: 320,
-        y: 200,
-        width: 160,
-        height: 90,
-        fill: "#dcfce7",
-        stroke: "#16a34a",
-        rx: 12,
-      },
-      {
-        type: "rect",
-        id: "three",
-        x: 560,
-        y: 200,
-        width: 160,
-        height: 90,
-        fill: "#fef3c7",
-        stroke: "#d97706",
-        rx: 12,
-      },
-    ],
-  }),
+const galleryDocuments: readonly unknown[] = [
+  elements,
+  transitions,
+  easing,
+  interpolation,
+  iteration,
+  effects,
+  connectors,
+  groups,
+  chapters,
 ];
+
+/**
+ * Generated from clotho/examples/gallery/documents.ts with:
+ * bun examples/gallery/build.ts ../clotho-editor/app/gallery --documents-only
+ */
+export const exampleAnimations: readonly AnimationDocument[] =
+  galleryDocuments.map((document) => animationDocumentSchema.parse(document));

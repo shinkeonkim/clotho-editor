@@ -1,0 +1,293 @@
+{
+  "clothoVersion": 1,
+  "category": "gallery",
+  "canvas": {
+    "width": 720,
+    "height": 240,
+    "background": "transparent"
+  },
+  "settings": {
+    "loop": true,
+    "autoplay": true,
+    "showCaption": false,
+    "showChapterList": false
+  },
+  "id": "easing",
+  "title": "Easing curves",
+  "description": "Four dots crossing the same distance in the same time",
+  "duration": 3000,
+  "elements": [
+    {
+      "type": "text",
+      "id": "e-0-label",
+      "x": 20,
+      "y": 55,
+      "content": "linear",
+      "fontSize": 13,
+      "color": "#475569",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 3000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "line",
+      "id": "e-0-rail",
+      "x1": 110,
+      "y1": 50,
+      "x2": 680,
+      "y2": 50,
+      "stroke": "#e2e8f0",
+      "strokeWidth": 2,
+      "appearances": [
+        {
+          "start": 0,
+          "end": 3000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "circle",
+      "id": "e-0",
+      "cx": 110,
+      "cy": 50,
+      "r": 11,
+      "fill": "#6366f1",
+      "stroke": "#312e81",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 3000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ],
+      "tracks": [
+        {
+          "property": "cx",
+          "keyframes": [
+            {
+              "time": 200,
+              "value": 110
+            },
+            {
+              "time": 2600,
+              "value": 680,
+              "ease": "linear"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "e-1-label",
+      "x": 20,
+      "y": 103,
+      "content": "easeIn",
+      "fontSize": 13,
+      "color": "#475569",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 3000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "line",
+      "id": "e-1-rail",
+      "x1": 110,
+      "y1": 98,
+      "x2": 680,
+      "y2": 98,
+      "stroke": "#e2e8f0",
+      "strokeWidth": 2,
+      "appearances": [
+        {
+          "start": 0,
+          "end": 3000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "circle",
+      "id": "e-1",
+      "cx": 110,
+      "cy": 98,
+      "r": 11,
+      "fill": "#6366f1",
+      "stroke": "#312e81",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 3000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ],
+      "tracks": [
+        {
+          "property": "cx",
+          "keyframes": [
+            {
+              "time": 200,
+              "value": 110
+            },
+            {
+              "time": 2600,
+              "value": 680,
+              "ease": "easeIn"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "e-2-label",
+      "x": 20,
+      "y": 151,
+      "content": "easeOut",
+      "fontSize": 13,
+      "color": "#475569",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 3000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "line",
+      "id": "e-2-rail",
+      "x1": 110,
+      "y1": 146,
+      "x2": 680,
+      "y2": 146,
+      "stroke": "#e2e8f0",
+      "strokeWidth": 2,
+      "appearances": [
+        {
+          "start": 0,
+          "end": 3000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "circle",
+      "id": "e-2",
+      "cx": 110,
+      "cy": 146,
+      "r": 11,
+      "fill": "#6366f1",
+      "stroke": "#312e81",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 3000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ],
+      "tracks": [
+        {
+          "property": "cx",
+          "keyframes": [
+            {
+              "time": 200,
+              "value": 110
+            },
+            {
+              "time": 2600,
+              "value": 680,
+              "ease": "easeOut"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "e-3-label",
+      "x": 20,
+      "y": 199,
+      "content": "easeInOut",
+      "fontSize": 13,
+      "color": "#475569",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 3000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "line",
+      "id": "e-3-rail",
+      "x1": 110,
+      "y1": 194,
+      "x2": 680,
+      "y2": 194,
+      "stroke": "#e2e8f0",
+      "strokeWidth": 2,
+      "appearances": [
+        {
+          "start": 0,
+          "end": 3000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "circle",
+      "id": "e-3",
+      "cx": 110,
+      "cy": 194,
+      "r": 11,
+      "fill": "#6366f1",
+      "stroke": "#312e81",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 3000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ],
+      "tracks": [
+        {
+          "property": "cx",
+          "keyframes": [
+            {
+              "time": 200,
+              "value": 110
+            },
+            {
+              "time": 2600,
+              "value": 680,
+              "ease": "easeInOut"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

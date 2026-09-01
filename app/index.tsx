@@ -3,6 +3,7 @@ import { StudioMount } from "../src/StudioMount";
 import { createLocalStorageRepository } from "../src/repository";
 import { exampleAnimations } from "./examples";
 import "../src/styles/clotho-editor.css";
+import "@kokoa/clotho/styles.css";
 import "./standalone.css";
 
 const root = document.getElementById("root");

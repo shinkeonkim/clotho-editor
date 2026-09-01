@@ -1,0 +1,187 @@
+{
+  "clothoVersion": 1,
+  "category": "gallery",
+  "canvas": {
+    "width": 720,
+    "height": 260,
+    "background": "transparent"
+  },
+  "settings": {
+    "loop": true,
+    "autoplay": true,
+    "showCaption": false,
+    "showChapterList": false
+  },
+  "id": "interpolation",
+  "title": "Interpolation modes",
+  "description": "auto, number, color and discrete over identical keyframes",
+  "duration": 4000,
+  "elements": [
+    {
+      "type": "text",
+      "id": "i-h",
+      "x": 20,
+      "y": 30,
+      "content": "track.interpolate decides how two keyframe values are blended",
+      "fontSize": 13,
+      "color": "#475569",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 4000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "rect",
+      "id": "auto",
+      "x": 20,
+      "y": 60,
+      "width": 60,
+      "height": 44,
+      "fill": "#e0e7ff",
+      "stroke": "#6366f1",
+      "label": "auto",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 4000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ],
+      "tracks": [
+        {
+          "property": "width",
+          "interpolate": "auto",
+          "keyframes": [
+            {
+              "time": 0,
+              "value": 60
+            },
+            {
+              "time": 3600,
+              "value": 300,
+              "ease": "easeInOut"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "circle",
+      "id": "num",
+      "cx": 60,
+      "cy": 145,
+      "r": 20,
+      "fill": "#fce7f3",
+      "stroke": "#db2777",
+      "label": "number",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 4000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ],
+      "tracks": [
+        {
+          "property": "r",
+          "interpolate": "number",
+          "keyframes": [
+            {
+              "time": 0,
+              "value": 20
+            },
+            {
+              "time": 3600,
+              "value": 46,
+              "ease": "easeOut"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "rect",
+      "id": "col",
+      "x": 340,
+      "y": 122,
+      "width": 150,
+      "height": 48,
+      "fill": "#e0e7ff",
+      "stroke": "#6366f1",
+      "label": "color",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 4000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ],
+      "tracks": [
+        {
+          "property": "fill",
+          "interpolate": "color",
+          "keyframes": [
+            {
+              "time": 0,
+              "value": "#e0e7ff"
+            },
+            {
+              "time": 3600,
+              "value": "#fca5a5",
+              "ease": "linear"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "disc",
+      "x": 20,
+      "y": 225,
+      "content": "discrete: one",
+      "fontSize": 20,
+      "fontWeight": 700,
+      "color": "#312e81",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 4000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ],
+      "tracks": [
+        {
+          "property": "content",
+          "interpolate": "discrete",
+          "keyframes": [
+            {
+              "time": 0,
+              "value": "discrete: one"
+            },
+            {
+              "time": 1200,
+              "value": "discrete: two"
+            },
+            {
+              "time": 2400,
+              "value": "discrete: three"
+            },
+            {
+              "time": 3600,
+              "value": "discrete: four"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

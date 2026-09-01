@@ -1,5 +1,5 @@
-import type { AnimationDocument } from "@shinkeonkim/clotho";
-import { encodeImageAsset, inlineAssetFromDataUri } from "@shinkeonkim/clotho";
+import type { AnimationDocument } from "@kokoa/clotho";
+import { encodeImageAsset, inlineAssetFromDataUri } from "@kokoa/clotho";
 import { mutateDef, state } from "./internals";
 import { getDef } from "./core";
 

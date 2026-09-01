@@ -1,4 +1,4 @@
-import type { AnimationEffect, Chapter } from "@shinkeonkim/clotho";
+import type { AnimationEffect, Chapter } from "@kokoa/clotho";
 import { emit, mutateDef, state } from "./internals";
 
 export function addChapter(c: Chapter): void {

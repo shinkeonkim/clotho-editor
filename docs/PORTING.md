@@ -131,6 +131,6 @@ Studio는 두 저장소에 거의 동일한 코드로 존재한다.
 
 ## 6. 전제 조건
 
-`@shinkeonkim/clotho`가 설치 가능해야 한다. 배포 전에는 `package.json`의 의존이
+`@kokoa/clotho`가 설치 가능해야 한다. 배포 전에는 `package.json`의 의존이
 `"file:../clotho"`이며, 이 상태로 typecheck·build·테스트가 전부 통과한다. 배포 후
 버전 지정으로 바꾼다.

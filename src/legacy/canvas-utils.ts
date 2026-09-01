@@ -4,7 +4,7 @@ import type {
   ArrowElement,
   LineElement,
   SnapshotMap,
-} from "@shinkeonkim/clotho";
+} from "@kokoa/clotho";
 
 export const SVG_NS = "http://www.w3.org/2000/svg";
 

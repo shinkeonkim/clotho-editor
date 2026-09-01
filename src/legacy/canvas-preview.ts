@@ -1,4 +1,4 @@
-import type { AnimationDocument } from "@shinkeonkim/clotho";
+import type { AnimationDocument } from "@kokoa/clotho";
 
 // Preview now renders through clotho's DOM adapter rather than a React island.
 //
@@ -14,7 +14,7 @@ async function mountPreview(
   host: HTMLElement,
   doc: AnimationDocument,
 ): Promise<void> {
-  const { mountStage } = await import("@shinkeonkim/clotho/dom");
+  const { mountStage } = await import("@kokoa/clotho/dom");
   // The stage only, without controls: the Studio has its own timeline and transport.
   previewHandle = mountStage(host, doc, { player: { autoplay: true } });
 }

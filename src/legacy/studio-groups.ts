@@ -1,4 +1,4 @@
-import type { AnimationElement, GroupElement } from "@shinkeonkim/clotho";
+import type { AnimationElement, GroupElement } from "@kokoa/clotho";
 import {
   addElement,
   deleteElement,

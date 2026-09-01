@@ -1,10 +1,10 @@
-# @shinkeonkim/clotho-editor
+# @kokoa/clotho-editor
 
 [clotho](../clotho) 애니메이션 문서를 위한 비주얼 에디터.
 
 ## 상태
 
-**이식 완료, 정리 진행 중.** 두 블로그 저장소 안에 있던 Studio(약 8,900 LOC)를 clotho
+두 블로그 저장소 안에 있던 Studio(약 8,900 LOC)를 clotho
 기반 독립 패키지로 옮겼다. typecheck 0 errors, 빌드·테스트 통과.
 
 이식에서 가장 의미 있는 변화는 **미리보기가 clotho를 쓴다**는 점이다. Studio는 자체
@@ -15,13 +15,14 @@
 
 ## 사용
 
+```bash
+npm install @kokoa/clotho @kokoa/clotho-editor react react-dom
+# yarn add / pnpm add / bun add 도 같은 패키지 목록을 사용한다.
+```
+
 ```tsx
-import {
-  Studio,
-  configureApi,
-  configureHost,
-} from "@shinkeonkim/clotho-editor";
-import "@shinkeonkim/clotho-editor/styles.css";
+import { Studio, configureApi, configureHost } from "@kokoa/clotho-editor";
+import "@kokoa/clotho-editor/styles.css";
 
 // 문서가 어디 저장되는지는 호스트가 정한다. 기본값은 원래 Studio가 쓰던 경로다.
 configureApi({ baseUrl: "/api/admin/animations" });
@@ -29,6 +30,11 @@ configureHost({ placeholderImageUrl: "/uploads/placeholder.png" });
 
 <Studio initial={doc} onSave={handleSave} />;
 ```
+
+`Studio`는 저장 방식을 호스트가 소유하는 삽입형 컴포넌트다. 기존 API 경로를 그대로 쓰는
+완성형 화면이 필요하면 `<StudioMount initialId="document-id" />`를 사용한다. 일반적인
+Vite/Next.js/React SPA에 둘 다 삽입할 수 있고, 브라우저 전용 코드는 mount 이후에
+초기화된다.
 
 ## 개발
 
@@ -39,8 +45,9 @@ bun test
 bun run build
 ```
 
-`@shinkeonkim/clotho`가 배포되기 전에는 `package.json`의 의존을
-`"file:../clotho"`로 두고 개발한다.
+개발 시에는 devDependency가 이웃 `../clotho`를 가리킨다. 배포물에는 이 경로가 포함되지
+않고 `^0.1.0` peer 계약만 노출된다. 배포 순서와 검증은
+[`../clotho/docs/RELEASING.md`](../clotho/docs/RELEASING.md)를 따른다.
 
 ## 라이선스
 

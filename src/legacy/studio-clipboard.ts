@@ -1,4 +1,4 @@
-import type { AnimationElement } from "@shinkeonkim/clotho";
+import type { AnimationElement } from "@kokoa/clotho";
 import {
   addElement,
   getDef,

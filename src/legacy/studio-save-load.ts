@@ -1,4 +1,4 @@
-import { animationDocumentSchema } from "@shinkeonkim/clotho";
+import { animationDocumentSchema } from "@kokoa/clotho";
 import {
   getDef,
   isDraft,

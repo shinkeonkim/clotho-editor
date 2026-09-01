@@ -11,7 +11,7 @@ import {
   toggleSelectionFor,
   registerExternalAsset,
 } from "./state";
-import type { AnimationElement } from "@shinkeonkim/clotho";
+import type { AnimationElement } from "@kokoa/clotho";
 import { placeholderImageUrl } from "./host";
 
 let listEl: HTMLElement | null = null;

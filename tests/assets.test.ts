@@ -11,7 +11,7 @@ import {
   animationDocumentSchema,
   parseDocument,
   resolveAsset,
-} from "@shinkeonkim/clotho";
+} from "@kokoa/clotho";
 import {
   getDef,
   registerDataUriAsset,

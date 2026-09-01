@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 // The stylesheet ships as a separate entry rather than an import, so a consumer that
 // only wants the headless pieces does not pull CSS into its bundle:
-//   import "@shinkeonkim/clotho-editor/styles.css";
+//   import "@kokoa/clotho-editor/styles.css";
 
 export interface StudioMountProps {
   initialId?: string;

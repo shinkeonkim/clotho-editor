@@ -12,7 +12,7 @@ import {
   updateAppearance,
   updateChapter,
 } from "./state";
-import type { AnimationElement } from "@shinkeonkim/clotho";
+import type { AnimationElement } from "@kokoa/clotho";
 import { friendlyElementLabel } from "./element-list";
 
 let tracksEl: HTMLElement | null = null;

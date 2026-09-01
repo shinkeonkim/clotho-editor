@@ -1,5 +1,5 @@
-import type { AnimationDocument } from "@shinkeonkim/clotho";
-import { animationDocumentSchema } from "@shinkeonkim/clotho";
+import type { AnimationDocument } from "@kokoa/clotho";
+import { animationDocumentSchema } from "@kokoa/clotho";
 import type {
   HistoryEntry,
   HistoryKind,

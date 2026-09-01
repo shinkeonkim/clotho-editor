@@ -1,5 +1,5 @@
-import type { AnimationDocument, SnapshotMap } from "@shinkeonkim/clotho";
-import { computeSnapshot } from "@shinkeonkim/clotho";
+import type { AnimationDocument, SnapshotMap } from "@kokoa/clotho";
+import { computeSnapshot } from "@kokoa/clotho";
 import type { Selection } from "./types";
 import { emit, state, past, future } from "./internals";
 

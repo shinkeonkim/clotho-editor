@@ -1,4 +1,4 @@
-import type { AnimationElement, Anchor } from "@shinkeonkim/clotho";
+import type { AnimationElement, Anchor } from "@kokoa/clotho";
 
 export interface AnchorPoint {
   x: number;

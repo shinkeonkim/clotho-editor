@@ -1,7 +1,7 @@
 // Public entry for the clotho editor.
 //
 // The editor is a port of the Studio that grew inside two blogs, rebuilt on
-// @shinkeonkim/clotho. What it no longer carries is everything clotho now provides:
+// @kokoa/clotho. What it no longer carries is everything clotho now provides:
 // the document schema, the runtime, the anchor geometry, and — most consequentially —
 // the canvas preview, which used to be a second renderer that could disagree with the
 // one readers saw.

@@ -1,7 +1,4 @@
-import {
-  animationDocumentSchema,
-  type AnimationDocument,
-} from "@shinkeonkim/clotho";
+import { animationDocumentSchema, type AnimationDocument } from "@kokoa/clotho";
 
 // Where documents live is the host's business, not the editor's.
 //

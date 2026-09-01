@@ -7,10 +7,7 @@
 // works for the first time and needs its own tests.
 
 import { beforeEach, describe, expect, it } from "bun:test";
-import {
-  animationDocumentSchema,
-  type AnimationDocument,
-} from "@shinkeonkim/clotho";
+import { animationDocumentSchema, type AnimationDocument } from "@kokoa/clotho";
 import { setDef, getDef } from "../src/legacy/state";
 import {
   childIdsOf,

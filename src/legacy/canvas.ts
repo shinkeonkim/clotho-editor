@@ -7,7 +7,7 @@ import type {
   RectElement,
   SnapshotMap,
   TextElement,
-} from "@shinkeonkim/clotho";
+} from "@kokoa/clotho";
 import {
   getDef,
   getSelection,
@@ -23,8 +23,8 @@ import {
   getSelectedElementIds,
 } from "./state";
 import { snapPoint } from "./grid";
-import type { Anchor } from "@shinkeonkim/clotho";
-import { resolveAsset } from "@shinkeonkim/clotho";
+import type { Anchor } from "@kokoa/clotho";
+import { resolveAsset } from "@kokoa/clotho";
 import {
   findContainingGroup,
   groupBbox,
@@ -81,7 +81,7 @@ interface RotateState {
 
 interface ConnectState {
   fromId: string;
-  fromAnchor: import("@shinkeonkim/clotho").Anchor;
+  fromAnchor: import("@kokoa/clotho").Anchor;
   startX: number;
   startY: number;
   currentX: number;
@@ -1411,7 +1411,7 @@ function renderElement(
     return g;
   }
   if (baseEl.type === "path") {
-    const p = state as unknown as import("@shinkeonkim/clotho").PathElement;
+    const p = state as unknown as import("@kokoa/clotho").PathElement;
     const g = makeG(baseEl.id, rotation, p.x, p.y);
     const dash = p.strokeDasharray
       ? `stroke-dasharray="${p.strokeDasharray}"`
@@ -1421,7 +1421,7 @@ function renderElement(
     return g;
   }
   if (baseEl.type === "polygon") {
-    const pg = state as unknown as import("@shinkeonkim/clotho").PolygonElement;
+    const pg = state as unknown as import("@kokoa/clotho").PolygonElement;
     const g = makeG(baseEl.id, rotation, 0, 0);
     g.innerHTML = `<polygon points="${escapeXml(pg.points)}" fill="${pg.fill}" stroke="${pg.stroke}" stroke-width="${pg.strokeWidth}" opacity="${pg.opacity}" pointer-events="all" />`;
     return g;
@@ -1434,7 +1434,7 @@ import {
   hidePreview as _hidePreview,
 } from "./canvas-preview";
 export function showPreview(
-  def: import("@shinkeonkim/clotho").AnimationDocument,
+  def: import("@kokoa/clotho").AnimationDocument,
 ): void {
   _showPreview(canvasEl, def);
 }

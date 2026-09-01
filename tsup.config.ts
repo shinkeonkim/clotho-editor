@@ -11,5 +11,5 @@ export default defineConfig({
   // The stylesheet is copied verbatim to dist/clotho-editor.css rather than bundled and
   // hashed, so the package can export a stable path.
   publicDir: "src/styles",
-  external: ["react", "react-dom", "@shinkeonkim/clotho"],
+  external: ["react", "react-dom", "@kokoa/clotho"],
 });

@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { AnimationDocument } from "@shinkeonkim/clotho";
-import { AnimationStage, usePlayer } from "@shinkeonkim/clotho/react";
+import type { AnimationDocument } from "@kokoa/clotho";
+import { AnimationStage, usePlayer } from "@kokoa/clotho/react";
 
 type EditableElement = Record<string, unknown> & { id: string; type: string };
 type ElementList = AnimationDocument["elements"];

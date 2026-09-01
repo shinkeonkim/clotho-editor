@@ -32,7 +32,7 @@ import type {
   Appearance,
   EntryMode,
   ExitMode,
-} from "@shinkeonkim/clotho";
+} from "@kokoa/clotho";
 import { captureFocusWithin, restoreFocusWithin } from "./studio-focus";
 import {
   alignSelected,

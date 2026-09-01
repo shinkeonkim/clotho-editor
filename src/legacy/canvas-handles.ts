@@ -4,7 +4,7 @@ import type {
   ArrowElement,
   LineElement,
   SnapshotMap,
-} from "@shinkeonkim/clotho";
+} from "@kokoa/clotho";
 import {
   SVG_NS,
   escapeXml,

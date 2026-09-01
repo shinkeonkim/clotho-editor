@@ -4,7 +4,7 @@ import type {
   Appearance,
   PropertyTrack,
   TrackKeyframe,
-} from "@shinkeonkim/clotho";
+} from "@kokoa/clotho";
 import type { HistoryKind } from "./types";
 import { emit, mutateDef, state } from "./internals";
 

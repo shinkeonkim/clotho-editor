@@ -1,6 +1,6 @@
 import { getDef, getSelection, setSelection } from "../state";
-import type { AnimationDocument } from "@shinkeonkim/clotho";
-import { activeAppearance } from "@shinkeonkim/clotho";
+import type { AnimationDocument } from "@kokoa/clotho";
+import { activeAppearance } from "@kokoa/clotho";
 
 export function selectAdjacentElement(direction: 1 | -1): boolean {
   const def = getDef();

@@ -1,4 +1,4 @@
-import type { AnimationDocument } from "@shinkeonkim/clotho";
+import type { AnimationDocument } from "@kokoa/clotho";
 
 export type Selection =
   | { kind: "none" }

@@ -1,4 +1,4 @@
-import type { ImageElement } from "@shinkeonkim/clotho";
+import type { ImageElement } from "@kokoa/clotho";
 import {
   addElement,
   getDef,

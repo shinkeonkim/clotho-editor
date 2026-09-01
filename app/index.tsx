@@ -18,6 +18,12 @@ if (!root) throw new Error("에디터를 표시할 요소를 찾지 못했습니
 const repository = createLocalStorageRepository({
   examples: exampleAnimations,
 });
+const requestedAnimation = new URL(window.location.href).searchParams.get(
+  "animation",
+);
+const initialId = exampleAnimations.some(({ id }) => id === requestedAnimation)
+  ? requestedAnimation!
+  : "incident-walkthrough";
 
 const qaPlugins = [
   createResponsiveInspectorPlugin(),
@@ -28,6 +34,7 @@ const qaPlugins = [
 
 createRoot(root).render(
   <StudioMount
+    initialId={initialId}
     repository={repository}
     plugins={qaPlugins}
     resolvePluginPermissions={() => ({

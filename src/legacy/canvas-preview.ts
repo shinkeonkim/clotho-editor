@@ -1,4 +1,5 @@
 import { compileDataBindings, type AnimationDocument } from "@kokoa/clotho";
+import type { StageHandle } from "@kokoa/clotho/dom";
 
 // Preview now renders through clotho's DOM adapter rather than a React island.
 //
@@ -8,7 +9,7 @@ import { compileDataBindings, type AnimationDocument } from "@kokoa/clotho";
 // site had another, and the two could disagree.
 
 let previewRoot: HTMLDivElement | null = null;
-let previewHandle: import("@kokoa/clotho/dom").StageHandle | null = null;
+let previewHandle: StageHandle | null = null;
 let unsubscribePreview: (() => void) | null = null;
 
 export interface PreviewOptions {

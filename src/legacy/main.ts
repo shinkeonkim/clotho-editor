@@ -88,9 +88,6 @@ export function initStudio(
     console.error("[studio] missing required elements");
     return () => {};
   }
-  if (false) {
-    window.__studio__ = { setDef, setSelection, getDef, getSelection };
-  }
   document.body.classList.add("editor-active");
   document.documentElement.classList.add("editor-active");
   const editorTitle = document.getElementById("studio-editor-title");

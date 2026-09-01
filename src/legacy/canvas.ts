@@ -4,10 +4,14 @@ import type {
   CircleElement,
   ImageElement,
   LineElement,
+  PathElement,
+  PolygonElement,
   RectElement,
   SnapshotMap,
   TextElement,
+  AnimationDocument,
 } from "@kokoa/clotho";
+import type { PreviewOptions } from "./canvas-preview";
 import {
   getDef,
   getSelection,
@@ -92,7 +96,7 @@ interface RotateState {
 
 interface ConnectState {
   fromId: string;
-  fromAnchor: import("@kokoa/clotho").Anchor;
+  fromAnchor: Anchor;
   startX: number;
   startY: number;
   currentX: number;
@@ -1780,7 +1784,7 @@ function renderElement(
     return g;
   }
   if (baseEl.type === "path") {
-    const p = state as unknown as import("@kokoa/clotho").PathElement;
+    const p = state as unknown as PathElement;
     const g = makeG(baseEl.id, rotation, p.x, p.y);
     const dash = p.strokeDasharray
       ? `stroke-dasharray="${p.strokeDasharray}"`
@@ -1790,7 +1794,7 @@ function renderElement(
     return g;
   }
   if (baseEl.type === "polygon") {
-    const pg = state as unknown as import("@kokoa/clotho").PolygonElement;
+    const pg = state as unknown as PolygonElement;
     const g = makeG(baseEl.id, rotation, 0, 0);
     g.innerHTML = `<polygon points="${escapeXml(pg.points)}" fill="${pg.fill}" stroke="${pg.stroke}" stroke-width="${pg.strokeWidth}" opacity="${pg.opacity}" pointer-events="all" />`;
     return g;
@@ -1803,8 +1807,8 @@ import {
   hidePreview as _hidePreview,
 } from "./canvas-preview";
 export function showPreview(
-  def: import("@kokoa/clotho").AnimationDocument,
-  options: import("./canvas-preview").PreviewOptions,
+  def: AnimationDocument,
+  options: PreviewOptions,
 ): void {
   _showPreview(canvasEl, def, options);
 }

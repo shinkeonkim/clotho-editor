@@ -60,14 +60,18 @@
     }
   },
   "devDependencies": {
+    "@eslint/js": "^9.17.0",
     "@kokoa/clotho": "^0.1.8",
     "@types/bun": "^1.1.14",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tsup": "^8.3.5",
     "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.0",
     "wrangler": "^4.127.1"
   },
   "keywords": [

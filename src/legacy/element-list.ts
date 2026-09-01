@@ -4,8 +4,6 @@ import {
   setSelection,
   deleteElement,
   subscribe,
-  addElement,
-  uniqueElementId,
   reorderElement,
   isElementSelected,
   registerExternalAsset,

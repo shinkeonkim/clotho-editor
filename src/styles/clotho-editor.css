@@ -327,6 +327,19 @@ body.editor-active {
     border-color: var(--color-accent);
     color: var(--color-accent);
   }
+  .studio-tool-btn.is-active {
+    border-color: var(--color-accent);
+    background: color-mix(
+      in srgb,
+      var(--color-accent) 16%,
+      var(--color-surface)
+    );
+    color: var(--color-accent);
+    box-shadow: inset 3px 0 0 var(--color-accent);
+  }
+  body:not([data-studio-tool="select"]) .studio-canvas {
+    cursor: crosshair;
+  }
   .studio-element-search {
     width: 100%;
     box-sizing: border-box;
@@ -373,6 +386,18 @@ body.editor-active {
     justify-content: space-between;
     align-items: center;
     gap: 0.25rem;
+  }
+  .studio-element-list-item {
+    padding-left: calc(0.35rem + var(--studio-tree-depth, 0) * 0.9rem);
+  }
+  .studio-element-list-item.is-group {
+    background: color-mix(
+      in srgb,
+      var(--color-accent) 9%,
+      var(--color-surface)
+    );
+    border-left: 3px solid var(--color-accent);
+    font-weight: 650;
   }
   .studio-element-list-item:hover {
     background-color: var(--color-surface);
@@ -796,15 +821,6 @@ body.editor-active {
     font-size: 0.75rem;
     color: var(--color-fg-muted);
   }
-  .studio-timeline-wrap.is-detached {
-    position: fixed;
-    z-index: 100;
-    inset: auto 1rem 1rem 1rem;
-    height: min(52vh, 520px);
-    border: 1px solid var(--color-border, #475569);
-    border-radius: 0.75rem;
-    box-shadow: 0 24px 70px rgb(0 0 0 / 45%);
-  }
   .studio-timeline-tracks {
     display: block;
     padding-bottom: 0.25rem;
@@ -834,6 +850,13 @@ body.editor-active {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+  .studio-tl-element-label {
+    padding-left: calc(0.5rem + var(--studio-tree-depth, 0) * 0.8rem);
+  }
+  .studio-tl-element-row.is-group .studio-tl-gutter {
+    color: var(--color-accent);
+    font-weight: 700;
   }
   .studio-tl-gutter-header {
     font-weight: 700;

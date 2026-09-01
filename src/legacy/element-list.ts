@@ -13,6 +13,11 @@ import {
 } from "./state";
 import type { AnimationElement } from "@kokoa/clotho";
 import { placeholderImageUrl } from "./host";
+import {
+  setActiveTool,
+  subscribeActiveTool,
+  type StudioTool,
+} from "./tool-state";
 
 let listEl: HTMLElement | null = null;
 let toolsRootEl: HTMLElement | null = null;
@@ -36,6 +41,18 @@ export function initElementList(
   root.addEventListener("drop", onDrop);
   root.addEventListener("dragend", onDragEnd);
   toolsRootEl?.addEventListener("click", onToolsClick);
+  subscribeActiveTool((tool) => {
+    toolsRootEl?.setAttribute("data-active-tool", tool);
+    document.body.dataset.studioTool = tool;
+    toolsRootEl
+      ?.querySelectorAll<HTMLElement>("[data-studio-tool], [data-add-element]")
+      .forEach((button) => {
+        const value = button.dataset.studioTool ?? button.dataset.addElement;
+        const active = value === tool;
+        button.classList.toggle("is-active", active);
+        button.setAttribute("aria-pressed", String(active));
+      });
+  });
   searchEl?.addEventListener("input", render);
   searchEl?.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && searchEl) {
@@ -103,25 +120,36 @@ function render(): void {
     query && items.length === 0
       ? `<li style="color: var(--color-fg-muted); padding: 0.4rem; font-size:0.78rem;">"${escapeHtml(query)}" 일치 없음</li>`
       : "";
+  const byParent = new Map<string, AnimationElement[]>();
+  for (const element of items) {
+    if (!element.parentId) continue;
+    const children = byParent.get(element.parentId) ?? [];
+    children.push(element);
+    byParent.set(element.parentId, children);
+  }
+  const renderItem = (el: AnimationElement, depth = 0): string => {
+    const isSel = isElementSelected(sel, el.id);
+    const label = friendlyElementLabel(el);
+    const subId =
+      label !== el.id
+        ? `<span class="studio-element-list-item-sub">${escapeHtml(el.id)}</span>`
+        : "";
+    const group = el.type === "group";
+    const children = query ? [] : (byParent.get(el.id) ?? []);
+    return `<li class="studio-element-list-item ${isSel ? "is-selected" : ""} ${group ? "is-group" : ""}" data-elem-id="${escapeHtml(el.id)}" draggable="true" style="--studio-tree-depth:${depth}">
+      <span class="studio-element-grip" aria-hidden="true">${group ? "▾" : "⋮⋮"}</span>
+      <span class="studio-element-list-item-label">${group ? "그룹 · " : ""}${escapeHtml(label)} <span class="studio-element-list-item-type">${escapeHtml(el.type)}</span>${subId}</span>
+      <button type="button" class="studio-element-list-delete" data-delete title="삭제">✕</button>
+    </li>${children.map((child) => renderItem(child, depth + 1)).join("")}`;
+  };
+  const visibleItems = query
+    ? items
+    : items.filter((element) => !element.parentId);
   listEl.innerHTML =
     filterHint +
     multiHint +
     emptyMsg +
-    items
-      .map((el) => {
-        const isSel = isElementSelected(sel, el.id);
-        const label = friendlyElementLabel(el);
-        const subId =
-          label !== el.id
-            ? `<span class="studio-element-list-item-sub">${escapeHtml(el.id)}</span>`
-            : "";
-        return `<li class="studio-element-list-item ${isSel ? "is-selected" : ""}" data-elem-id="${escapeHtml(el.id)}" draggable="true">
-          <span class="studio-element-grip" aria-hidden="true">⋮⋮</span>
-          <span class="studio-element-list-item-label">${escapeHtml(label)} <span class="studio-element-list-item-type">${escapeHtml(el.type)}</span>${subId}</span>
-          <button type="button" class="studio-element-list-delete" data-delete title="삭제">✕</button>
-        </li>`;
-      })
-      .join("");
+    visibleItems.map((element) => renderItem(element)).join("");
 }
 
 function onClick(e: Event): void {
@@ -207,30 +235,16 @@ function onDragEnd(): void {
 
 function onToolsClick(e: Event): void {
   const target = e.target as HTMLElement;
-  const btn = target.closest<HTMLElement>("[data-add-element]");
-  if (!btn) return;
-  const type = btn.dataset.addElement;
-  if (!type) return;
-  if (type === "image") {
-    document.getElementById("studio-image-file")?.click();
-    return;
-  }
-  const def = getDef();
-  if (!def) return;
-  const cx = def.canvas.width / 2;
-  const cy = def.canvas.height / 2;
-  const id = uniqueElementId(type);
-  const polygonSides = Number(
-    document.getElementById("studio-polygon-sides") instanceof HTMLInputElement
-      ? (document.getElementById("studio-polygon-sides") as HTMLInputElement)
-          .value
-      : 6,
+  const btn = target.closest<HTMLElement>(
+    "[data-studio-tool], [data-add-element]",
   );
-  const elem = makeDefaultElement(type, id, cx, cy, polygonSides);
-  if (elem) addElement(elem);
+  if (!btn) return;
+  const type = btn.dataset.studioTool ?? btn.dataset.addElement;
+  if (!type) return;
+  setActiveTool(type as StudioTool);
 }
 
-function makeDefaultElement(
+export function makeDefaultElement(
   type: string,
   id: string,
   cx: number,

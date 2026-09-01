@@ -243,8 +243,21 @@ function renderElementTracks(
     elTracksEl.innerHTML = '<p class="studio-tl-empty">요소 없음</p>';
     return;
   }
+  const byId = new Map(elements.map((element) => [element.id, element]));
+  const depthOf = (element: AnimationElement): number => {
+    let depth = 0;
+    let parentId = element.parentId;
+    const seen = new Set<string>();
+    while (parentId && !seen.has(parentId)) {
+      seen.add(parentId);
+      depth += 1;
+      parentId = byId.get(parentId)?.parentId;
+    }
+    return depth;
+  };
   const rows = elements
     .map((el) => {
+      const depth = depthOf(el);
       const isSel =
         (sel.kind === "element" && sel.elementId === el.id) ||
         (sel.kind === "elements" && sel.elementIds.includes(el.id));
@@ -269,8 +282,8 @@ function renderElementTracks(
         )
         .join("");
       return `
-        <div class="studio-tl-row studio-tl-element-row ${isSel ? "is-selected" : ""}" data-elem-id="${escapeHtml(el.id)}">
-          <div class="studio-tl-gutter studio-tl-element-label" title="${escapeHtml(el.id)}">${escapeHtml(gutterLabel(el))}</div>
+        <div class="studio-tl-row studio-tl-element-row ${isSel ? "is-selected" : ""} ${el.type === "group" ? "is-group" : ""}" data-elem-id="${escapeHtml(el.id)}">
+          <div class="studio-tl-gutter studio-tl-element-label" style="--studio-tree-depth:${depth}" title="${escapeHtml(el.id)}">${el.type === "group" ? "▾ " : depth > 0 ? "↳ " : ""}${escapeHtml(gutterLabel(el))}</div>
           <div class="studio-tl-body" style="width:${totalPx}px">
             <div class="studio-tl-element-track" data-tl-area="elements">
               ${appearanceBars}

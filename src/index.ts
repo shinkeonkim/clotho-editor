@@ -16,6 +16,7 @@ export {
   animationDocumentFileName,
   animationDocumentToJson,
   downloadAnimationJson,
+  garbageCollectAnimationAssets,
 } from "./export-json";
 
 // The headless pieces, for hosts building their own shell.

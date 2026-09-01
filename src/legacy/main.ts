@@ -51,6 +51,7 @@ import { downloadAnimationJson } from "../export-json";
 import { animationDocumentSchema } from "@kokoa/clotho";
 import { importAnimation } from "./api";
 import type { ImageUploadResolver } from "./studio-image-upload";
+import { setupTimelinePopout } from "./timeline-popout";
 
 export { getVisibleElementIds } from "./main/selection-nav";
 
@@ -292,17 +293,7 @@ export function initStudio(
       togglePlay(ui);
     }
   });
-  ui.detachTimelineBtn.addEventListener("click", () => {
-    const timeline = ui.detachTimelineBtn.closest<HTMLElement>(
-      ".studio-timeline-wrap",
-    );
-    if (!timeline) return;
-    const detached = timeline.classList.toggle("is-detached");
-    ui.detachTimelineBtn.setAttribute("aria-pressed", String(detached));
-    ui.detachTimelineBtn.textContent = detached
-      ? "▣ 타임라인 되돌리기"
-      : "▣ 타임라인 분리";
-  });
+  setupTimelinePopout(ui, () => togglePlay(ui));
 
   ui.newCreateBtn.addEventListener("click", () => void createNew(ui));
 

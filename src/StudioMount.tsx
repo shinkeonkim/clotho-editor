@@ -65,7 +65,8 @@ const SKELETON = `
   <div class="studio-body">
     <aside class="studio-tools" aria-label="요소 추가">
       <div class="studio-tools-section">
-        <div class="studio-tools-title">요소 추가</div>
+        <div class="studio-tools-title">도구</div>
+        <button type="button" class="studio-tool-btn is-active" data-studio-tool="select" aria-pressed="true">↖ 선택 · 이동 · 크기</button>
         <button type="button" class="studio-tool-btn" data-add-element="rect" title="사각형" aria-label="사각형 추가">□ Rect</button>
         <button type="button" class="studio-tool-btn" data-add-element="circle" title="원" aria-label="원 추가">○ Circle</button>
         <button type="button" class="studio-tool-btn" data-add-element="line" title="선" aria-label="선 추가">／ Line</button>

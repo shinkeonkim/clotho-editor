@@ -3,6 +3,7 @@ import { animationDocumentSchema } from "@kokoa/clotho";
 import {
   animationDocumentFileName,
   animationDocumentToJson,
+  garbageCollectAnimationAssets,
 } from "../src/export-json";
 
 describe("JSON 내보내기", () => {
@@ -31,4 +32,30 @@ describe("JSON 내보내기", () => {
       "-sample.json",
     );
   });
+});
+
+test("JSON 내보내기에서 사용하지 않는 image asset을 제거한다", () => {
+  const def = animationDocumentSchema.parse({
+    clothoVersion: 1,
+    id: "assets",
+    assets: {
+      used: { kind: "external", url: "https://example.com/used.png" },
+      orphan: { kind: "external", url: "https://example.com/orphan.png" },
+    },
+    elements: [
+      {
+        type: "image",
+        id: "image",
+        assetId: "used",
+        x: 0,
+        y: 0,
+        width: 10,
+        height: 10,
+      },
+    ],
+  });
+  expect(Object.keys(garbageCollectAnimationAssets(def).assets)).toEqual([
+    "used",
+  ]);
+  expect(animationDocumentToJson(def)).not.toContain("orphan.png");
 });

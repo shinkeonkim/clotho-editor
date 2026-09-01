@@ -44,6 +44,8 @@ import {
   pathBBoxOnCanvas,
 } from "./canvas-utils";
 import { getAnchorPoints, findNearestAnchor } from "./anchor-system";
+import { getActiveTool } from "./tool-state";
+import { makeDefaultElement } from "./element-list";
 import {
   renderResizeHandles,
   renderRotationHandle,
@@ -196,6 +198,13 @@ let marqueeJustFinished = false;
 let canvasEl: SVGSVGElement | null = null;
 let hoveredElementId: string | null = null;
 let canvasZoom = 1;
+let toolDrawState: {
+  tool: "line" | "arrow";
+  startX: number;
+  startY: number;
+  currentX: number;
+  currentY: number;
+} | null = null;
 
 export function initCanvas(root: SVGSVGElement): void {
   canvasEl = root;
@@ -355,6 +364,40 @@ function onMouseDown(e: MouseEvent): void {
   const target = e.target as Element | null;
   const def = getDef();
   if (!def) return;
+  const activeTool = getActiveTool();
+
+  if (activeTool !== "select" && e.target === canvasEl) {
+    const point = svgPoint(e.clientX, e.clientY);
+    if (!point) return;
+    e.preventDefault();
+    if (activeTool === "line" || activeTool === "arrow") {
+      toolDrawState = {
+        tool: activeTool,
+        startX: point.x,
+        startY: point.y,
+        currentX: point.x,
+        currentY: point.y,
+      };
+      render();
+      return;
+    }
+    if (activeTool === "image") {
+      document.getElementById("studio-image-file")?.click();
+      return;
+    }
+    const sidesInput = document.getElementById(
+      "studio-polygon-sides",
+    ) as HTMLInputElement | null;
+    const element = makeDefaultElement(
+      activeTool,
+      uniqueElementId(activeTool),
+      point.x,
+      point.y,
+      Number(sidesInput?.value ?? 6),
+    );
+    if (element) addElement(element);
+    return;
+  }
 
   if (target?.closest<SVGElement>("[data-vertex-add]")) {
     e.preventDefault();
@@ -363,7 +406,7 @@ function onMouseDown(e: MouseEvent): void {
   }
 
   const resizeHandle = target?.closest<SVGElement>("[data-resize-handle]");
-  if (resizeHandle) {
+  if (resizeHandle && activeTool === "select") {
     e.preventDefault();
     const id = resizeHandle.dataset.elemId ?? "";
     const handle = resizeHandle.dataset.resizeHandle as ResizeHandle;
@@ -497,7 +540,7 @@ function onMouseDown(e: MouseEvent): void {
   }
 
   const anchorHandle = target?.closest<SVGElement>("[data-anchor-handle]");
-  if (anchorHandle) {
+  if (anchorHandle && (activeTool === "line" || activeTool === "arrow")) {
     e.preventDefault();
     const fromId = anchorHandle.dataset.elemId ?? "";
     const fromAnchor = (anchorHandle.dataset.anchor ?? "auto") as Anchor;
@@ -588,6 +631,14 @@ function collectDragExtras(
 }
 
 function onMouseMove(e: MouseEvent): void {
+  if (toolDrawState) {
+    const point = svgPoint(e.clientX, e.clientY);
+    if (!point) return;
+    toolDrawState.currentX = point.x;
+    toolDrawState.currentY = point.y;
+    render();
+    return;
+  }
   if (resizeState) {
     handleResizeMove(e);
     return;
@@ -725,6 +776,31 @@ function onMouseMove(e: MouseEvent): void {
 }
 
 function onMouseUp(e: MouseEvent): void {
+  if (toolDrawState) {
+    const draw = toolDrawState;
+    toolDrawState = null;
+    if (
+      Math.hypot(draw.currentX - draw.startX, draw.currentY - draw.startY) >= 4
+    ) {
+      const element = makeDefaultElement(
+        draw.tool,
+        uniqueElementId(draw.tool),
+        0,
+        0,
+      );
+      if (element && (element.type === "line" || element.type === "arrow")) {
+        addElement({
+          ...element,
+          x1: draw.startX,
+          y1: draw.startY,
+          x2: draw.currentX,
+          y2: draw.currentY,
+        });
+      }
+    }
+    render();
+    return;
+  }
   if (resizeState) {
     resizeState = null;
     render();
@@ -745,10 +821,9 @@ function onMouseUp(e: MouseEvent): void {
     if (elemId && elemId !== connectState.fromId) {
       const def = getDef();
       if (def) {
-        const newId = uniqueElementId("arrow");
-        addElement({
-          type: "arrow",
-          id: newId,
+        const connectionType = getActiveTool() === "line" ? "line" : "arrow";
+        const common = {
+          id: uniqueElementId(connectionType),
           rotation: 0,
           appearances: [],
           tracks: [],
@@ -758,13 +833,21 @@ function onMouseUp(e: MouseEvent): void {
           toAnchor,
           stroke: "#6366f1",
           strokeWidth: 2,
-          curvature: 0,
-          labelColor: "#0b0b0f",
-          labelOffsetX: 0,
-          labelOffsetY: 4,
-          headStart: "none",
-          headEnd: "arrow",
-        });
+          headStart: "none" as const,
+        };
+        if (connectionType === "line") {
+          addElement({ ...common, type: "line", headEnd: "none" });
+        } else {
+          addElement({
+            ...common,
+            type: "arrow",
+            curvature: 0,
+            labelColor: "#0b0b0f",
+            labelOffsetX: 0,
+            labelOffsetY: 4,
+            headEnd: "arrow",
+          });
+        }
       }
     }
     connectState = null;
@@ -1119,31 +1202,27 @@ function render(): void {
         elementsById,
       );
       if (outline) canvasEl.appendChild(outline);
-      const handle = renderRotationHandle(
-        canvasEl,
-        selection.elementId,
-        snap,
-        elementsById,
-      );
+      const selectMode = getActiveTool() === "select";
+      const handle = selectMode
+        ? renderRotationHandle(
+            canvasEl,
+            selection.elementId,
+            snap,
+            elementsById,
+          )
+        : null;
       if (handle) canvasEl.appendChild(handle);
-      const endpoints = renderLineEndpointHandles(
-        selection.elementId,
-        snap,
-        elementsById,
-      );
+      const endpoints = selectMode
+        ? renderLineEndpointHandles(selection.elementId, snap, elementsById)
+        : null;
       if (endpoints) canvasEl.appendChild(endpoints);
-      const vertices = renderPolygonVertexHandles(
-        selection.elementId,
-        snap,
-        elementsById,
-      );
+      const vertices = selectMode
+        ? renderPolygonVertexHandles(selection.elementId, snap, elementsById)
+        : null;
       if (vertices) canvasEl.appendChild(vertices);
-      const resize = renderResizeHandles(
-        canvasEl,
-        selection.elementId,
-        snap,
-        elementsById,
-      );
+      const resize = selectMode
+        ? renderResizeHandles(canvasEl, selection.elementId, snap, elementsById)
+        : null;
       if (resize) canvasEl.appendChild(resize);
     }
   } else if (selection.kind === "elements") {
@@ -1168,14 +1247,20 @@ function render(): void {
     if (guides) canvasEl.appendChild(guides);
   }
 
+  const activeTool = getActiveTool();
   if (
     hoveredElementId &&
+    (activeTool === "line" || activeTool === "arrow") &&
     (!connectState || hoveredElementId !== connectState.fromId)
   ) {
     const anchors = renderAnchorDots(hoveredElementId, snap, elementsById);
     if (anchors) canvasEl.appendChild(anchors);
   }
-  if (connectState && connectState.fromId !== hoveredElementId) {
+  if (
+    connectState &&
+    (activeTool === "line" || activeTool === "arrow") &&
+    connectState.fromId !== hoveredElementId
+  ) {
     const anchors = renderAnchorDots(connectState.fromId, snap, elementsById);
     if (anchors) canvasEl.appendChild(anchors);
   }
@@ -1192,6 +1277,18 @@ function render(): void {
     tempLine.setAttribute("marker-end", "url(#studio-arrow)");
     tempLine.style.pointerEvents = "none";
     canvasEl.appendChild(tempLine);
+  }
+  if (toolDrawState) {
+    const preview = document.createElementNS(SVG_NS, "line");
+    preview.setAttribute("x1", String(toolDrawState.startX));
+    preview.setAttribute("y1", String(toolDrawState.startY));
+    preview.setAttribute("x2", String(toolDrawState.currentX));
+    preview.setAttribute("y2", String(toolDrawState.currentY));
+    preview.setAttribute("stroke", "#6366f1");
+    preview.setAttribute("stroke-width", "2");
+    preview.setAttribute("stroke-dasharray", "5 3");
+    preview.style.pointerEvents = "none";
+    canvasEl.appendChild(preview);
   }
 
   if (marqueeState) {

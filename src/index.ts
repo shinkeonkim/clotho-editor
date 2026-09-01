@@ -68,6 +68,7 @@ export {
   profileAnimation,
 } from "./performance-profiler-plugin";
 export type { SceneProfile } from "./performance-profiler-plugin";
+export { createLinterPlugin } from "./linter-plugin";
 export type {
   DocumentImporter,
   EditorPluginContext,

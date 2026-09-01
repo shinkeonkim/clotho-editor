@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Clotho engine issue
+    url: https://github.com/shinkeonkim/clotho/issues/new/choose
+    about: schema, runtime, renderer와 player 문제는 Clotho 저장소에 등록해주세요.

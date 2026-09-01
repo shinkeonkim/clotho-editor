@@ -211,12 +211,22 @@ function onToolsClick(e: Event): void {
   if (!btn) return;
   const type = btn.dataset.addElement;
   if (!type) return;
+  if (type === "image") {
+    document.getElementById("studio-image-file")?.click();
+    return;
+  }
   const def = getDef();
   if (!def) return;
   const cx = def.canvas.width / 2;
   const cy = def.canvas.height / 2;
   const id = uniqueElementId(type);
-  const elem = makeDefaultElement(type, id, cx, cy);
+  const polygonSides = Number(
+    document.getElementById("studio-polygon-sides") instanceof HTMLInputElement
+      ? (document.getElementById("studio-polygon-sides") as HTMLInputElement)
+          .value
+      : 6,
+  );
+  const elem = makeDefaultElement(type, id, cx, cy, polygonSides);
   if (elem) addElement(elem);
 }
 
@@ -225,6 +235,7 @@ function makeDefaultElement(
   id: string,
   cx: number,
   cy: number,
+  polygonSides = 6,
 ): AnimationElement | null {
   switch (type) {
     case "rect":
@@ -346,7 +357,7 @@ function makeDefaultElement(
       };
     case "polygon": {
       const r = 40;
-      const sides = 6;
+      const sides = Math.max(3, Math.min(24, Math.round(polygonSides) || 6));
       const pts = Array.from({ length: sides }, (_, i) => {
         const a = (i * Math.PI * 2) / sides - Math.PI / 2;
         return `${(cx + r * Math.cos(a)).toFixed(1)},${(cy + r * Math.sin(a)).toFixed(1)}`;

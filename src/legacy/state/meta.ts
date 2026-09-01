@@ -95,6 +95,17 @@ export function registerExternalAsset(url: string): string {
 /** Register raw image bytes as an inline (base64) asset and return its id. */
 export function registerInlineAsset(bytes: Uint8Array, mime: string): string {
   const { asset } = encodeImageAsset(bytes, mime);
+  const def = getDef();
+  if (def) {
+    for (const [id, existing] of Object.entries(def.assets)) {
+      if (
+        existing.kind === "inline" &&
+        existing.mime === asset.mime &&
+        existing.data === asset.data
+      )
+        return id;
+    }
+  }
   const id = uniqueAssetId();
   mutateDef(
     (draft) => {
@@ -124,6 +135,17 @@ function uniqueAssetId(): string {
 export function registerDataUriAsset(dataUri: string): string {
   const inline = inlineAssetFromDataUri(dataUri);
   if (!inline) return registerExternalAsset(dataUri);
+  const def = getDef();
+  if (def) {
+    for (const [id, existing] of Object.entries(def.assets)) {
+      if (
+        existing.kind === "inline" &&
+        existing.mime === inline.mime &&
+        existing.data === inline.data
+      )
+        return id;
+    }
+  }
   const id = uniqueAssetId();
   mutateDef(
     (draft) => {

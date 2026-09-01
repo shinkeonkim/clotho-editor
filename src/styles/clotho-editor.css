@@ -302,6 +302,27 @@ body.editor-active {
     cursor: pointer;
     font-size: 0.78rem;
   }
+  .studio-tool-with-option {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.35rem;
+    align-items: center;
+  }
+  .studio-tool-with-option label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    font-size: 0.68rem;
+    color: var(--color-fg-muted);
+  }
+  .studio-tool-with-option input {
+    width: 2.8rem;
+    padding: 0.25rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.25rem;
+    background: var(--color-surface);
+    color: var(--color-fg);
+  }
   .studio-tool-btn:hover {
     border-color: var(--color-accent);
     color: var(--color-accent);
@@ -767,6 +788,22 @@ body.editor-active {
   }
   .studio-speed input[type="range"] {
     width: 100px;
+  }
+  .studio-timeline-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    color: var(--color-fg-muted);
+  }
+  .studio-timeline-wrap.is-detached {
+    position: fixed;
+    z-index: 100;
+    inset: auto 1rem 1rem 1rem;
+    height: min(52vh, 520px);
+    border: 1px solid var(--color-border, #475569);
+    border-radius: 0.75rem;
+    box-shadow: 0 24px 70px rgb(0 0 0 / 45%);
   }
   .studio-timeline-tracks {
     display: block;

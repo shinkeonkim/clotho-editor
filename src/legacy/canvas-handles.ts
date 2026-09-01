@@ -46,7 +46,7 @@ export function renderResizeHandles(
       w: r * 2,
       h: r * 2,
     };
-    handles = ["n", "e", "s", "w"];
+    handles = ["nw", "ne", "se", "sw"];
   } else if (baseEl.type === "text") {
     const bbox = textBBoxOnCanvas(canvasEl, elId);
     if (!bbox) return null;

@@ -1435,8 +1435,9 @@ import {
 } from "./canvas-preview";
 export function showPreview(
   def: import("@kokoa/clotho").AnimationDocument,
+  options: import("./canvas-preview").PreviewOptions,
 ): void {
-  _showPreview(canvasEl, def);
+  _showPreview(canvasEl, def, options);
 }
 export function hidePreview(): void {
   _hidePreview(canvasEl);

@@ -1,5 +1,5 @@
 import type { StudioUi } from "../studio-ui";
-import { getDef } from "../state";
+import { getDef, setCurrentTime } from "../state";
 import { hidePreview, showPreview } from "../canvas";
 
 let playState: "idle" | "playing" = "idle";
@@ -14,7 +14,12 @@ export function togglePlay(ui: StudioUi): void {
   if (playState === "playing") {
     stopPreview(ui);
   } else {
-    showPreview(def);
+    showPreview(def, {
+      loop: ui.previewLoopInput.checked,
+      speed: Number(ui.speedInput.value),
+      onTime: setCurrentTime,
+      onEnd: () => stopPreview(ui),
+    });
     playState = "playing";
     ui.playBtn.textContent = "⏹ Stop";
   }

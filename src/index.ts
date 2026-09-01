@@ -39,3 +39,4 @@ export type {
 } from "./repository";
 export { configureHost, placeholderImageUrl } from "./legacy/host";
 export type { HostOptions } from "./legacy/host";
+export type { ImageUploadResolver } from "./legacy/studio-image-upload";

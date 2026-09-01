@@ -14,6 +14,8 @@ export interface StudioUi {
   restartBtn: HTMLButtonElement;
   speedInput: HTMLInputElement;
   speedValue: HTMLElement;
+  previewLoopInput: HTMLInputElement;
+  detachTimelineBtn: HTMLButtonElement;
   canvas: SVGSVGElement;
   elementList: HTMLElement;
   toolsRoot: HTMLElement;

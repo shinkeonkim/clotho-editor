@@ -61,6 +61,10 @@ export function anchorPointsOf(
       { x: x + w, y: y + h / 2, anchor: "right" },
       { x: x + w / 2, y: y + h, anchor: "bottom" },
       { x, y: y + h / 2, anchor: "left" },
+      { x, y, anchor: "top-left" },
+      { x: x + w, y, anchor: "top-right" },
+      { x, y: y + h, anchor: "bottom-left" },
+      { x: x + w, y: y + h, anchor: "bottom-right" },
     ];
   }
   if (baseEl.type === "circle") {
@@ -98,6 +102,14 @@ export function anchorPointOf(
         return { x: cx, y: y + h };
       case "left":
         return { x, y: cy };
+      case "top-left":
+        return { x, y };
+      case "top-right":
+        return { x: x + w, y };
+      case "bottom-left":
+        return { x, y: y + h };
+      case "bottom-right":
+        return { x: x + w, y: y + h };
       case "center":
       case "auto":
       default:

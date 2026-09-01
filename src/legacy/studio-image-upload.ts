@@ -2,6 +2,7 @@ import {
   addElement,
   getDef,
   registerDataUriAsset,
+  registerExternalAsset,
   uniqueElementId,
 } from "./state";
 
@@ -10,7 +11,10 @@ export type SetStatus = (text: string, kind?: "ok" | "warn" | "error") => void;
 export interface ImageUploadHost {
   app: HTMLElement;
   setStatus: SetStatus;
+  resolveImage?: ImageUploadResolver;
 }
+
+export type ImageUploadResolver = (file: File) => Promise<string> | string;
 
 function loadImageSize(src: string): Promise<{ w: number; h: number } | null> {
   return new Promise((resolve) => {
@@ -42,10 +46,12 @@ export async function uploadAndInsertImage(
   }
   try {
     host.setStatus("이미지 처리 중…");
-    const dataUrl = await readAsDataUrl(file);
+    const source = host.resolveImage
+      ? await host.resolveImage(file)
+      : await readAsDataUrl(file);
     const cx = def.canvas.width / 2;
     const cy = def.canvas.height / 2;
-    const tempImg = await loadImageSize(dataUrl);
+    const tempImg = await loadImageSize(source);
     const maxDim = Math.min(def.canvas.width, def.canvas.height) * 0.5;
     let w = tempImg?.w ?? 200;
     let h = tempImg?.h ?? 200;
@@ -65,7 +71,9 @@ export async function uploadAndInsertImage(
       y: Math.round(cy - h / 2),
       width: w,
       height: h,
-      assetId: registerDataUriAsset(dataUrl),
+      assetId: source.startsWith("data:")
+        ? registerDataUriAsset(source)
+        : registerExternalAsset(source),
       preserveAspectRatio: "xMidYMid meet",
       opacity: 1,
     });

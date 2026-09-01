@@ -443,6 +443,17 @@ function renderBaseFields(el: AnimationElement): string {
     numberFields.push({ label: "cy", key: "cy", value: e.cy as number });
     numberFields.push({ label: "r", key: "r", value: e.r as number });
   }
+  if (el.type === "polygon") {
+    const pointCount = String(e.points ?? "")
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean).length;
+    numberFields.push({
+      label: "변 개수",
+      key: "polygonSides",
+      value: pointCount,
+    });
+  }
   if (el.type === "line" || el.type === "arrow") {
     if (typeof e.x1 === "number") {
       numberFields.push({ label: "x1", key: "x1", value: e.x1 as number });
@@ -646,6 +657,28 @@ function apply(key: string, value: string | number | boolean): void {
     const time = getCurrentTime();
     const el = def.elements.find((e) => e.id === sel.elementId);
     if (!el) return;
+    if (prop === "polygonSides" && el.type === "polygon") {
+      const points = el.points
+        .trim()
+        .split(/\s+/)
+        .map((point) => point.split(",").map(Number))
+        .filter(([x, y]) => Number.isFinite(x) && Number.isFinite(y));
+      if (points.length < 3) return;
+      const minX = Math.min(...points.map(([x]) => x));
+      const maxX = Math.max(...points.map(([x]) => x));
+      const minY = Math.min(...points.map(([, y]) => y));
+      const maxY = Math.max(...points.map(([, y]) => y));
+      const cx = (minX + maxX) / 2;
+      const cy = (minY + maxY) / 2;
+      const radius = Math.max(4, Math.max(maxX - minX, maxY - minY) / 2);
+      const sides = Math.max(3, Math.min(24, Math.round(Number(value)) || 3));
+      const next = Array.from({ length: sides }, (_, index) => {
+        const angle = (index * Math.PI * 2) / sides - Math.PI / 2;
+        return `${(cx + radius * Math.cos(angle)).toFixed(1)},${(cy + radius * Math.sin(angle)).toFixed(1)}`;
+      }).join(" ");
+      updateElementBase(sel.elementId, { points: next });
+      return;
+    }
     const hasTrack = el.tracks.some((t) => t.property === prop);
     if (hasTrack) {
       setTrackKeyframe(sel.elementId, prop, time, value);

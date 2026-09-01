@@ -11,6 +11,7 @@ import {
   subscribe,
   updateCanvas,
   updateMeta,
+  updateSettings,
   undo,
   redo,
 } from "./state";
@@ -49,6 +50,7 @@ import { bindKeyboardShortcuts } from "./main/keyboard-shortcuts";
 import { downloadAnimationJson } from "../export-json";
 import { animationDocumentSchema } from "@kokoa/clotho";
 import { importAnimation } from "./api";
+import type { ImageUploadResolver } from "./studio-image-upload";
 
 export { getVisibleElementIds } from "./main/selection-nav";
 
@@ -63,7 +65,13 @@ declare global {
   }
 }
 
-export function initStudio(opts?: { initialId?: string }): void {
+export function initStudio(
+  opts: {
+    initialId?: string;
+    editorTitle?: string;
+    resolveImage?: ImageUploadResolver;
+  } = {},
+): void {
   const ui = queryUi();
   if (!ui) {
     console.error("[studio] missing required elements");
@@ -74,6 +82,9 @@ export function initStudio(opts?: { initialId?: string }): void {
   }
   document.body.classList.add("editor-active");
   document.documentElement.classList.add("editor-active");
+  const editorTitle = document.getElementById("studio-editor-title");
+  if (editorTitle)
+    editorTitle.textContent = opts.editorTitle ?? "Clotho Editor";
 
   initGrid();
   reflectGridUi(ui);
@@ -112,6 +123,7 @@ export function initStudio(opts?: { initialId?: string }): void {
   const imageHost: ImageUploadHost = {
     app: ui.app,
     setStatus: (text, kind) => setStatus(ui, text, kind),
+    resolveImage: opts.resolveImage,
   };
   ui.imageUploadBtn.addEventListener("click", () => ui.imageFileInput.click());
   ui.imageFileInput.addEventListener("change", () => {
@@ -268,6 +280,28 @@ export function initStudio(opts?: { initialId?: string }): void {
   });
   ui.speedInput.addEventListener("input", () => {
     ui.speedValue.textContent = Number(ui.speedInput.value).toFixed(2) + "x";
+    if (isPlaying()) {
+      stopPreview(ui);
+      togglePlay(ui);
+    }
+  });
+  ui.previewLoopInput.addEventListener("change", () => {
+    updateSettings({ loop: ui.previewLoopInput.checked });
+    if (isPlaying()) {
+      stopPreview(ui);
+      togglePlay(ui);
+    }
+  });
+  ui.detachTimelineBtn.addEventListener("click", () => {
+    const timeline = ui.detachTimelineBtn.closest<HTMLElement>(
+      ".studio-timeline-wrap",
+    );
+    if (!timeline) return;
+    const detached = timeline.classList.toggle("is-detached");
+    ui.detachTimelineBtn.setAttribute("aria-pressed", String(detached));
+    ui.detachTimelineBtn.textContent = detached
+      ? "▣ 타임라인 되돌리기"
+      : "▣ 타임라인 분리";
   });
 
   ui.newCreateBtn.addEventListener("click", () => void createNew(ui));
@@ -294,7 +328,7 @@ export function initStudio(opts?: { initialId?: string }): void {
     if (isDirty()) e.preventDefault();
   });
 
-  if (opts?.initialId) {
+  if (opts.initialId) {
     void loadAnimation(ui, opts.initialId);
   } else if (!getDef()) {
     startDraft();
@@ -327,6 +361,9 @@ function reflectState(ui: StudioUi): void {
     ui.saveBtn.disabled = false;
     ui.exportBtn.disabled = false;
     ui.deleteBtn.disabled = isDraft();
+    if (document.activeElement !== ui.previewLoopInput) {
+      ui.previewLoopInput.checked = def.settings.loop;
+    }
   } else {
     ui.titleInput.disabled = true;
     ui.canvasWidthInput.disabled = true;

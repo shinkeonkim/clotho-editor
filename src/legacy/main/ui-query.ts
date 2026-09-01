@@ -20,6 +20,8 @@ export function queryUi(): StudioUi | null {
   const restartBtn = $<HTMLButtonElement>("studio-restart");
   const speedInput = $<HTMLInputElement>("studio-speed");
   const speedValue = $<HTMLElement>("studio-speed-value");
+  const previewLoopInput = $<HTMLInputElement>("studio-preview-loop");
+  const detachTimelineBtn = $<HTMLButtonElement>("studio-detach-timeline");
   const canvas = document.getElementById(
     "studio-canvas",
   ) as SVGSVGElement | null;
@@ -61,6 +63,8 @@ export function queryUi(): StudioUi | null {
     !restartBtn ||
     !speedInput ||
     !speedValue ||
+    !previewLoopInput ||
+    !detachTimelineBtn ||
     !canvas ||
     !elementList ||
     !toolsRoot ||
@@ -104,6 +108,8 @@ export function queryUi(): StudioUi | null {
     restartBtn,
     speedInput,
     speedValue,
+    previewLoopInput,
+    detachTimelineBtn,
     canvas,
     elementList,
     toolsRoot,

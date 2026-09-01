@@ -66,6 +66,13 @@ describe("inline assets", () => {
     });
   });
 
+  it("reuses the same inline image data", () => {
+    const first = registerInlineAsset(new Uint8Array([1, 2, 3]), "image/png");
+    const second = registerInlineAsset(new Uint8Array([1, 2, 3]), "image/png");
+    expect(second).toBe(first);
+    expect(Object.keys(getDef()!.assets)).toHaveLength(1);
+  });
+
   // What a dropped or pasted file arrives as.
   it("stores a data URI inline rather than as an external reference", () => {
     const id = registerDataUriAsset("data:image/png;base64,AQID");

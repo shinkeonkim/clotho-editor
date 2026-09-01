@@ -41,6 +41,17 @@ const repository = createLocalStorageRepository({
 <StudioMount repository={repository} />;
 ```
 
+상단 제목과 이미지 저장 방식도 사용하는 환경에서 정할 수 있다. `editorTitle`의 기본값은 `Clotho Editor`이며, `resolveImage`는 업로드한 파일을 외부 URL 또는 `data:` URL로 바꾸는 hook이다. hook을 전달하지 않으면 파일을 base64 data URL로 변환해 문서의 `assets`에 저장한다. 같은 이미지는 하나의 asset을 공유하고 각 image 요소는 `assetId`만 참조한다.
+
+```tsx
+<StudioMount
+  editorTitle="블로그 애니메이션 편집기"
+  resolveImage={async (file) => uploadToMediaServer(file)}
+/>
+```
+
+미리보기의 `무한 재생` 설정은 문서의 `settings.loop`에 저장된다. 타임라인은 `타임라인 분리` 버튼으로 화면 위의 독립 panel처럼 띄울 수 있으며, 모든 편집 기능과 drag interaction은 그대로 유지된다.
+
 두 에디터의 `JSON 내보내기` 버튼은 현재 문서를 검증한 뒤 `{문서 ID}.json` 파일로 내려받는다. 화면을 직접 만들 때는 `animationDocumentToJson`, `animationDocumentFileName`, `downloadAnimationJson`을 사용할 수 있다.
 
 재생 설정 화면에서는 현재 단계 설명과 전체 단계 목록을 표시할지 선택할 수 있다. 단계 목록의 위치도 `좌측 | 우측 | 상단 | 하단` 중에서 고를 수 있다. 네 가지 배치를 한 화면에서 확인하려면 다음 명령을 실행한다.

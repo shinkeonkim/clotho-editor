@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import type { AnimationRepository } from "./repository";
 import { configureAnimationRepository } from "./legacy/api";
+import type { ImageUploadResolver } from "./legacy/studio-image-upload";
 // The stylesheet ships as a separate entry rather than an import, so a consumer that
 // only wants the headless pieces does not pull CSS into its bundle:
 //   import "@kokoa/clotho-editor/styles.css";
@@ -10,6 +11,8 @@ import { configureAnimationRepository } from "./legacy/api";
 export interface StudioMountProps {
   initialId?: string;
   repository?: AnimationRepository;
+  editorTitle?: string;
+  resolveImage?: ImageUploadResolver;
 }
 
 const CANVAS_PRESETS: {
@@ -41,7 +44,7 @@ const PRESET_HTML = CANVAS_PRESETS.map(
 const SKELETON = `
 <div id="studio-app" class="studio-app">
   <header class="studio-header">
-    <h1 class="studio-header-title">🎬 애니메이션 스튜디오</h1>
+    <h1 id="studio-editor-title" class="studio-header-title">Clotho Editor</h1>
     <div class="studio-header-actions">
       <button type="button" id="studio-open" class="studio-btn" aria-label="저장된 애니메이션 열기">📁 열기</button>
       <button type="button" id="studio-new" class="studio-btn" aria-label="새 애니메이션 만들기">＋ 새 애니메이션</button>
@@ -70,7 +73,7 @@ const SKELETON = `
         <button type="button" class="studio-tool-btn" data-add-element="text" title="텍스트" aria-label="텍스트 추가">T Text</button>
         <button type="button" class="studio-tool-btn" data-add-element="image" title="이미지" aria-label="이미지 추가">🖼 Image</button>
         <button type="button" class="studio-tool-btn" data-add-element="path" title="SVG path" aria-label="SVG path 추가">✎ Path</button>
-        <button type="button" class="studio-tool-btn" data-add-element="polygon" title="다각형" aria-label="다각형 추가">⬢ Polygon</button>
+        <div class="studio-tool-with-option"><button type="button" class="studio-tool-btn" data-add-element="polygon" title="다각형" aria-label="다각형 추가">⬢ Polygon</button><label>변 <input type="number" id="studio-polygon-sides" min="3" max="24" value="6" aria-label="다각형의 변 개수" /></label></div>
         <button type="button" class="studio-tool-btn" id="studio-open-icons" title="아이콘 라이브러리" aria-label="아이콘 라이브러리 추가">🎨 Icons</button>
       </div>
       <div class="studio-tools-section">
@@ -126,6 +129,8 @@ const SKELETON = `
         <input type="range" id="studio-speed" min="0.25" max="3" step="0.25" value="1" />
         <span id="studio-speed-value">1.00x</span>
       </label>
+      <label class="studio-timeline-option"><input type="checkbox" id="studio-preview-loop" /> 무한 재생</label>
+      <button type="button" id="studio-detach-timeline" class="studio-btn" aria-pressed="false">▣ 타임라인 분리</button>
       <span class="studio-timeline-spacer"></span>
       <button type="button" id="studio-add-step" class="studio-btn">＋ Chapter 추가</button>
     </div>
@@ -223,6 +228,8 @@ const SKELETON = `
 export function StudioMount({
   initialId,
   repository,
+  editorTitle = "Clotho Editor",
+  resolveImage,
 }: StudioMountProps): React.JSX.Element {
   const inited = useRef(false);
 
@@ -233,14 +240,14 @@ export function StudioMount({
     let disposed = false;
     void import("./legacy/main").then(({ initStudio }) => {
       if (disposed) return;
-      initStudio(initialId ? { initialId } : undefined);
+      initStudio({ initialId, editorTitle, resolveImage });
     });
     return () => {
       disposed = true;
       document.body.classList.remove("editor-active");
       document.documentElement.classList.remove("editor-active");
     };
-  }, [initialId, repository]);
+  }, [editorTitle, initialId, repository, resolveImage]);
 
   return (
     <section className="studio-shell w-full" data-pagefind-ignore="all">

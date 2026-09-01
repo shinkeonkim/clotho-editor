@@ -4,6 +4,13 @@ body.editor-active {
   overflow: hidden;
 }
 
+body.studio-timeline-popout {
+  min-width: 0;
+  margin: 0;
+  background: var(--color-surface-elevated, #f8fafc);
+  color: var(--color-fg, #0f172a);
+}
+
 @layer components {
   .studio-shell {
     height: calc(100vh - 80px);
@@ -811,6 +818,11 @@ body.editor-active {
     grid-template-rows: auto auto minmax(0, 1fr);
     gap: 0.4rem;
     min-height: 0;
+  }
+  body.studio-timeline-popout > .studio-timeline-wrap {
+    width: 100vw;
+    height: 100vh;
+    box-sizing: border-box;
   }
   .studio-timeline-tracks-wrap {
     overflow-x: auto;

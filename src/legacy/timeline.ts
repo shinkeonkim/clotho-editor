@@ -53,6 +53,21 @@ type DragMode =
       currentTime: number;
     };
 let dragMode: DragMode | null = null;
+const boundDocuments = new WeakMap<Document, () => void>();
+
+export function bindTimelinePointerDocument(doc: Document): () => void {
+  const existing = boundDocuments.get(doc);
+  if (existing) return existing;
+  doc.addEventListener("mousemove", onMouseMove);
+  doc.addEventListener("mouseup", onMouseUp);
+  const cleanup = (): void => {
+    doc.removeEventListener("mousemove", onMouseMove);
+    doc.removeEventListener("mouseup", onMouseUp);
+    boundDocuments.delete(doc);
+  };
+  boundDocuments.set(doc, cleanup);
+  return cleanup;
+}
 
 export function initTimeline(
   tracksRoot: HTMLElement,
@@ -67,8 +82,7 @@ export function initTimeline(
   tracksRoot.addEventListener("mousedown", onMouseDown);
   elementTracks.addEventListener("click", onElTracksClick);
   elementTracks.addEventListener("mousedown", onMouseDown);
-  document.addEventListener("mousemove", onMouseMove);
-  document.addEventListener("mouseup", onMouseUp);
+  bindTimelinePointerDocument(document);
   addBtn?.addEventListener("click", () => {
     const id = uniqueChapterId();
     const def = getDef();
@@ -138,9 +152,18 @@ function mirrorScroll(source: HTMLElement, target: HTMLElement): void {
 
 function showDragTooltip(clientX: number, clientY: number, text: string): void {
   if (!dragTooltipEl) {
-    dragTooltipEl = document.createElement("div");
+    const ownerDocument = tracksEl?.ownerDocument ?? document;
+    dragTooltipEl = ownerDocument.createElement("div");
     dragTooltipEl.className = "studio-tl-drag-tooltip";
-    document.body.appendChild(dragTooltipEl);
+    ownerDocument.body.appendChild(dragTooltipEl);
+  } else if (
+    tracksEl &&
+    dragTooltipEl.ownerDocument !== tracksEl.ownerDocument
+  ) {
+    dragTooltipEl.remove();
+    dragTooltipEl = null;
+    showDragTooltip(clientX, clientY, text);
+    return;
   }
   dragTooltipEl.textContent = text;
   dragTooltipEl.style.left = `${clientX + 14}px`;

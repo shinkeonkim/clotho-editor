@@ -63,6 +63,11 @@ export {
   addDefaultResponsiveVariants,
   RESPONSIVE_VIEWPORTS,
 } from "./responsive-inspector-plugin";
+export {
+  createPerformanceProfilerPlugin,
+  profileAnimation,
+} from "./performance-profiler-plugin";
+export type { SceneProfile } from "./performance-profiler-plugin";
 export type {
   DocumentImporter,
   EditorPluginContext,

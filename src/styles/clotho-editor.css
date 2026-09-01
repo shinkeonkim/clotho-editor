@@ -2122,3 +2122,21 @@ body.studio-player-popout #clotho-player-preview {
   width: 100%;
   height: auto;
 }
+
+.studio-profile {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.55rem 0;
+}
+.studio-profile > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.studio-profile dt {
+  color: var(--color-fg-muted);
+}
+.studio-profile dd {
+  margin: 0;
+  font-family: var(--font-mono);
+}

@@ -1,6 +1,6 @@
 {
   "name": "@kokoa/clotho-editor",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Visual editor for clotho animation documents",
   "license": "MIT",
   "author": "kokoa",
@@ -34,6 +34,7 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
+    "visual-check": "bun examples/visual-check.html",
     "test": "bun test",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",

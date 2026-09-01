@@ -36,6 +36,13 @@ configureHost({ placeholderImageUrl: "/uploads/placeholder.png" });
 Vite/Next.js/React SPA에 둘 다 삽입할 수 있고, 브라우저 전용 코드는 mount 이후에
 초기화된다.
 
+플레이어 설정 패널에서는 caption/chapter list 표시 여부와 단계 목록 위치
+(`좌측 | 우측 | 상단 | 하단`)를 편집할 수 있다. 네 레이아웃을 한 화면에서 점검하려면:
+
+```bash
+bun run visual-check
+```
+
 ## 개발
 
 ```bash

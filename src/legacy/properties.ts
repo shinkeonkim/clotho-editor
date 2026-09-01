@@ -225,6 +225,17 @@ function renderInner(): void {
         "settings.showChapterList",
         def.settings.showChapterList ?? false,
       ),
+      selectField(
+        "목차 위치",
+        "settings.chapterListPosition",
+        def.settings.chapterListPosition ?? "right",
+        [
+          { value: "left", label: "좌측" },
+          { value: "right", label: "우측" },
+          { value: "top", label: "상단" },
+          { value: "bottom", label: "하단" },
+        ],
+      ),
     ].join("");
     panelEl.innerHTML = `
       ${timeHint}
@@ -626,6 +637,14 @@ function apply(key: string, value: string | number | boolean): void {
     updateSettings({ showCaption: Boolean(value) });
   else if (key === "settings.showChapterList")
     updateSettings({ showChapterList: Boolean(value) });
+  else if (key === "settings.chapterListPosition")
+    updateSettings({
+      chapterListPosition: String(value) as
+        | "left"
+        | "right"
+        | "top"
+        | "bottom",
+    });
   else if (key.startsWith("el.") && sel.kind === "element") {
     const prop = key.slice(3);
     const time = getCurrentTime();

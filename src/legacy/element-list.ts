@@ -330,6 +330,7 @@ export function makeDefaultElement(
         x: cx,
         y: cy,
         content: id,
+        translations: {},
         fontSize: 18,
         fontWeight: 400,
         color: "#18181b",

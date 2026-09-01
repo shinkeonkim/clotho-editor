@@ -824,6 +824,11 @@ body.studio-player-popout #clotho-player-preview {
     margin-bottom: 0.55rem;
   }
 
+  .studio-i18n-hint {
+    line-height: 1.55;
+    margin: 0.25rem 0 0.5rem;
+  }
+
   .studio-timeline-wrap {
     background-color: var(--color-surface-elevated);
     padding: 0.5rem;

@@ -55,6 +55,7 @@ export {
 } from "./timeline";
 export {
   updateMeta,
+  updateLocales,
   updateCanvas,
   updateSettings,
   uniqueElementId,

@@ -21,6 +21,7 @@ import {
   updateEffect,
   updateElementBase,
   updateMeta,
+  updateLocales,
   updateSettings,
   uniqueChapterId,
   uniqueEffectId,
@@ -45,6 +46,21 @@ import { childIdsOf, ungroupElement } from "./studio-groups";
 let panelEl: HTMLElement | null = null;
 const closedSections = new Set<string>();
 let isComposingFallback = false;
+
+const DEFAULT_LOCALES = ["ko", "en"];
+
+function parseLocales(value: string): string[] {
+  const seen = new Set<string>();
+  return value
+    .split(",")
+    .map((locale) => locale.trim())
+    .filter((locale) => {
+      const key = locale.toLowerCase();
+      if (!locale || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
 
 export function initProperties(root: HTMLElement): void {
   panelEl = root;
@@ -202,6 +218,14 @@ function renderInner(): void {
     const metaBody = [
       textField("title", "meta.title", def.title),
       textField("description", "meta.description", def.description),
+      textField(
+        "문서 언어 (쉼표로 구분)",
+        "meta.locales",
+        (
+          (def as AnimationDocument & { locales?: string[] }).locales ??
+          DEFAULT_LOCALES
+        ).join(", "),
+      ),
       numberField("duration (ms)", "meta.duration", def.duration, 100),
       numberField("canvas.width", "canvas.width", def.canvas.width),
       numberField("canvas.height", "canvas.height", def.canvas.height),
@@ -385,7 +409,7 @@ function renderElementForm(def: AnimationDocument, el: AnimationElement): void {
     return;
   }
 
-  const baseFields = renderBaseFields(el);
+  const baseFields = renderBaseFields(def, el);
   const appearances = renderAppearances(def, el);
   const tracks = renderTracks(el);
 
@@ -405,7 +429,10 @@ function renderElementForm(def: AnimationDocument, el: AnimationElement): void {
   `;
 }
 
-function renderBaseFields(el: AnimationElement): string {
+function renderBaseFields(
+  def: AnimationDocument,
+  el: AnimationElement,
+): string {
   const numberFields: {
     label: string;
     key: string;
@@ -534,8 +561,36 @@ function renderBaseFields(el: AnimationElement): string {
     step: 5,
   });
 
+  const localizedTextFields = (() => {
+    if (el.type !== "text") return [];
+    const localized = el as AnimationElement & {
+      locales?: string[];
+      translations?: Record<string, string>;
+    };
+    const documentLocales =
+      (def as AnimationDocument & { locales?: string[] }).locales ??
+      DEFAULT_LOCALES;
+    const locales = localized.locales ?? documentLocales;
+    return [
+      textField(
+        "이 요소의 언어 (비우면 문서 설정 사용)",
+        "el.locales",
+        localized.locales?.join(", ") ?? "",
+      ),
+      `<p class="studio-props-empty studio-i18n-hint">기본 문구는 content입니다. 번역이 없거나 현재 언어와 일치하지 않으면 기본 문구를 표시합니다.</p>`,
+      ...locales.map((locale) =>
+        textField(
+          `${locale} 번역`,
+          `el.translation.${locale}`,
+          localized.translations?.[locale] ?? "",
+        ),
+      ),
+    ];
+  })();
+
   const html = [
     ...textFields.map((f) => textField(f.label, `el.${f.key}`, f.value)),
+    ...localizedTextFields,
     ...numberFields.map((f) =>
       numberField(f.label, `el.${f.key}`, f.value, f.step),
     ),
@@ -649,7 +704,10 @@ function apply(key: string, value: string | number | boolean): void {
   if (key === "meta.title") updateMeta({ title: String(value) });
   else if (key === "meta.description")
     updateMeta({ description: String(value) });
-  else if (key === "meta.duration") updateDuration(Number(value));
+  else if (key === "meta.locales") {
+    const locales = parseLocales(String(value));
+    if (locales.length > 0) updateLocales(locales);
+  } else if (key === "meta.duration") updateDuration(Number(value));
   else if (key === "canvas.width") updateCanvas({ width: Number(value) });
   else if (key === "canvas.height") updateCanvas({ height: Number(value) });
   else if (key === "canvas.background")
@@ -670,6 +728,24 @@ function apply(key: string, value: string | number | boolean): void {
     const time = getCurrentTime();
     const el = def.elements.find((e) => e.id === sel.elementId);
     if (!el) return;
+    if (prop === "locales" && el.type === "text") {
+      const locales = parseLocales(String(value));
+      updateElementBase(sel.elementId, {
+        locales: locales.length > 0 ? locales : undefined,
+      });
+      return;
+    }
+    if (prop.startsWith("translation.") && el.type === "text") {
+      const locale = prop.slice("translation.".length);
+      const localized = el as AnimationElement & {
+        translations?: Record<string, string>;
+      };
+      const translations = { ...(localized.translations ?? {}) };
+      if (String(value)) translations[locale] = String(value);
+      else delete translations[locale];
+      updateElementBase(sel.elementId, { translations });
+      return;
+    }
     if (prop === "polygonSides" && el.type === "polygon") {
       const points = el.points
         .trim()

@@ -80,6 +80,7 @@ export function Studio({ initial, onSave }: StudioProps): React.JSX.Element {
       y: 100,
       rotation: 0,
       content: "New",
+      translations: {},
       fontSize: 24,
       color: "#4f46e5",
       textAnchor: "start",

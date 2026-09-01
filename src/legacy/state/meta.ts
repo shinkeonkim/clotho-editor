@@ -16,6 +16,17 @@ export function updateMeta(
   );
 }
 
+/** Update the locales offered to localized text elements in this document. */
+export function updateLocales(locales: string[]): void {
+  mutateDef(
+    (def) => {
+      (def as AnimationDocument & { locales: string[] }).locales = locales;
+    },
+    "문서 언어 변경",
+    "meta",
+  );
+}
+
 export function updateCanvas(
   patch: Partial<AnimationDocument["canvas"]>,
 ): void {

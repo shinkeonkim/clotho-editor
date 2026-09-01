@@ -1,4 +1,4 @@
-import type { AnimationDocument } from "@kokoa/clotho";
+import type { AnimationDocument, AnimationElement } from "@kokoa/clotho";
 import { animationDocumentSchema } from "@kokoa/clotho";
 import type {
   HistoryEntry,
@@ -64,7 +64,24 @@ export function mutateDef(
     console.warn("[studio.state] invalid mutation", parsed.error.issues);
     return;
   }
-  state.def = parsed.data;
+  // Older compatible Clotho versions strip newly introduced localization
+  // properties. Preserve them while the editor supports the current schema.
+  const localized = cloned as AnimationDocument & { locales?: string[] };
+  const next = parsed.data as AnimationDocument & { locales?: string[] };
+  if (localized.locales) next.locales = localized.locales;
+  next.elements = next.elements.map((element, index) => {
+    const source = localized.elements[index] as AnimationElement & {
+      locales?: string[];
+      translations?: Record<string, string>;
+    };
+    if (source?.id !== element.id || element.type !== "text") return element;
+    return {
+      ...element,
+      ...(source.locales ? { locales: source.locales } : {}),
+      ...(source.translations ? { translations: source.translations } : {}),
+    } as AnimationElement;
+  });
+  state.def = next;
   state.dirty = true;
   emit();
 }

@@ -32,6 +32,7 @@ export type HistoryKind =
   | "effect"
   | "group"
   | "layout"
+  | "checkpoint"
   // Registering an image asset is a document edit, so it belongs in history.
   | "asset"
   | "other";

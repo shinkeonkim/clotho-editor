@@ -29,6 +29,10 @@ import {
   layoutIdsFor,
   uniqueChapterId,
   uniqueEffectId,
+  addCheckpoint,
+  updateCheckpoint,
+  deleteCheckpoint,
+  uniqueCheckpointId,
 } from "./state";
 import type {
   AnimationDocument,
@@ -37,6 +41,7 @@ import type {
   Appearance,
   EntryMode,
   ExitMode,
+  Checkpoint,
 } from "@kokoa/clotho";
 import { captureFocusWithin, restoreFocusWithin } from "./studio-focus";
 import {
@@ -311,10 +316,75 @@ function renderInner(): void {
         ],
       ),
     ].join("");
+    const checkpoints = def.checkpoints
+      .map((checkpoint, index) => {
+        const specific =
+          checkpoint.interaction === "choice"
+            ? textField(
+                "선택지 (value:label, 쉼표 구분)",
+                `checkpoint.${index}.options`,
+                checkpoint.options
+                  .map(({ value, label }) => `${value}:${label}`)
+                  .join(", "),
+              )
+            : checkpoint.interaction === "select-element"
+              ? textField(
+                  "선택 가능한 element id",
+                  `checkpoint.${index}.elementIds`,
+                  checkpoint.elementIds.join(", "),
+                )
+              : checkpoint.interaction === "number-input"
+                ? [
+                    numberField(
+                      "최솟값",
+                      `checkpoint.${index}.min`,
+                      checkpoint.min,
+                    ),
+                    numberField(
+                      "최댓값",
+                      `checkpoint.${index}.max`,
+                      checkpoint.max,
+                    ),
+                    numberField(
+                      "간격",
+                      `checkpoint.${index}.step`,
+                      checkpoint.step,
+                    ),
+                  ].join("")
+                : "";
+        const predicate =
+          "predicate" in checkpoint && checkpoint.predicate?.type === "equals"
+            ? textField(
+                "정답 (equals)",
+                `checkpoint.${index}.answer`,
+                String(checkpoint.predicate.value),
+              )
+            : "";
+        return `<div class="studio-checkpoint-card" data-checkpoint-id="${escapeHtml(checkpoint.id)}">
+          <div class="studio-props-header"><span class="studio-props-header-title">${escapeHtml(checkpoint.id)}</span><button type="button" class="studio-btn studio-btn-danger" data-delete-checkpoint="${escapeHtml(checkpoint.id)}">삭제</button></div>
+          ${numberField("time (ms)", `checkpoint.${index}.time`, checkpoint.time, 50)}
+          ${textField("질문", `checkpoint.${index}.prompt`, checkpoint.prompt)}
+          ${selectField(
+            "상호작용",
+            `checkpoint.${index}.interaction`,
+            checkpoint.interaction,
+            [
+              { value: "continue", label: "계속" },
+              { value: "choice", label: "선택지" },
+              { value: "select-element", label: "요소 선택" },
+              { value: "number-input", label: "숫자 입력" },
+            ],
+          )}
+          ${checkboxField("응답 필수", `checkpoint.${index}.required`, checkpoint.required)}
+          ${specific}${predicate}
+        </div>`;
+      })
+      .join("");
     panelEl.innerHTML = `
       ${timeHint}
       ${section("meta", metaHeader, metaBody)}
       ${section("settings", settingsHeader, settingsBody)}
+      ${section("checkpoints", `<span class="studio-props-header-title">Checkpoint (${def.checkpoints.length})</span>`, `${checkpoints}<button type="button" class="studio-btn" data-add-checkpoint>＋ 현재 시간에 checkpoint 추가</button>`)}
       <div class="studio-props-header" style="margin-top:0.6rem"><span class="studio-props-header-title">목차 (${def.chapters.length})</span></div>
       <button type="button" class="studio-btn" data-add-chapter>＋ 현재 시간에 chapter 추가</button>
       <div class="studio-props-header" style="margin-top:0.6rem"><span class="studio-props-header-title">효과 (${def.effects.length})</span></div>
@@ -800,7 +870,79 @@ function apply(key: string, value: string | number | boolean): void {
     updateSettings({
       chapterListPosition: String(value) as "left" | "right" | "top" | "bottom",
     });
-  else if (key.startsWith("el.") && sel.kind === "element") {
+  else if (key.startsWith("checkpoint.")) {
+    const [, indexText, property] = key.split(".");
+    const checkpoint = def.checkpoints[Number(indexText)];
+    if (!checkpoint || !property) return;
+    if (property === "interaction") {
+      const base = {
+        id: checkpoint.id,
+        time: checkpoint.time,
+        prompt: checkpoint.prompt,
+        required: checkpoint.required,
+      };
+      const interaction = String(value);
+      const replacement: Checkpoint =
+        interaction === "choice"
+          ? {
+              ...base,
+              interaction,
+              options: [{ value: "option", label: "선택지" }],
+            }
+          : interaction === "select-element"
+            ? {
+                ...base,
+                interaction,
+                elementIds: [def.elements[0]?.id ?? "element"],
+              }
+            : interaction === "number-input"
+              ? { ...base, interaction }
+              : { ...base, interaction: "continue" };
+      updateCheckpoint(checkpoint.id, replacement);
+    } else if (property === "time")
+      updateCheckpoint(checkpoint.id, { time: Number(value) });
+    else if (property === "prompt")
+      updateCheckpoint(checkpoint.id, { prompt: String(value) });
+    else if (property === "required")
+      updateCheckpoint(checkpoint.id, { required: Boolean(value) });
+    else if (property === "options" && checkpoint.interaction === "choice") {
+      const options = String(value)
+        .split(",")
+        .map((entry) => entry.trim())
+        .filter(Boolean)
+        .map((entry) => {
+          const [optionValue, ...label] = entry.split(":");
+          return {
+            value: optionValue || "option",
+            label: label.join(":") || optionValue || "선택지",
+          };
+        });
+      if (options.length > 0) updateCheckpoint(checkpoint.id, { options });
+    } else if (
+      property === "elementIds" &&
+      checkpoint.interaction === "select-element"
+    ) {
+      const elementIds = String(value)
+        .split(",")
+        .map((id) => id.trim())
+        .filter(Boolean);
+      if (elementIds.length > 0)
+        updateCheckpoint(checkpoint.id, { elementIds });
+    } else if (
+      ["min", "max", "step"].includes(property) &&
+      checkpoint.interaction === "number-input"
+    ) {
+      updateCheckpoint(checkpoint.id, { [property]: Number(value) });
+    } else if (property === "answer" && checkpoint.interaction !== "continue") {
+      const answer =
+        checkpoint.interaction === "number-input"
+          ? Number(value)
+          : String(value);
+      updateCheckpoint(checkpoint.id, {
+        predicate: { type: "equals", value: answer },
+      });
+    }
+  } else if (key.startsWith("el.") && sel.kind === "element") {
     const prop = key.slice(3);
     const time = getCurrentTime();
     const el = def.elements.find((e) => e.id === sel.elementId);
@@ -938,6 +1080,24 @@ function onClick(e: Event): void {
   }
   if (target.closest("[data-detach-layout]") && sel.kind === "elements") {
     detachFromLayout(sel.elementIds);
+    return;
+  }
+
+  if (target.closest("[data-add-checkpoint]")) {
+    addCheckpoint({
+      id: uniqueCheckpointId(),
+      time: getCurrentTime(),
+      prompt: "계속 진행할까요?",
+      required: true,
+      interaction: "continue",
+    });
+    return;
+  }
+  const deleteCheckpointButton = target.closest<HTMLElement>(
+    "[data-delete-checkpoint]",
+  );
+  if (deleteCheckpointButton?.dataset.deleteCheckpoint) {
+    deleteCheckpoint(deleteCheckpointButton.dataset.deleteCheckpoint);
     return;
   }
 

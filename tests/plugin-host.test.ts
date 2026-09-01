@@ -21,6 +21,7 @@ const document = {
   elements: [],
   layouts: [],
   chapters: [],
+  checkpoints: [],
   effects: [],
   settings: {
     loop: false,

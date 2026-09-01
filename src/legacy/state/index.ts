@@ -71,3 +71,9 @@ export {
   findLayoutCollisions,
   layoutIdsFor,
 } from "./layouts";
+export {
+  addCheckpoint,
+  updateCheckpoint,
+  deleteCheckpoint,
+  uniqueCheckpointId,
+} from "./checkpoints";

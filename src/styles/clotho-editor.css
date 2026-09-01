@@ -2087,3 +2087,11 @@ body.studio-player-popout #clotho-player-preview {
 .studio-template-status[data-error="true"] {
   color: var(--color-danger);
 }
+
+.studio-checkpoint-card {
+  margin-bottom: 0.7rem;
+  padding: 0.65rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  background: var(--color-surface-raised, var(--color-surface));
+}

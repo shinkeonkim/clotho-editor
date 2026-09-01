@@ -1,5 +1,11 @@
 import { createRoot } from "react-dom/client";
 import { StudioMount } from "../src/StudioMount";
+import {
+  createLinterPlugin,
+  createPerformanceProfilerPlugin,
+  createResponsiveInspectorPlugin,
+  createVisualRegressionPlugin,
+} from "../src";
 import { createLocalStorageRepository } from "../src/repository";
 import { exampleAnimations } from "./examples";
 import "../src/styles/clotho-editor.css";
@@ -13,4 +19,21 @@ const repository = createLocalStorageRepository({
   examples: exampleAnimations,
 });
 
-createRoot(root).render(<StudioMount repository={repository} />);
+const qaPlugins = [
+  createResponsiveInspectorPlugin(),
+  createPerformanceProfilerPlugin(),
+  createLinterPlugin(),
+  createVisualRegressionPlugin(),
+];
+
+createRoot(root).render(
+  <StudioMount
+    repository={repository}
+    plugins={qaPlugins}
+    resolvePluginPermissions={() => ({
+      ui: true,
+      documentRead: true,
+      documentWrite: true,
+    })}
+  />,
+);

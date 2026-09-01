@@ -19,6 +19,7 @@ const document = {
   canvas: { width: 800, height: 500, background: "transparent" },
   assets: {},
   elements: [],
+  layouts: [],
   chapters: [],
   effects: [],
   settings: {

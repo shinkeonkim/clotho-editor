@@ -65,3 +65,9 @@ export {
   registerInlineAsset,
   registerDataUriAsset,
 } from "./meta";
+export {
+  createLayout,
+  detachFromLayout,
+  findLayoutCollisions,
+  layoutIdsFor,
+} from "./layouts";

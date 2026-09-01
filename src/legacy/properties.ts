@@ -23,6 +23,10 @@ import {
   updateMeta,
   updateLocales,
   updateSettings,
+  createLayout,
+  detachFromLayout,
+  findLayoutCollisions,
+  layoutIdsFor,
   uniqueChapterId,
   uniqueEffectId,
 } from "./state";
@@ -284,6 +288,11 @@ function renderInner(): void {
     const alignBtn = (kind: string, label: string, title: string): string =>
       `<button type="button" class="studio-btn studio-align-btn" data-align="${kind}" title="${escapeHtml(title)}" aria-label="${escapeHtml(title)}">${label}</button>`;
     const distributeDisabled = sel.elementIds.length < 3 ? "disabled" : "";
+    const layoutIds = layoutIdsFor(sel.elementIds);
+    const collisions = findLayoutCollisions(def).filter(
+      ({ firstId, secondId }) =>
+        sel.elementIds.includes(firstId) || sel.elementIds.includes(secondId),
+    );
     panelEl.innerHTML = `
       ${timeHint}
       <div class="studio-props-header"><span class="studio-props-header-title">다중 선택</span><span class="studio-props-header-type">${sel.elementIds.length} elements</span></div>
@@ -306,6 +315,16 @@ function renderInner(): void {
           <button type="button" class="studio-btn studio-align-btn" data-distribute="horizontal" title="가로 균등 분포" ${distributeDisabled}>↔</button>
           <button type="button" class="studio-btn studio-align-btn" data-distribute="vertical" title="세로 균등 분포" ${distributeDisabled}>↕</button>
         </div>
+      </div>
+      <div class="studio-align-section studio-layout-section">
+        <div class="studio-align-title">Constraint Layout</div>
+        <div class="studio-align-row">
+          <button type="button" class="studio-btn" data-create-layout="row">가로</button>
+          <button type="button" class="studio-btn" data-create-layout="column">세로</button>
+          <button type="button" class="studio-btn" data-create-layout="grid">격자</button>
+        </div>
+        ${layoutIds.length > 0 ? `<p class="studio-layout-status">적용 중: ${layoutIds.map(escapeHtml).join(", ")}</p><button type="button" class="studio-btn" data-detach-layout>현재 좌표로 고정</button>` : '<p class="studio-layout-status">선택한 요소에 적용된 layout이 없습니다.</p>'}
+        ${collisions.length > 0 ? `<p class="studio-layout-collision" role="alert">겹침: ${collisions.map(({ firstId, secondId }) => `${escapeHtml(firstId)} ↔ ${escapeHtml(secondId)}`).join(", ")}</p>` : ""}
       </div>
       <ul style="font-family:var(--font-mono);font-size:0.72rem;color:var(--color-fg-muted);padding-left:1rem;margin:0.6rem 0 0">
         ${sel.elementIds.map((id) => `<li>${escapeHtml(id)}</li>`).join("")}
@@ -823,6 +842,20 @@ function onClick(e: Event): void {
   const distBtn = target.closest<HTMLElement>("[data-distribute]");
   if (distBtn) {
     distributeSelected(distBtn.dataset.distribute as DistributeKind);
+    return;
+  }
+  const createLayoutButton = target.closest<HTMLElement>(
+    "[data-create-layout]",
+  );
+  if (createLayoutButton && sel.kind === "elements") {
+    createLayout(
+      sel.elementIds,
+      createLayoutButton.dataset.createLayout as "row" | "column" | "grid",
+    );
+    return;
+  }
+  if (target.closest("[data-detach-layout]") && sel.kind === "elements") {
+    detachFromLayout(sel.elementIds);
     return;
   }
 

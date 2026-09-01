@@ -26,7 +26,8 @@ import { openHistoryPanel } from "../studio-history";
 import { openPalette } from "../studio-palette";
 import { saveCurrent } from "../studio-save-load";
 import { handleSelectAll, selectAdjacentElement } from "./selection-nav";
-import { setActiveTool, type StudioTool } from "../tool-state";
+import { setActiveTool } from "../tool-state";
+import { toolForShortcut } from "../ui-interactions";
 
 export function bindKeyboardShortcuts(ui: StudioUi): void {
   document.addEventListener("keydown", (e) => {
@@ -123,24 +124,15 @@ export function bindKeyboardShortcuts(ui: StudioUi): void {
       return;
     }
 
-    if (!inText && !mod && !e.altKey) {
-      const toolShortcuts: Partial<Record<string, StudioTool>> = {
-        v: "select",
-        r: "rect",
-        o: "circle",
-        l: "line",
-        a: "arrow",
-        t: "text",
-        i: "image",
-        b: "path",
-        y: "polygon",
-      };
-      const tool = toolShortcuts[e.key.toLowerCase()];
-      if (tool) {
-        e.preventDefault();
-        setActiveTool(tool);
-        return;
-      }
+    const shortcutTool = toolForShortcut(e.key, {
+      isEditing: inText,
+      modifierKey: mod,
+      altKey: e.altKey,
+    });
+    if (shortcutTool) {
+      e.preventDefault();
+      setActiveTool(shortcutTool);
+      return;
     }
 
     if (!inText && !mod && (e.key === "g" || e.key === "G")) {

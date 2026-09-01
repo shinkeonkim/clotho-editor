@@ -297,7 +297,9 @@ body.editor-active {
     letter-spacing: 0.05em;
   }
   .studio-tool-btn {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
     width: 100%;
     text-align: left;
     padding: 0.35rem 0.5rem;
@@ -308,6 +310,24 @@ body.editor-active {
     color: var(--color-fg);
     cursor: pointer;
     font-size: 0.78rem;
+  }
+  .studio-tool-btn kbd {
+    margin-left: auto;
+    min-width: 1.15rem;
+    padding: 0.05rem 0.22rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.22rem;
+    background: var(--color-surface-elevated);
+    color: var(--color-fg-muted);
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    line-height: 1.15;
+    text-align: center;
+  }
+  .studio-tool-btn.is-active kbd {
+    border-color: color-mix(in srgb, currentColor 35%, transparent);
+    background: color-mix(in srgb, currentColor 10%, transparent);
+    color: inherit;
   }
   .studio-tool-with-option {
     display: grid;

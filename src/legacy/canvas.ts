@@ -19,7 +19,6 @@ import {
   uniqueElementId,
   subscribe,
   isElementSelected,
-  toggleSelectionFor,
   getSelectedElementIds,
 } from "./state";
 import { snapPoint } from "./grid";
@@ -46,6 +45,10 @@ import {
 import { getAnchorPoints, findNearestAnchor } from "./anchor-system";
 import { getActiveTool, setActiveTool } from "./tool-state";
 import { makeDefaultElement } from "./element-list";
+import {
+  nextPointerSelection,
+  shouldDeferElementPointerDown,
+} from "./ui-interactions";
 import {
   renderResizeHandles,
   renderRotationHandle,
@@ -358,11 +361,7 @@ function onCanvasClick(e: MouseEvent): void {
   if (id) {
     const resolvedId = e.altKey ? id : (findContainingGroup(id)?.id ?? id);
     setActiveTool("select");
-    if (e.shiftKey || e.ctrlKey || e.metaKey) {
-      setSelection(toggleSelectionFor(getSelection(), resolvedId));
-    } else {
-      setSelection({ kind: "element", elementId: resolvedId });
-    }
+    setSelection(nextPointerSelection(getSelection(), resolvedId, e));
   } else if (e.target === canvasEl) setSelection({ kind: "none" });
 }
 
@@ -423,6 +422,21 @@ function onMouseDown(e: MouseEvent): void {
       target?.closest("[data-anchor-handle]")
     )
   ) {
+    return;
+  }
+
+  if (
+    shouldDeferElementPointerDown(e, {
+      isElement: Boolean(findElementId(e.target)),
+      isHandle: Boolean(
+        target?.closest(
+          "[data-rotate-handle], [data-anchor-handle], [data-resize-handle], [data-endpoint-handle], [data-line-mid-handle], [data-vertex-handle], [data-vertex-add]",
+        ),
+      ),
+    })
+  ) {
+    // Modifier-click changes selection on `click`. Do not begin a move first,
+    // otherwise mousedown collapses the existing multi-selection.
     return;
   }
 

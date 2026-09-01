@@ -8,7 +8,6 @@ import {
   uniqueElementId,
   reorderElement,
   isElementSelected,
-  toggleSelectionFor,
   registerExternalAsset,
 } from "./state";
 import type { AnimationElement } from "@kokoa/clotho";
@@ -18,6 +17,7 @@ import {
   subscribeActiveTool,
   type StudioTool,
 } from "./tool-state";
+import { nextPointerSelection } from "./ui-interactions";
 
 let listEl: HTMLElement | null = null;
 let toolsRootEl: HTMLElement | null = null;
@@ -163,12 +163,7 @@ function onClick(e: Event): void {
   }
   setActiveTool("select");
   const me = e as MouseEvent;
-  if (me.shiftKey || me.ctrlKey || me.metaKey) {
-    const sel = getSelection();
-    setSelection(toggleSelectionFor(sel, id));
-    return;
-  }
-  setSelection({ kind: "element", elementId: id });
+  setSelection(nextPointerSelection(getSelection(), id, me));
 }
 
 function onDragStart(e: DragEvent): void {

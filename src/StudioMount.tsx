@@ -66,15 +66,15 @@ const SKELETON = `
     <aside class="studio-tools" aria-label="요소 추가">
       <div class="studio-tools-section">
         <div class="studio-tools-title">도구</div>
-        <button type="button" class="studio-tool-btn is-active" data-studio-tool="select" aria-pressed="true" title="선택 · 이동 · 크기 (V)">↖ 선택 · 이동 · 크기</button>
-        <button type="button" class="studio-tool-btn" data-add-element="rect" title="사각형 (R)" aria-label="사각형 도구">□ Rect</button>
-        <button type="button" class="studio-tool-btn" data-add-element="circle" title="원 (O)" aria-label="원 도구">○ Circle</button>
-        <button type="button" class="studio-tool-btn" data-add-element="line" title="선 (L)" aria-label="선 도구">／ Line</button>
-        <button type="button" class="studio-tool-btn" data-add-element="arrow" title="화살표 (A)" aria-label="화살표 도구">↗ Arrow</button>
-        <button type="button" class="studio-tool-btn" data-add-element="text" title="텍스트 (T)" aria-label="텍스트 도구">T Text</button>
-        <button type="button" class="studio-tool-btn" data-add-element="image" title="이미지 (I)" aria-label="이미지 도구">🖼 Image</button>
-        <button type="button" class="studio-tool-btn" data-add-element="path" title="Path (B)" aria-label="Path 도구">✎ Path</button>
-        <div class="studio-tool-with-option"><button type="button" class="studio-tool-btn" data-add-element="polygon" title="다각형 (Y)" aria-label="다각형 도구">⬢ Polygon</button><label>변 <input type="number" id="studio-polygon-sides" min="3" max="24" value="6" aria-label="다각형의 변 개수" /></label></div>
+        <button type="button" class="studio-tool-btn is-active" data-studio-tool="select" aria-pressed="true" title="선택 · 이동 · 크기 (V)"><span>↖ 선택 · 이동 · 크기</span><kbd>V</kbd></button>
+        <button type="button" class="studio-tool-btn" data-add-element="rect" title="사각형 (R)" aria-label="사각형 도구"><span>□ Rect</span><kbd>R</kbd></button>
+        <button type="button" class="studio-tool-btn" data-add-element="circle" title="원 (O)" aria-label="원 도구"><span>○ Circle</span><kbd>O</kbd></button>
+        <button type="button" class="studio-tool-btn" data-add-element="line" title="선 (L)" aria-label="선 도구"><span>／ Line</span><kbd>L</kbd></button>
+        <button type="button" class="studio-tool-btn" data-add-element="arrow" title="화살표 (A)" aria-label="화살표 도구"><span>↗ Arrow</span><kbd>A</kbd></button>
+        <button type="button" class="studio-tool-btn" data-add-element="text" title="텍스트 (T)" aria-label="텍스트 도구"><span>T Text</span><kbd>T</kbd></button>
+        <button type="button" class="studio-tool-btn" data-add-element="image" title="이미지 (I)" aria-label="이미지 도구"><span>🖼 Image</span><kbd>I</kbd></button>
+        <button type="button" class="studio-tool-btn" data-add-element="path" title="Path (B)" aria-label="Path 도구"><span>✎ Path</span><kbd>B</kbd></button>
+        <div class="studio-tool-with-option"><button type="button" class="studio-tool-btn" data-add-element="polygon" title="다각형 (Y)" aria-label="다각형 도구"><span>⬢ Polygon</span><kbd>Y</kbd></button><label>변 <input type="number" id="studio-polygon-sides" min="3" max="24" value="6" aria-label="다각형의 변 개수" /></label></div>
         <button type="button" class="studio-tool-btn" id="studio-open-icons" title="아이콘 라이브러리" aria-label="아이콘 라이브러리 추가">🎨 Icons</button>
       </div>
       <div class="studio-tools-section">

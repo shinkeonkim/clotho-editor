@@ -1110,6 +1110,30 @@ body.studio-player-popout #clotho-player-preview {
     stroke-width: 2;
     stroke-dasharray: 6 4;
   }
+  .studio-camera-frame.is-selected .studio-camera-frame-rect {
+    stroke-dasharray: none;
+    stroke-width: 2.5;
+  }
+  .studio-camera-frame-rect[data-camera-frame] {
+    cursor: pointer;
+  }
+  /* Transparent, but it takes the pan drag — so it needs a fill to be hit. */
+  .studio-camera-frame-body {
+    fill: transparent;
+    cursor: grab;
+  }
+  .studio-camera-frame-body:active {
+    cursor: grabbing;
+  }
+  .studio-camera-frame-handle {
+    fill: var(--color-surface-elevated, #fff);
+    stroke: #7c3aed;
+    stroke-width: 1.5;
+    cursor: nwse-resize;
+  }
+  .studio-camera-frame-handle:hover {
+    fill: #7c3aed;
+  }
   .studio-camera-frame-label {
     fill: #7c3aed;
     font-family: var(--font-mono);
@@ -1159,6 +1183,109 @@ body.studio-player-popout #clotho-player-preview {
     padding: 0;
     text-align: left;
     font-size: 0.68rem;
+  }
+  .studio-camera-control {
+    color: #7c3aed;
+  }
+  .studio-camera-field-label {
+    margin: 0.5rem 0 0.25rem;
+    font-size: 0.72rem;
+    color: var(--color-fg-muted);
+  }
+  .studio-camera-range {
+    margin: 0.45rem 0;
+  }
+  .studio-camera-range-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 0.72rem;
+    color: var(--color-fg-muted);
+  }
+  .studio-camera-range-value {
+    font-family: var(--font-mono);
+    color: var(--color-fg);
+  }
+  .studio-camera-range-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .studio-camera-range-row input[type="range"] {
+    flex: 1;
+    min-width: 0;
+  }
+  .studio-camera-range-row input[type="number"] {
+    width: 5.2rem;
+    flex: 0 0 auto;
+  }
+  .studio-camera-hint {
+    margin: 0.2rem 0 0;
+    font-size: 0.66rem;
+    color: var(--color-fg-muted);
+  }
+  .studio-camera-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin: 0.25rem 0;
+  }
+  .studio-chip {
+    padding: 0.1rem 0.45rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: none;
+    color: var(--color-fg-muted);
+    font: inherit;
+    font-size: 0.68rem;
+    cursor: pointer;
+  }
+  .studio-chip.is-on {
+    border-color: #7c3aed;
+    background-color: color-mix(in srgb, #7c3aed 18%, transparent);
+    color: var(--color-fg);
+  }
+  .studio-camera-focus-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin: 0.3rem 0;
+  }
+  /* The target list scrolls: a document with forty elements must not push the
+     padding and maxZoom controls off the panel. */
+  .studio-camera-targets {
+    max-height: 11rem;
+    overflow-y: auto;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    padding: 0.2rem;
+  }
+  .studio-camera-target {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.15rem 0.3rem;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    cursor: pointer;
+  }
+  .studio-camera-target:hover {
+    background-color: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  }
+  .studio-camera-target.is-on {
+    background-color: color-mix(in srgb, #7c3aed 16%, transparent);
+  }
+  .studio-camera-target-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .studio-camera-target-id,
+  .studio-camera-target-type {
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    color: var(--color-fg-muted);
   }
   .studio-camera-kf-list {
     list-style: none;

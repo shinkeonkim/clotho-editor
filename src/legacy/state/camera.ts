@@ -27,6 +27,30 @@ export function hasCamera(): boolean {
   );
 }
 
+/**
+ * Which mechanism decides the view at `time`.
+ *
+ * The renderer's rule is that a focus entry that has already started wins, and the
+ * tracks supply the value otherwise. Direct manipulation on the canvas has to know
+ * which one it is editing — dragging the frame when a focus is in control would
+ * write track keyframes that the focus immediately overrides, and a control that
+ * silently does nothing is worse than one that is disabled.
+ */
+export type CameraControl =
+  { kind: "none" } | { kind: "tracks" } | { kind: "focus"; index: number };
+
+export function cameraControlAt(time: number): CameraControl {
+  const camera = state.def?.camera;
+  if (!camera || (camera.tracks.length === 0 && camera.focus.length === 0)) {
+    return { kind: "none" };
+  }
+  let index = -1;
+  camera.focus.forEach((entry, i) => {
+    if (entry.time <= time) index = i;
+  });
+  return index >= 0 ? { kind: "focus", index } : { kind: "tracks" };
+}
+
 function ensure(def: { camera?: Camera }): Camera {
   def.camera ??= { tracks: [], focus: [], strokeScaling: "scale" };
   return def.camera;

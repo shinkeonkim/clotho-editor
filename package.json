@@ -1,6 +1,6 @@
 {
   "name": "@kokoa/clotho-editor",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Visual editor for clotho animation documents",
   "license": "MIT",
   "author": "kokoa",

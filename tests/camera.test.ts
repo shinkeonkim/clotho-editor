@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "bun:test";
 import { animationDocumentSchema } from "@kokoa/clotho";
 import {
   addCameraFocus,
+  cameraControlAt,
   clearCamera,
   deleteCameraFocus,
   getCamera,
@@ -157,5 +158,53 @@ describe("문서로서의 유효성", () => {
     expect(getDef()!.camera).toBeUndefined();
     expect(hasCamera()).toBe(false);
     expect(getSelection()).toEqual({ kind: "none" });
+  });
+});
+
+// 캔버스에서 프레임을 끄는 동작이 무엇을 편집하는지 결정하는 값이다.
+describe("어느 쪽이 화면을 결정하는가", () => {
+  it("카메라가 없으면 아무것도 아니다", () => {
+    expect(cameraControlAt(0)).toEqual({ kind: "none" });
+  });
+
+  it("focus가 시작되기 전에는 track이 결정한다", () => {
+    setCameraKeyframe("zoom", 0, 1);
+    addCameraFocus(focus({ time: 2000 }));
+    expect(cameraControlAt(1000)).toEqual({ kind: "tracks" });
+  });
+
+  it("시작된 focus가 있으면 그 focus가 이긴다", () => {
+    setCameraKeyframe("zoom", 0, 1);
+    addCameraFocus(focus({ time: 500 }));
+    expect(cameraControlAt(1000)).toEqual({ kind: "focus", index: 0 });
+  });
+
+  it("시작된 것 중 가장 늦은 focus를 고른다", () => {
+    addCameraFocus(focus({ time: 500, elementIds: ["a"] }));
+    addCameraFocus(focus({ time: 1500, elementIds: ["b"] }));
+    addCameraFocus(focus({ time: 3000, elementIds: ["a"] }));
+    expect(cameraControlAt(2000)).toEqual({ kind: "focus", index: 1 });
+  });
+
+  it("focus만 있고 아직 시작 전이면 track 쪽이다", () => {
+    addCameraFocus(focus({ time: 2000 }));
+    expect(cameraControlAt(0)).toEqual({ kind: "tracks" });
+  });
+});
+
+describe("focus 대상 편집", () => {
+  it("여러 요소를 담을 수 있다", () => {
+    addCameraFocus(focus({ elementIds: ["a"] }));
+    updateCameraFocus(0, { elementIds: ["a", "b"] });
+    expect(getCamera().focus[0]?.elementIds).toEqual(["a", "b"]);
+  });
+
+  // 대상이 없는 focus는 스키마를 통과하지 못한다. 패널은 마지막 하나를 끄는 것을
+  // 거부하지만, 상태 쪽에서도 빈 목록이 문서에 들어가지 않는지 확인해 둔다.
+  it("빈 목록은 문서에 들어가지 않는다", () => {
+    addCameraFocus(focus({ elementIds: ["a"] }));
+    updateCameraFocus(0, { elementIds: [] });
+    expect(getCamera().focus[0]?.elementIds).toEqual(["a"]);
+    expect(animationDocumentSchema.safeParse(getDef()).success).toBe(true);
   });
 });

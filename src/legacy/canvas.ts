@@ -13,6 +13,8 @@ import type {
 } from "@kokoa/clotho";
 import type { PreviewOptions } from "./canvas-preview";
 import {
+  cameraControlAt,
+  getCamera,
   getCurrentTime,
   getDef,
   getSelection,
@@ -25,10 +27,22 @@ import {
   subscribe,
   isElementSelected,
   getSelectedElementIds,
+  beginTransient,
+  endTransient,
+  setCameraKeyframe,
+  updateCameraFocus,
 } from "./state";
 import { snapPoint } from "./grid";
 import type { Anchor } from "@kokoa/clotho";
 import { computeCamera, resolveAsset } from "@kokoa/clotho";
+import type { CameraControl } from "./state";
+import {
+  cameraDragMode,
+  cameraDragResult,
+  centreDistance,
+  type CameraDrag,
+  type CameraFramePart,
+} from "./camera-interactions";
 import {
   findContainingGroup,
   groupBbox,
@@ -208,6 +222,14 @@ let endpointDragState: EndpointDragState | null = null;
 let vertexDragState: VertexDragState | null = null;
 let resizeState: ResizeState | null = null;
 let marqueeState: MarqueeState | null = null;
+/**
+ * A drag on the camera frame.
+ *
+ * `mode` is decided at mousedown from whatever controls the view at that instant,
+ * so a drag never changes meaning halfway through — even if the playhead is moved
+ * by something else while the mouse is down.
+ */
+let cameraDragState: CameraDrag | null = null;
 let marqueeJustFinished = false;
 let toolJustFinished = false;
 let canvasEl: SVGSVGElement | null = null;
@@ -400,7 +422,7 @@ function onCanvasClick(e: MouseEvent): void {
   }
   if (
     target?.closest(
-      "[data-rotate-handle], [data-anchor-handle], [data-resize-handle]",
+      "[data-rotate-handle], [data-anchor-handle], [data-resize-handle], [data-camera-frame]",
     )
   )
     return;
@@ -415,6 +437,9 @@ function onCanvasClick(e: MouseEvent): void {
 function onMouseDown(e: MouseEvent): void {
   if (e.button !== 0) return;
   const target = e.target as Element | null;
+
+  const cameraPart = target?.closest<SVGElement>("[data-camera-frame]");
+  if (cameraPart && beginCameraDrag(e, cameraPart)) return;
   const def = getDef();
   if (!def) return;
   const activeTool = getActiveTool();
@@ -722,6 +747,11 @@ function collectDragExtras(
 }
 
 function onMouseMove(e: MouseEvent): void {
+  if (cameraDragState) {
+    e.preventDefault();
+    moveCameraDrag(e);
+    return;
+  }
   if (pathDraftState && getActiveTool() === "path") {
     const point = svgPoint(e.clientX, e.clientY);
     if (point) {
@@ -942,6 +972,11 @@ function finishPathDraft(): void {
 }
 
 function onMouseUp(e: MouseEvent): void {
+  if (cameraDragState) {
+    cameraDragState = null;
+    endTransient();
+    return;
+  }
   if (elementDrawState) {
     const draw = elementDrawState;
     const point = svgPoint(e.clientX, e.clientY);
@@ -1690,9 +1725,16 @@ function renderCameraFrame(def: AnimationDocument): SVGGElement | null {
   if (!view) return null;
 
   const { width, height } = def.canvas;
+  const selected = getSelection().kind === "camera";
+  const control = cameraControlAt(getCurrentTime());
+
   const g = document.createElementNS(SVG_NS, "g");
-  g.setAttribute("class", "studio-camera-frame");
-  // The frame is an overlay, not content: clicks belong to whatever is underneath.
+  g.setAttribute(
+    "class",
+    `studio-camera-frame${selected ? " is-selected" : ""}`,
+  );
+  // The scrim and the labels are decoration; only the border and the handles take
+  // clicks, so an element sitting outside the camera stays reachable.
   g.setAttribute("pointer-events", "none");
 
   // Everything outside the camera, dimmed. One even-odd path rather than four
@@ -1713,13 +1755,21 @@ function renderCameraFrame(def: AnimationDocument): SVGGElement | null {
   rect.setAttribute("height", String(view.height));
   rect.setAttribute("class", "studio-camera-frame-rect");
   rect.setAttribute("vector-effect", "non-scaling-stroke");
+  rect.setAttribute("data-camera-frame", "border");
+  rect.setAttribute("pointer-events", "stroke");
   g.appendChild(rect);
+
+  if (selected && control.kind !== "none") {
+    g.appendChild(cameraHandles(view, control));
+  }
 
   const label = document.createElementNS(SVG_NS, "text");
   label.setAttribute("x", String(view.x + 6));
   label.setAttribute("y", String(view.y + 16));
   label.setAttribute("class", "studio-camera-frame-label");
-  label.textContent = `🎥 ${view.zoom.toFixed(2)}× · ${Math.round(view.centerX)}, ${Math.round(view.centerY)}`;
+  label.textContent = selected
+    ? `🎥 ${view.zoom.toFixed(2)}× · ${Math.round(view.centerX)}, ${Math.round(view.centerY)} · ${control.kind === "focus" ? `focus #${control.index + 1} — 모서리를 끌면 padding` : "끌어서 이동 · 모서리로 zoom"}`
+    : `🎥 ${view.zoom.toFixed(2)}× · ${Math.round(view.centerX)}, ${Math.round(view.centerY)}`;
   g.appendChild(label);
 
   // An unresolved focus is the one camera mistake that looks like nothing at all —
@@ -1733,6 +1783,121 @@ function renderCameraFrame(def: AnimationDocument): SVGGElement | null {
     g.appendChild(warning);
   }
 
+  return g;
+}
+
+/**
+ * Start a drag on the camera frame, or just select it.
+ *
+ * Returns true when the event is ours, so the element interactions below never see
+ * a click that landed on the camera.
+ */
+function beginCameraDrag(e: MouseEvent, part: SVGElement): boolean {
+  const def = getDef();
+  if (!def) return false;
+  const time = getCurrentTime();
+  const view = computeCamera(def, time);
+  if (!view) return false;
+
+  const wasSelected = getSelection().kind === "camera";
+  if (!wasSelected) setSelection({ kind: "camera" });
+  e.preventDefault();
+  e.stopPropagation();
+
+  // The border only selects. Dragging from it would be ambiguous — the same pixel
+  // is both "grab the camera" and "grab the edge" — and the corners already exist.
+  const kind = part.dataset.cameraFrame;
+  if (kind === "border" || !wasSelected) return true;
+
+  const control = cameraControlAt(time);
+  const mode = cameraDragMode(kind as CameraFramePart, control);
+  if (!mode) return true;
+
+  const point = svgPoint(e.clientX, e.clientY);
+  if (!point) return true;
+
+  const focusIndex = control.kind === "focus" ? control.index : -1;
+  const padding =
+    focusIndex >= 0 ? (getCamera().focus[focusIndex]?.padding ?? 24) : 0;
+
+  cameraDragState = {
+    mode,
+    focusIndex,
+    time,
+    startX: point.x,
+    startY: point.y,
+    startCenterX: view.centerX,
+    startCenterY: view.centerY,
+    startZoom: view.zoom,
+    startPadding: padding,
+    startDistance: centreDistance(point, view.centerX, view.centerY),
+  };
+  beginTransient("카메라 조정", "camera");
+  return true;
+}
+
+/** Apply a camera drag. Called from the canvas mousemove. */
+function moveCameraDrag(e: MouseEvent): void {
+  const drag = cameraDragState;
+  if (!drag) return;
+  const point = svgPoint(e.clientX, e.clientY);
+  if (!point) return;
+
+  const next = cameraDragResult(drag, point);
+  if (next.centerX !== undefined) {
+    setCameraKeyframe("x", drag.time, next.centerX);
+  }
+  if (next.centerY !== undefined) {
+    setCameraKeyframe("y", drag.time, next.centerY);
+  }
+  if (next.zoom !== undefined) setCameraKeyframe("zoom", drag.time, next.zoom);
+  if (next.padding !== undefined) {
+    updateCameraFocus(drag.focusIndex, { padding: next.padding });
+  }
+}
+
+/** Corner grips, plus a body that takes the pan drag. */
+function cameraHandles(
+  view: { x: number; y: number; width: number; height: number },
+  control: CameraControl,
+): SVGGElement {
+  const g = document.createElementNS(SVG_NS, "g");
+
+  // Panning moves the camera centre, which only the tracks express. Under a focus
+  // the centre *is* the target's centre, so the body is not draggable and the
+  // label says what the corners do instead.
+  if (control.kind === "tracks") {
+    const body = document.createElementNS(SVG_NS, "rect");
+    body.setAttribute("x", String(view.x));
+    body.setAttribute("y", String(view.y));
+    body.setAttribute("width", String(view.width));
+    body.setAttribute("height", String(view.height));
+    body.setAttribute("class", "studio-camera-frame-body");
+    body.setAttribute("data-camera-frame", "pan");
+    body.setAttribute("pointer-events", "fill");
+    g.appendChild(body);
+  }
+
+  const corners: [string, number, number][] = [
+    ["nw", view.x, view.y],
+    ["ne", view.x + view.width, view.y],
+    ["sw", view.x, view.y + view.height],
+    ["se", view.x + view.width, view.y + view.height],
+  ];
+  // Sized against the current zoom so the grip stays the same size on screen.
+  const size = 9 / canvasZoom;
+  for (const [corner, cx, cy] of corners) {
+    const handle = document.createElementNS(SVG_NS, "rect");
+    handle.setAttribute("x", String(cx - size / 2));
+    handle.setAttribute("y", String(cy - size / 2));
+    handle.setAttribute("width", String(size));
+    handle.setAttribute("height", String(size));
+    handle.setAttribute("class", "studio-camera-frame-handle");
+    handle.setAttribute("data-camera-frame", "resize");
+    handle.setAttribute("data-camera-corner", corner);
+    handle.setAttribute("pointer-events", "all");
+    g.appendChild(handle);
+  }
   return g;
 }
 

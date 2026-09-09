@@ -53,7 +53,9 @@ export {
   deleteEffect,
   updateDuration,
 } from "./timeline";
+export type { CameraControl } from "./camera";
 export {
+  cameraControlAt,
   getCamera,
   hasCamera,
   setCameraStrokeScaling,

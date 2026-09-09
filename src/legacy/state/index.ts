@@ -50,6 +50,7 @@ export {
   deleteChapter,
   addEffect,
   updateEffect,
+  replaceEffect,
   deleteEffect,
   updateDuration,
 } from "./timeline";

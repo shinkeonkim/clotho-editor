@@ -20,6 +20,7 @@ import {
   removeCameraTrack,
   removeTrack,
   removeTrackKeyframe,
+  replaceEffect,
   setCurrentTime,
   setSelection,
   setCameraKeyframe,
@@ -449,6 +450,7 @@ function renderInner(): void {
           <option value="highlight">highlight</option>
           <option value="pulse">pulse</option>
           <option value="flow">flow</option>
+          <option value="spotlight">spotlight</option>
         </select>
         <button type="button" class="studio-btn" data-add-effect>＋ 효과</button>
       </div>
@@ -551,16 +553,52 @@ function renderInner(): void {
       setSelection({ kind: "none" });
       return;
     }
+    const typeOpts = (["highlight", "pulse", "flow", "spotlight"] as const)
+      .map(
+        (t) =>
+          `<option value="${t}" ${t === eff.type ? "selected" : ""}>${t}</option>`,
+      )
+      .join("");
+
+    // Spotlight decorates everything *except* its targets, so it names a set where
+    // the other three name one element. That difference reaches all the way to the
+    // form: a list to tick instead of a single select.
+    if (eff.type === "spotlight") {
+      const shapeOpts = (["bbox", "circle", "elements"] as const)
+        .map(
+          (shape) =>
+            `<option value="${shape}" ${shape === eff.shape ? "selected" : ""}>${shape}${shape === "bbox" ? " (기본)" : ""}</option>`,
+        )
+        .join("");
+      panelEl.innerHTML = `
+        ${timeHint}
+        <div class="studio-props-header"><span class="studio-props-header-title">${escapeHtml(eff.id)}</span><span class="studio-props-header-type">spotlight</span></div>
+        <label class="studio-field"><span>type</span><select data-prop-key="effect.type">${typeOpts}</select></label>
+        <p class="studio-props-empty" style="margin:0 0 0.4rem">대상은 그대로 두고 나머지를 어둡게 합니다. 대상의 색이 정보인 문서에서 <code>highlight</code> 대신 씁니다.</p>
+        ${numberField("time (ms)", "effect.time", eff.time, 50)}
+        ${numberField("duration (ms)", "effect.duration", eff.duration, 50)}
+        ${numberField("fadeIn (ms) · 양 끝에 적용", "effect.fadeIn", eff.fadeIn, 50)}
+        <div class="studio-camera-field-label">대상 요소 (${eff.elementIds.length})</div>
+        ${elementCheckList(def, "data-spotlight-target", eff.id, eff.elementIds)}
+        <label class="studio-field"><span>shape</span><select data-prop-key="effect.shape">${shapeOpts}</select></label>
+        <p class="studio-camera-hint">대상이 무대 여기저기 흩어져 있으면 <code>elements</code>를 쓰세요. <code>bbox</code>는 셋을 담느라 그 사이의 관계없는 요소까지 밝힙니다.</p>
+        ${rangeField("padding", "effect.padding", eff.padding, 0, 80, 1)}
+        <div class="studio-props-header" style="margin-top:0.6rem"><span class="studio-props-header-title">가려지는 쪽</span></div>
+        ${rangeField("dim", "effect.dim", eff.dim, 0, 1, 0.01, "0이면 어둡게 하지 않습니다.")}
+        ${colorField("dimColor", "effect.dimColor", eff.dimColor ?? "#0b1120")}
+        <p class="studio-camera-hint">비워 두면 테마 토큰을 씁니다 — 라이트·다크 모두 near-black.</p>
+        <div class="studio-props-header" style="margin-top:0.6rem"><span class="studio-props-header-title">비추는 쪽</span></div>
+        ${rangeField("lit", "effect.lit", eff.lit, 0, 1, 0.01, "0이면 대상은 자기 색 그대로입니다. 조명의 젤처럼 색을 얹으려면 올리세요.")}
+        ${colorField("litColor", "effect.litColor", eff.litColor)}
+        <button type="button" class="studio-btn studio-btn-danger" data-delete-effect style="margin-top:0.6rem">🗑 효과 삭제</button>
+      `;
+      return;
+    }
+
     const elemOpts = def.elements
       .map(
         (e) =>
           `<option value="${escapeHtml(e.id)}" ${e.id === eff.elementId ? "selected" : ""}>${escapeHtml(e.id)}</option>`,
-      )
-      .join("");
-    const typeOpts = (["highlight", "pulse", "flow"] as const)
-      .map(
-        (t) =>
-          `<option value="${t}" ${t === eff.type ? "selected" : ""}>${t}</option>`,
       )
       .join("");
     const specific =
@@ -621,15 +659,20 @@ function rangeField(
 }
 
 /**
- * Which elements a focus frames, as a list to tick rather than ids to type.
+ * A set of elements, as a list to tick rather than ids to type.
  *
  * The ids are the document's, not the author's: `rect-7` is not something anyone
- * remembers, and a typo produced a focus that silently held the previous view. The
- * list shows the label a person actually recognises and keeps the id alongside it.
+ * remembers, and a typo produced a camera focus that silently held the previous
+ * view — or a spotlight that lit nothing. The list shows the label a person
+ * actually recognises and keeps the id alongside it.
+ *
+ * `attribute` is the data attribute the change handler listens for, so the same
+ * list serves the camera and the spotlight without either knowing about the other.
  */
-function focusTargetPicker(
+function elementCheckList(
   def: AnimationDocument,
-  index: number,
+  attribute: string,
+  key: string,
   selected: readonly string[],
 ): string {
   const chosen = new Set(selected);
@@ -638,7 +681,7 @@ function focusTargetPicker(
       const name = friendlyElementLabel(element);
       const same = name === element.id;
       return `<label class="studio-camera-target ${chosen.has(element.id) ? "is-on" : ""}">
-        <input type="checkbox" data-camera-target="${index}" value="${escapeHtml(element.id)}" ${chosen.has(element.id) ? "checked" : ""} />
+        <input type="checkbox" ${attribute}="${escapeHtml(key)}" value="${escapeHtml(element.id)}" ${chosen.has(element.id) ? "checked" : ""} />
         <span class="studio-camera-target-name">${escapeHtml(name)}</span>
         ${same ? "" : `<span class="studio-camera-target-id">${escapeHtml(element.id)}</span>`}
         <span class="studio-camera-target-type">${element.type}</span>
@@ -708,7 +751,7 @@ function renderCameraForm(
             </div>
           </div>
           <div class="studio-camera-field-label">대상 요소 (${entry.elementIds.length})</div>
-          ${focusTargetPicker(def, index, entry.elementIds)}
+          ${elementCheckList(def, "data-camera-target", String(index), entry.elementIds)}
           ${rangeField("padding", `camera.focus.${index}.padding`, entry.padding, 0, 200, 2, "대상 주변 여백. 클수록 넓게 잡습니다.")}
           ${rangeField("maxZoom", `camera.focus.${index}.maxZoom`, entry.maxZoom, 1, 8, 0.1, "확대 상한. 작은 요소 하나가 화면을 채우는 것을 막습니다.")}
           <button type="button" class="studio-btn studio-btn-danger" data-delete-camera-focus="${index}">🗑 focus 삭제</button>
@@ -1116,6 +1159,12 @@ function onInput(e: Event): void {
     return;
   }
 
+  const spotTarget = target.dataset.spotlightTarget;
+  if (spotTarget !== undefined && target instanceof HTMLInputElement) {
+    toggleSpotlightTarget(spotTarget, target.value, target.checked);
+    return;
+  }
+
   const key = target.dataset.propKey;
   if (!key) return;
   // Guard: skip text input events during IME composition
@@ -1431,6 +1480,8 @@ function apply(key: string, value: string | number | boolean): void {
     if (targets) references[token] = targets;
     else delete references[token];
     updateChapter(sel.chapterId, { references } as Partial<typeof chapter>);
+  } else if (key === "effect.type" && sel.kind === "effect") {
+    changeEffectType(def, sel.effectId, String(value));
   } else if (key.startsWith("effect.") && sel.kind === "effect") {
     const prop = key.slice(7);
     const patch: Record<string, unknown> = {};
@@ -1439,7 +1490,11 @@ function apply(key: string, value: string | number | boolean): void {
       prop === "duration" ||
       prop === "scale" ||
       prop === "particles" ||
-      prop === "radius"
+      prop === "radius" ||
+      prop === "dim" ||
+      prop === "lit" ||
+      prop === "padding" ||
+      prop === "fadeIn"
     ) {
       patch[prop] = Number(value);
     } else {
@@ -1447,6 +1502,88 @@ function apply(key: string, value: string | number | boolean): void {
     }
     updateEffect(sel.effectId, patch as Partial<AnimationEffect>);
   }
+}
+
+/**
+ * Change an effect's type, carrying its targets across the singular/plural line.
+ *
+ * `spotlight` names a set and the other three name one element, so switching
+ * between them is a conversion rather than a field assignment: a patch would leave
+ * the old shape's fields behind and the schema would reject the result, dropping
+ * the edit with nothing said. The type-specific defaults come along too, since an
+ * effect missing them is not a valid effect either.
+ */
+function changeEffectType(
+  def: AnimationDocument,
+  effectId: string,
+  type: string,
+): void {
+  const current = def.effects.find((effect) => effect.id === effectId);
+  if (!current || current.type === type) return;
+
+  const targets =
+    current.type === "spotlight" ? current.elementIds : [current.elementId];
+  const base = { id: current.id, time: current.time };
+
+  let next: AnimationEffect;
+  if (type === "spotlight") {
+    next = {
+      ...base,
+      type: "spotlight",
+      elementIds: targets,
+      duration: Math.max(current.duration, 800),
+      dim: 0.7,
+      lit: 0,
+      litColor: "#fde68a",
+      shape: "bbox",
+      padding: 12,
+      fadeIn: 200,
+    };
+  } else {
+    const single = {
+      ...base,
+      elementId: targets[0] ?? "",
+      duration: current.duration,
+    };
+    next =
+      type === "pulse"
+        ? { ...single, type: "pulse", scale: 1.12 }
+        : type === "flow"
+          ? {
+              ...single,
+              type: "flow",
+              color: "#facc15",
+              particles: 3,
+              radius: 4,
+            }
+          : { ...single, type: "highlight", color: "#facc15" };
+  }
+  replaceEffect(effectId, next);
+}
+
+/**
+ * Tick or untick one element for a spotlight.
+ *
+ * Unticking the last one is refused for the same reason a camera focus refuses it:
+ * the schema requires at least one target, so the edit would be dropped and the
+ * checkbox would spring back with no explanation.
+ */
+function toggleSpotlightTarget(
+  effectId: string,
+  id: string,
+  on: boolean,
+): void {
+  const def = getDef();
+  const effect = def?.effects.find((candidate) => candidate.id === effectId);
+  if (!effect || effect.type !== "spotlight") return;
+  const next = on
+    ? [...effect.elementIds, id]
+    : effect.elementIds.filter((target) => target !== id);
+  if (next.length === 0) {
+    render();
+    return;
+  }
+  updateEffect(effectId, { elementIds: next } as Partial<AnimationEffect>);
 }
 
 function parseBindingFallback(
@@ -1651,7 +1788,7 @@ function onClick(e: Event): void {
       "studio-new-effect-type",
     ) as HTMLSelectElement | null;
     const type = (typeSel?.value ?? "highlight") as
-      "highlight" | "pulse" | "flow";
+      "highlight" | "pulse" | "flow" | "spotlight";
     const firstEl = def.elements[0];
     if (!firstEl) return;
     const id = uniqueEffectId();
@@ -1662,7 +1799,29 @@ function onClick(e: Event): void {
       duration: 500,
     };
     let eff: AnimationEffect;
-    if (type === "highlight")
+    if (type === "spotlight") {
+      // Seeded from the canvas selection, since "light what I have selected" is
+      // what the button is for when a spotlight is what you asked for.
+      const selected =
+        sel.kind === "element"
+          ? [sel.elementId]
+          : sel.kind === "elements"
+            ? [...sel.elementIds]
+            : [firstEl.id];
+      eff = {
+        id,
+        type: "spotlight",
+        elementIds: selected,
+        time: getCurrentTime(),
+        duration: 1200,
+        dim: 0.7,
+        lit: 0,
+        litColor: "#fde68a",
+        shape: "bbox",
+        padding: 12,
+        fadeIn: 200,
+      };
+    } else if (type === "highlight")
       eff = { ...base, type: "highlight", color: "#facc15" };
     else if (type === "pulse") eff = { ...base, type: "pulse", scale: 1.12 };
     else

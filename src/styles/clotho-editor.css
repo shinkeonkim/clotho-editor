@@ -1144,6 +1144,11 @@ body.studio-player-popout #clotho-player-preview {
     font-family: var(--font-mono);
     font-size: 11px;
   }
+  .studio-spotlight-preview-label {
+    fill: #f59e0b;
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
   .studio-camera-readout {
     padding: 0.4rem 0.55rem;
     margin-bottom: 0.4rem;

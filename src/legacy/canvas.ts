@@ -1462,6 +1462,9 @@ function render(): void {
   const cameraFrame = renderCameraFrame(def);
   if (cameraFrame) canvasEl.appendChild(cameraFrame);
 
+  const spotlightPreview = renderSpotlightPreview(def, snap, elementsById);
+  if (spotlightPreview) canvasEl.appendChild(spotlightPreview);
+
   const selection = getSelection();
   if (selection.kind === "element") {
     const selEl = elementsById.get(selection.elementId);
@@ -1854,6 +1857,95 @@ function moveCameraDrag(e: MouseEvent): void {
   if (next.padding !== undefined) {
     updateCameraFocus(drag.focusIndex, { padding: next.padding });
   }
+}
+
+/**
+ * What a spotlight lights, shown while it is selected.
+ *
+ * The editing canvas draws elements, not effects, so a spotlight was invisible
+ * here: the author picked targets in the panel and had to open the preview to find
+ * out what the scrim actually covered. This draws the covered area over the stage
+ * the moment the effect is selected, whatever the playhead says — the point is to
+ * edit the effect, not to catch it in its time window.
+ *
+ * The lit area is taken from the same padded bounds the renderer uses. `elements`
+ * cuts the silhouettes rather than the boxes, which this approximates with the
+ * boxes; the label says so rather than letting the author believe otherwise.
+ */
+function renderSpotlightPreview(
+  def: AnimationDocument,
+  snap: SnapshotMap,
+  elementsById: Map<string, AnimationElement>,
+): SVGGElement | null {
+  const selection = getSelection();
+  if (selection.kind !== "effect") return null;
+  const effect = def.effects.find(
+    (candidate) => candidate.id === selection.effectId,
+  );
+  if (!effect || effect.type !== "spotlight") return null;
+
+  const boxes = effect.elementIds
+    .map((id) => {
+      const el = elementsById.get(id);
+      const state = el ? snap.get(id) : undefined;
+      return el && state ? elementBBox(el, state) : null;
+    })
+    .filter(
+      (box): box is { x: number; y: number; w: number; h: number } =>
+        box !== null,
+    );
+  if (boxes.length === 0) return null;
+
+  const { width, height } = def.canvas;
+  const pad = effect.padding;
+  const g = document.createElementNS(SVG_NS, "g");
+  g.setAttribute("class", "studio-spotlight-preview");
+  g.setAttribute("pointer-events", "none");
+
+  // One even-odd path: the canvas with each lit area subtracted. `bbox` and
+  // `circle` frame the union, `elements` keeps them separate.
+  const holes: string[] = [];
+  if (effect.shape === "elements") {
+    for (const box of boxes) {
+      holes.push(
+        `M${box.x - pad} ${box.y - pad}H${box.x + box.w + pad}V${box.y + box.h + pad}H${box.x - pad}Z`,
+      );
+    }
+  } else {
+    const x = Math.min(...boxes.map((box) => box.x)) - pad;
+    const y = Math.min(...boxes.map((box) => box.y)) - pad;
+    const right = Math.max(...boxes.map((box) => box.x + box.w)) + pad;
+    const bottom = Math.max(...boxes.map((box) => box.y + box.h)) + pad;
+    if (effect.shape === "circle") {
+      const cx = (x + right) / 2;
+      const cy = (y + bottom) / 2;
+      const r = Math.hypot(right - x, bottom - y) / 2;
+      // Two arcs, because a circle cannot be a subpath of a rect path otherwise.
+      holes.push(
+        `M${cx - r} ${cy}a${r} ${r} 0 1 0 ${r * 2} 0a${r} ${r} 0 1 0 ${-r * 2} 0Z`,
+      );
+    } else {
+      holes.push(`M${x} ${y}H${right}V${bottom}H${x}Z`);
+    }
+  }
+
+  const scrim = document.createElementNS(SVG_NS, "path");
+  scrim.setAttribute("d", `M0 0H${width}V${height}H0Z ${holes.join(" ")}`);
+  scrim.setAttribute("fill-rule", "evenodd");
+  scrim.setAttribute("fill", effect.dimColor ?? "#0b1120");
+  scrim.setAttribute("opacity", String(Math.max(effect.dim, 0.15)));
+  g.appendChild(scrim);
+
+  const label = document.createElementNS(SVG_NS, "text");
+  label.setAttribute("x", "8");
+  label.setAttribute("y", "18");
+  label.setAttribute("class", "studio-spotlight-preview-label");
+  const approximated =
+    effect.shape === "elements" ? " · 실루엣은 상자로 근사" : "";
+  label.textContent = `🔦 ${effect.id} · ${effect.time}–${effect.time + effect.duration}ms${approximated}`;
+  g.appendChild(label);
+
+  return g;
 }
 
 /** Corner grips, plus a body that takes the pan drag. */

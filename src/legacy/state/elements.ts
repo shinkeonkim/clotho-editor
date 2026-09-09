@@ -6,6 +6,7 @@ import type {
   TrackKeyframe,
 } from "@kokoa/clotho";
 import type { HistoryKind } from "./types";
+import type { AnimationEffect } from "@kokoa/clotho";
 import { emit, mutateDef, state } from "./internals";
 
 function ensureAppearance(el: AnimationElement, def: AnimationDocument): void {
@@ -39,7 +40,16 @@ export function deleteElement(id: string): void {
   mutateDef(
     (def) => {
       def.elements = def.elements.filter((e) => e.id !== id);
-      def.effects = def.effects.filter((e) => e.elementId !== id);
+      // A spotlight names a set, so losing one target narrows it rather than
+      // ending it — unless it was the last one, and a spotlight with nothing to
+      // light would fail the schema anyway.
+      def.effects = def.effects.flatMap((effect): AnimationEffect[] => {
+        if (effect.type !== "spotlight") {
+          return effect.elementId === id ? [] : [effect];
+        }
+        const elementIds = effect.elementIds.filter((target) => target !== id);
+        return elementIds.length > 0 ? [{ ...effect, elementIds }] : [];
+      });
       // Anything that pointed at the deleted element is re-rooted. A dangling parentId
       // would make the tree builder report a missing parent on every render.
       for (const el of def.elements) {

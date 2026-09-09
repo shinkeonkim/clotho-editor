@@ -10,7 +10,6 @@ import type {
   RectElement,
   SnapshotMap,
   TextElement,
-  AnimationDocument,
 } from "@kokoa/clotho";
 import type { PreviewOptions } from "./canvas-preview";
 import {

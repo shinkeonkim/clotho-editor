@@ -1155,8 +1155,7 @@ function apply(key: string, value: string | number | boolean): void {
         predicate: { type: "equals", value: answer },
       });
     }
-  }
-  else if (key === "camera.strokeScaling")
+  } else if (key === "camera.strokeScaling")
     setCameraStrokeScaling(String(value) as "scale" | "fixed");
   else if (key.startsWith("camera.focus.")) {
     const [, , indexText, field] = key.split(".");

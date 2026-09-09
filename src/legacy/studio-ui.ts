@@ -39,6 +39,7 @@ export interface StudioUi {
   undoBtn: HTMLButtonElement;
   redoBtn: HTMLButtonElement;
   gridToggleBtn: HTMLButtonElement;
+  cameraFrameBtn: HTMLButtonElement;
 }
 
 export function setStatus(

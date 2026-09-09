@@ -1,5 +1,6 @@
 import type { StudioUi } from "../studio-ui";
 import { getGridSize, isGridEnabled } from "../grid";
+import { isCameraFrameVisible } from "../canvas";
 
 export function reflectGridUi(ui: StudioUi): void {
   const on = isGridEnabled();
@@ -13,6 +14,17 @@ export function reflectGridUi(ui: StudioUi): void {
   ui.app.style.setProperty("--studio-grid-size", `${size}px`);
   const label = document.getElementById("studio-grid-label");
   if (label) label.textContent = on ? `격자 ${size}px` : "격자 끔";
+}
+
+export function reflectCameraFrameUi(ui: StudioUi): void {
+  const on = isCameraFrameVisible();
+  ui.cameraFrameBtn.setAttribute("aria-pressed", on ? "true" : "false");
+  ui.cameraFrameBtn.classList.toggle("is-active", on);
+  ui.cameraFrameBtn.title = on
+    ? "카메라 영역 표시 중 — 캔버스에 현재 시각의 카메라 사각형을 그립니다"
+    : "카메라 영역 표시하기";
+  const label = document.getElementById("studio-camera-frame-label");
+  if (label) label.textContent = on ? "카메라 영역" : "카메라 영역 끔";
 }
 
 export function setupTimelineResizer(ui: StudioUi): void {

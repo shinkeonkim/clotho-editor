@@ -47,6 +47,7 @@ export function queryUi(): StudioUi | null {
   const undoBtn = $<HTMLButtonElement>("studio-undo");
   const redoBtn = $<HTMLButtonElement>("studio-redo");
   const gridToggleBtn = $<HTMLButtonElement>("studio-grid-toggle");
+  const cameraFrameBtn = $<HTMLButtonElement>("studio-camera-frame-toggle");
 
   if (
     !titleInput ||
@@ -87,7 +88,8 @@ export function queryUi(): StudioUi | null {
     !helpDialog ||
     !undoBtn ||
     !redoBtn ||
-    !gridToggleBtn
+    !gridToggleBtn ||
+    !cameraFrameBtn
   ) {
     return null;
   }
@@ -133,5 +135,6 @@ export function queryUi(): StudioUi | null {
     undoBtn,
     redoBtn,
     gridToggleBtn,
+    cameraFrameBtn,
   };
 }

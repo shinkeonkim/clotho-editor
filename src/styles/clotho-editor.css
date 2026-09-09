@@ -1096,6 +1096,100 @@ body.studio-player-popout #clotho-player-preview {
     color: var(--color-accent);
     background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.15));
   }
+  /* Canvas overlay for the camera. Drawn into the editing SVG, which keeps the
+     full-canvas viewBox, so the frame is the part a reader will actually see. */
+  .studio-camera-frame-scrim {
+    /* Fixed rather than themed: this dims the *document's* canvas, which keeps its
+       own background whatever the editor chrome is doing. A themed value goes
+       invisible exactly when the editor is dark and the canvas is white. */
+    fill: rgba(15, 23, 42, 0.32);
+  }
+  .studio-camera-frame-rect {
+    fill: none;
+    stroke: #7c3aed;
+    stroke-width: 2;
+    stroke-dasharray: 6 4;
+  }
+  .studio-camera-frame-label {
+    fill: #7c3aed;
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+  .studio-camera-frame-warning {
+    fill: #ef4444;
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+  .studio-camera-readout {
+    padding: 0.4rem 0.55rem;
+    margin-bottom: 0.4rem;
+    border-radius: 6px;
+    background-color: var(--color-surface);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--color-fg-muted);
+  }
+  .studio-camera-issue {
+    color: #ef4444;
+  }
+  .studio-camera-focus > summary {
+    cursor: pointer;
+    padding: 0.3rem 0;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+  }
+  .studio-camera-track {
+    padding: 0.3rem 0;
+    border-top: 1px solid var(--color-border);
+  }
+  .studio-camera-track-head {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+  }
+  .studio-camera-track-now {
+    margin-left: auto;
+    color: var(--color-fg-muted);
+    font-size: 0.68rem;
+  }
+  .studio-camera-track .studio-props-empty {
+    margin: 0.2rem 0 0;
+    padding: 0;
+    text-align: left;
+    font-size: 0.68rem;
+  }
+  .studio-camera-kf-list {
+    list-style: none;
+    margin: 0.3rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+  .studio-camera-kf-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.1rem 0.3rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+  }
+  .studio-camera-kf,
+  .studio-camera-kf-del {
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    padding: 0;
+  }
+  .studio-camera-kf-del {
+    color: #ef4444;
+  }
   .studio-tl-total {
     margin-top: 0.3rem;
     padding: 0.2rem 0.4rem;
@@ -1884,6 +1978,81 @@ body.studio-player-popout #clotho-player-preview {
     background-color: #ef4444;
     color: #fff;
     border-color: #b91c1c;
+  }
+  /* Camera rows: the same shape as an element row, tinted so a document-level
+     track is not mistaken for one belonging to whatever element is above it. */
+  .studio-tl-camera-row {
+    border-bottom: 1px solid var(--color-border);
+    min-height: 30px;
+  }
+  .studio-tl-camera-row.is-selected .studio-tl-gutter,
+  .studio-tl-camera-row.is-selected .studio-tl-body {
+    background-color: color-mix(
+      in srgb,
+      var(--color-accent) 10%,
+      var(--color-surface-elevated)
+    );
+  }
+  .studio-tl-camera-gutter {
+    gap: 0.35rem;
+    color: #7c3aed;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .studio-tl-camera-gutter.is-sub {
+    color: var(--color-fg-muted);
+    font-weight: 400;
+    padding-left: 1.4rem;
+  }
+  .studio-tl-camera-add {
+    margin-left: auto;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: none;
+    color: inherit;
+    font: inherit;
+    line-height: 1;
+    padding: 0 0.3rem;
+    cursor: pointer;
+  }
+  .studio-tl-camera-track {
+    position: relative;
+    height: 100%;
+    min-height: 30px;
+  }
+  .studio-tl-camera-empty {
+    position: absolute;
+    left: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.68rem;
+    color: var(--color-fg-muted);
+  }
+  .studio-tl-camera-focus {
+    position: absolute;
+    top: 5px;
+    bottom: 5px;
+    border-radius: 4px;
+    border: 1px solid #7c3aed;
+    background-color: color-mix(in srgb, #7c3aed 22%, transparent);
+    cursor: grab;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+  }
+  .studio-tl-camera-focus.is-selected {
+    border-color: #ef4444;
+    background-color: color-mix(in srgb, #ef4444 26%, transparent);
+  }
+  .studio-tl-camera-focus-label {
+    padding: 0 0.35rem;
+    font-size: 0.66rem;
+    font-family: var(--font-mono);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .studio-tl-camera-keyframe {
+    color: #7c3aed;
   }
   .studio-tl-playhead {
     position: absolute;

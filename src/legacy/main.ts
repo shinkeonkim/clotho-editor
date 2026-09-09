@@ -15,7 +15,11 @@ import {
   undo,
   redo,
 } from "./state";
-import { initCanvas } from "./canvas";
+import {
+  initCanvas,
+  isCameraFrameVisible,
+  setCameraFrameVisible,
+} from "./canvas";
 import { initElementList } from "./element-list";
 import { initProperties } from "./properties";
 import { initTimeline } from "./timeline";
@@ -41,6 +45,7 @@ import { initHistoryPanel, openHistoryPanel } from "./studio-history";
 import { queryUi } from "./main/ui-query";
 import { startInlineTextEdit } from "./main/inline-edit";
 import {
+  reflectCameraFrameUi,
   reflectGridUi,
   setupCanvasPan,
   setupTimelineResizer,
@@ -97,6 +102,7 @@ export function initStudio(
   initGrid();
   reflectGridUi(ui);
   subscribeGrid(() => reflectGridUi(ui));
+  reflectCameraFrameUi(ui);
 
   initCanvas(ui.canvas);
   initElementList(ui.elementList, ui.toolsRoot);
@@ -300,6 +306,10 @@ export function initStudio(
   ui.gridToggleBtn.addEventListener("click", () =>
     setGridEnabled(!isGridEnabled()),
   );
+  ui.cameraFrameBtn.addEventListener("click", () => {
+    setCameraFrameVisible(!isCameraFrameVisible());
+    reflectCameraFrameUi(ui);
+  });
   ui.playBtn.addEventListener("click", () => togglePlay(ui));
   ui.restartBtn.addEventListener("click", () => {
     if (isPlaying()) {

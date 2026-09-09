@@ -1,20 +1,30 @@
 import {
   addAppearance,
+  addCameraFocus,
   addChapter,
   addEffect,
+  clearCamera,
+  deleteCameraFocus,
   deleteChapter,
   deleteEffect,
+  getCamera,
   getCurrentTime,
   getDef,
   getSelection,
+  hasCamera,
   removeAppearance,
+  removeCameraKeyframe,
+  removeCameraTrack,
   removeTrack,
   removeTrackKeyframe,
   setCurrentTime,
   setSelection,
+  setCameraKeyframe,
+  setCameraStrokeScaling,
   setTrackKeyframe,
   subscribe,
   updateAppearance,
+  updateCameraFocus,
   updateCanvas,
   updateChapter,
   updateDuration,
@@ -41,13 +51,14 @@ import type {
   AnimationElement,
   AnimationEffect,
   Appearance,
+  CameraProperty,
   EntryMode,
   ExitMode,
   Checkpoint,
   DataBinding,
   DataValue,
 } from "@kokoa/clotho";
-import { bindablePropertiesFor } from "@kokoa/clotho";
+import { bindablePropertiesFor, computeCamera } from "@kokoa/clotho";
 import { captureFocusWithin, restoreFocusWithin } from "./studio-focus";
 import {
   alignSelected,
@@ -217,6 +228,26 @@ function textField(
 
 function textareaField(label: string, key: string, value: string): string {
   return `<label class="studio-field"><span>${escapeHtml(label)}</span><textarea rows="7" spellcheck="false" data-prop-key="${escapeHtml(key)}">${escapeHtml(value)}</textarea></label>`;
+}
+
+/**
+ * A text field that commits on blur or Enter rather than on every keystroke.
+ *
+ * The panel re-renders after every edit, which for a field whose value is
+ * *derived* from what was typed — a list joined back with commas — means the
+ * separator is erased the moment it is typed. Fields that round-trip their own text
+ * unchanged do not have this problem, which is why this is the exception rather
+ * than the rule.
+ */
+function deferredTextField(
+  label: string,
+  key: string,
+  value: string | undefined,
+): string {
+  return `<label class="studio-field">
+    <span>${escapeHtml(label)}</span>
+    <input type="text" data-prop-key="${escapeHtml(key)}" data-prop-commit="change" value="${escapeHtml(value ?? "")}" />
+  </label>`;
 }
 
 function numberField(
@@ -416,6 +447,8 @@ function renderInner(): void {
         </select>
         <button type="button" class="studio-btn" data-add-effect>＋ 효과</button>
       </div>
+      <div class="studio-props-header" style="margin-top:0.6rem"><span class="studio-props-header-title">카메라</span><span class="studio-props-header-type">${hasCamera() ? `focus ${getCamera().focus.length} · track ${getCamera().tracks.length}` : "없음"}</span></div>
+      <button type="button" class="studio-btn" data-open-camera>🎥 카메라 편집</button>
     `;
     return;
   }
@@ -476,6 +509,11 @@ function renderInner(): void {
       return;
     }
     renderElementForm(def, el);
+    return;
+  }
+
+  if (sel.kind === "camera") {
+    renderCameraForm(def, sel.focusIndex);
     return;
   }
 
@@ -540,6 +578,97 @@ function renderInner(): void {
     `;
     return;
   }
+}
+
+/**
+ * The camera panel.
+ *
+ * Two independent halves, in the order an author reaches for them. `focus` names
+ * elements and lets the camera work out the framing — the usual choice, and the one
+ * the timeline's ＋ button creates. `tracks` are the escape hatch for when the
+ * movement itself is the point, and their keyframes are written at the playhead so
+ * the value being captured is the one on screen.
+ */
+function renderCameraForm(
+  def: AnimationDocument,
+  focusIndex: number | undefined,
+): void {
+  if (!panelEl) return;
+  const camera = getCamera();
+  const time = getCurrentTime();
+  const view = computeCamera(def, time);
+
+  const scalingOpts = (["scale", "fixed"] as const)
+    .map(
+      (value) =>
+        `<option value="${value}" ${value === camera.strokeScaling ? "selected" : ""}>${value}${value === "scale" ? " (기본)" : ""}</option>`,
+    )
+    .join("");
+
+  const readout = view
+    ? `<div class="studio-camera-readout">zoom ${view.zoom.toFixed(2)}× · center ${Math.round(view.centerX)}, ${Math.round(view.centerY)}${view.issues.length > 0 ? `<br/><span class="studio-camera-issue">⚠ ${escapeHtml(view.issues[0]!.message)}</span>` : ""}</div>`
+    : '<div class="studio-camera-readout">이 문서에는 카메라가 없습니다. 아래에서 focus나 track을 추가하면 생깁니다.</div>';
+
+  const focusRows = camera.focus
+    .map((entry, index) => {
+      const open = index === focusIndex;
+      const targets = entry.elementIds.join(", ");
+      return `
+        <details class="studio-camera-focus" ${open ? "open" : ""}>
+          <summary>#${index + 1} · ${entry.time}ms → ${escapeHtml(targets)}</summary>
+          ${numberField("time (ms)", `camera.focus.${index}.time`, entry.time, 50)}
+          ${numberField("duration (ms) · 0이면 컷", `camera.focus.${index}.duration`, entry.duration, 50)}
+          ${deferredTextField("elementIds (쉼표로 구분)", `camera.focus.${index}.elementIds`, targets)}
+          ${numberField("padding", `camera.focus.${index}.padding`, entry.padding, 2)}
+          ${numberField("maxZoom", `camera.focus.${index}.maxZoom`, entry.maxZoom, 0.1)}
+          <button type="button" class="studio-btn studio-btn-danger" data-delete-camera-focus="${index}">🗑 focus 삭제</button>
+        </details>`;
+    })
+    .join("");
+
+  // Seeded from the live camera so "add a keyframe here" captures what is on
+  // screen rather than a default the author then has to correct.
+  const trackRows = (["zoom", "x", "y"] as const)
+    .map((property) => {
+      const track = camera.tracks.find((t) => t.property === property);
+      const current =
+        property === "zoom"
+          ? (view?.zoom ?? 1)
+          : property === "x"
+            ? (view?.centerX ?? def.canvas.width / 2)
+            : (view?.centerY ?? def.canvas.height / 2);
+      const keyframes = (track?.keyframes ?? [])
+        .map(
+          (kf) =>
+            `<li><button type="button" class="studio-camera-kf" data-camera-seek="${kf.time}">${kf.time}ms</button><span>${kf.value}</span><button type="button" class="studio-camera-kf-del" data-camera-kf-del="${property}:${kf.time}" title="keyframe 삭제">✕</button></li>`,
+        )
+        .join("");
+      return `
+        <div class="studio-camera-track">
+          <div class="studio-camera-track-head">
+            <span>${property}</span>
+            <span class="studio-camera-track-now">현재 ${current.toFixed(property === "zoom" ? 2 : 0)}</span>
+            <button type="button" class="studio-btn" data-add-camera-kf="${property}" title="t=${time}ms 에 keyframe 추가">＋ keyframe</button>
+            ${track ? `<button type="button" class="studio-btn studio-btn-danger" data-del-camera-track="${property}" title="track 삭제">🗑</button>` : ""}
+          </div>
+          ${keyframes ? `<ul class="studio-camera-kf-list">${keyframes}</ul>` : '<p class="studio-props-empty">keyframe 없음</p>'}
+        </div>`;
+    })
+    .join("");
+
+  panelEl.innerHTML = `
+    <span class="studio-step-hint">📍 t = ${time} ms / ${def.duration} ms</span>
+    <div class="studio-props-header"><span class="studio-props-header-title">카메라</span><span class="studio-props-header-type">camera</span></div>
+    ${readout}
+    <label class="studio-field"><span>strokeScaling</span><select data-prop-key="camera.strokeScaling">${scalingOpts}</select></label>
+    <div class="studio-props-header" style="margin-top:0.6rem"><span class="studio-props-header-title">focus (${camera.focus.length})</span></div>
+    <p class="studio-props-empty" style="margin:0 0 0.4rem">요소를 지정하면 그 요소가 화면에 담기도록 카메라를 계산합니다. 대상이 움직이면 따라갑니다.</p>
+    ${focusRows}
+    <button type="button" class="studio-btn" data-add-camera-focus style="margin-top:0.4rem">＋ 현재 시각에 focus</button>
+    <div class="studio-props-header" style="margin-top:0.6rem"><span class="studio-props-header-title">tracks</span></div>
+    ${trackRows}
+    ${hasCamera() ? '<button type="button" class="studio-btn studio-btn-danger" data-clear-camera style="margin-top:0.8rem">🗑 카메라 제거</button>' : ""}
+  `;
 }
 
 function renderElementForm(def: AnimationDocument, el: AnimationElement): void {
@@ -885,6 +1014,8 @@ function onInput(e: Event): void {
     if (textInput) textInput.value = target.value;
     return;
   }
+  // Committed by `onChange` instead; see `deferredTextField`.
+  if (target.dataset.propCommit === "change" && e.type === "input") return;
   let value: string | number | boolean = target.value;
   if (target instanceof HTMLInputElement && target.type === "number")
     value = Number(target.value);
@@ -1024,6 +1155,29 @@ function apply(key: string, value: string | number | boolean): void {
         predicate: { type: "equals", value: answer },
       });
     }
+  } else if (key === "camera.strokeScaling")
+    setCameraStrokeScaling(String(value) as "scale" | "fixed");
+  else if (key.startsWith("camera.focus.")) {
+    const [, , indexText, field] = key.split(".");
+    const index = Number(indexText);
+    if (!Number.isInteger(index)) return;
+    if (field === "elementIds") {
+      const ids = String(value)
+        .split(",")
+        .map((id) => id.trim())
+        .filter(Boolean);
+      // An empty list would fail the schema, and `mutateDef` would drop the edit
+      // silently mid-typing. Better to ignore it until there is something to keep.
+      if (ids.length > 0) updateCameraFocus(index, { elementIds: ids });
+      return;
+    }
+    if (field === "time") updateCameraFocus(index, { time: Number(value) });
+    else if (field === "duration")
+      updateCameraFocus(index, { duration: Math.max(0, Number(value)) });
+    else if (field === "padding")
+      updateCameraFocus(index, { padding: Math.max(0, Number(value)) });
+    else if (field === "maxZoom")
+      updateCameraFocus(index, { maxZoom: Math.max(0.01, Number(value)) });
   } else if (key.startsWith("el.") && sel.kind === "element") {
     const prop = key.slice(3);
     const time = getCurrentTime();
@@ -1249,6 +1403,72 @@ function onClick(e: Event): void {
       kind: "element",
       elementId: childLink.dataset.selectChild ?? "",
     });
+    return;
+  }
+
+  if (target.closest("[data-open-camera]")) {
+    setSelection({ kind: "camera" });
+    return;
+  }
+  if (target.closest("[data-add-camera-focus]")) {
+    const seed =
+      sel.kind === "element"
+        ? [sel.elementId]
+        : sel.kind === "elements"
+          ? [...sel.elementIds]
+          : def.elements[0]
+            ? [def.elements[0].id]
+            : [];
+    if (seed.length === 0) return;
+    addCameraFocus({
+      time: getCurrentTime(),
+      duration: 600,
+      elementIds: seed,
+      padding: 24,
+      maxZoom: 4,
+    });
+    return;
+  }
+  const deleteFocus = target.closest<HTMLElement>("[data-delete-camera-focus]");
+  if (deleteFocus) {
+    deleteCameraFocus(Number(deleteFocus.dataset.deleteCameraFocus));
+    return;
+  }
+  const addCameraKf = target.closest<HTMLElement>("[data-add-camera-kf]");
+  if (addCameraKf) {
+    const property = addCameraKf.dataset.addCameraKf as CameraProperty;
+    const view = computeCamera(def, getCurrentTime());
+    const value =
+      property === "zoom"
+        ? (view?.zoom ?? 1)
+        : property === "x"
+          ? (view?.centerX ?? def.canvas.width / 2)
+          : (view?.centerY ?? def.canvas.height / 2);
+    setCameraKeyframe(
+      property,
+      getCurrentTime(),
+      Number(value.toFixed(property === "zoom" ? 3 : 1)),
+    );
+    return;
+  }
+  const delCameraKf = target.closest<HTMLElement>("[data-camera-kf-del]");
+  if (delCameraKf) {
+    const [property, at] = (delCameraKf.dataset.cameraKfDel ?? "").split(":");
+    removeCameraKeyframe(property as CameraProperty, Number(at));
+    return;
+  }
+  const delCameraTrack = target.closest<HTMLElement>("[data-del-camera-track]");
+  if (delCameraTrack) {
+    removeCameraTrack(delCameraTrack.dataset.delCameraTrack as CameraProperty);
+    return;
+  }
+  const cameraSeek = target.closest<HTMLElement>("[data-camera-seek]");
+  if (cameraSeek) {
+    setCurrentTime(Number(cameraSeek.dataset.cameraSeek));
+    return;
+  }
+  if (target.closest("[data-clear-camera]")) {
+    clearCamera();
     return;
   }
 

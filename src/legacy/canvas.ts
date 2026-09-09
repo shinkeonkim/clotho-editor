@@ -1,4 +1,5 @@
 import type {
+  AnimationDocument,
   AnimationElement,
   ArrowElement,
   CircleElement,
@@ -9,10 +10,10 @@ import type {
   RectElement,
   SnapshotMap,
   TextElement,
-  AnimationDocument,
 } from "@kokoa/clotho";
 import type { PreviewOptions } from "./canvas-preview";
 import {
+  getCurrentTime,
   getDef,
   getSelection,
   getCurrentSnapshot,
@@ -27,7 +28,7 @@ import {
 } from "./state";
 import { snapPoint } from "./grid";
 import type { Anchor } from "@kokoa/clotho";
-import { resolveAsset } from "@kokoa/clotho";
+import { computeCamera, resolveAsset } from "@kokoa/clotho";
 import {
   findContainingGroup,
   groupBbox,
@@ -212,6 +213,29 @@ let toolJustFinished = false;
 let canvasEl: SVGSVGElement | null = null;
 let hoveredElementId: string | null = null;
 let canvasZoom = 1;
+// The camera frame is an editing aid, not part of the document, so it lives here
+// with the other view state and is remembered per browser rather than per document.
+let showCameraFrame = true;
+const CAMERA_FRAME_KEY = "studio.canvas.cameraFrame";
+try {
+  showCameraFrame = localStorage.getItem(CAMERA_FRAME_KEY) !== "off";
+} catch {
+  void 0;
+}
+
+export function isCameraFrameVisible(): boolean {
+  return showCameraFrame;
+}
+
+export function setCameraFrameVisible(value: boolean): void {
+  showCameraFrame = value;
+  try {
+    localStorage.setItem(CAMERA_FRAME_KEY, value ? "on" : "off");
+  } catch {
+    void 0;
+  }
+  requestCanvasRender();
+}
 let toolDrawState: {
   tool: "line" | "arrow";
   startX: number;
@@ -1400,6 +1424,9 @@ function render(): void {
     }
   }
 
+  const cameraFrame = renderCameraFrame(def);
+  if (cameraFrame) canvasEl.appendChild(cameraFrame);
+
   const selection = getSelection();
   if (selection.kind === "element") {
     const selEl = elementsById.get(selection.elementId);
@@ -1642,6 +1669,70 @@ function renderGroupOutline(groupId: string): SVGElement | null {
     <rect x="${x + w - thickness}" y="${y}" width="${thickness * 2}" height="${h}"
       fill="rgba(0,0,0,0.0001)" style="cursor: move" pointer-events="all" />
   `;
+  return g;
+}
+
+/**
+ * The rectangle the camera is showing at the current time.
+ *
+ * The editing canvas deliberately keeps the full-canvas viewBox — you cannot place
+ * an element you cannot see — so without this the camera is invisible while
+ * authoring and only shows up in the preview. Drawing the frame here is the
+ * difference between guessing at a focus and seeing what it will actually capture.
+ *
+ * The rectangle comes from the same `computeCamera` the renderer uses, so what is
+ * outlined is exactly what a reader will get, including a focus that resolves
+ * against a moving element.
+ */
+function renderCameraFrame(def: AnimationDocument): SVGGElement | null {
+  if (!showCameraFrame) return null;
+  const view = computeCamera(def, getCurrentTime());
+  if (!view) return null;
+
+  const { width, height } = def.canvas;
+  const g = document.createElementNS(SVG_NS, "g");
+  g.setAttribute("class", "studio-camera-frame");
+  // The frame is an overlay, not content: clicks belong to whatever is underneath.
+  g.setAttribute("pointer-events", "none");
+
+  // Everything outside the camera, dimmed. One even-odd path rather than four
+  // rects, so a camera extending past the canvas edge needs no special case.
+  const scrim = document.createElementNS(SVG_NS, "path");
+  scrim.setAttribute(
+    "d",
+    `M0 0H${width}V${height}H0Z M${view.x} ${view.y}H${view.x + view.width}V${view.y + view.height}H${view.x}Z`,
+  );
+  scrim.setAttribute("fill-rule", "evenodd");
+  scrim.setAttribute("class", "studio-camera-frame-scrim");
+  g.appendChild(scrim);
+
+  const rect = document.createElementNS(SVG_NS, "rect");
+  rect.setAttribute("x", String(view.x));
+  rect.setAttribute("y", String(view.y));
+  rect.setAttribute("width", String(view.width));
+  rect.setAttribute("height", String(view.height));
+  rect.setAttribute("class", "studio-camera-frame-rect");
+  rect.setAttribute("vector-effect", "non-scaling-stroke");
+  g.appendChild(rect);
+
+  const label = document.createElementNS(SVG_NS, "text");
+  label.setAttribute("x", String(view.x + 6));
+  label.setAttribute("y", String(view.y + 16));
+  label.setAttribute("class", "studio-camera-frame-label");
+  label.textContent = `🎥 ${view.zoom.toFixed(2)}× · ${Math.round(view.centerX)}, ${Math.round(view.centerY)}`;
+  g.appendChild(label);
+
+  // An unresolved focus is the one camera mistake that looks like nothing at all —
+  // the view simply holds. Saying so on the canvas beats a silent hold.
+  if (view.issues.length > 0) {
+    const warning = document.createElementNS(SVG_NS, "text");
+    warning.setAttribute("x", String(view.x + 6));
+    warning.setAttribute("y", String(view.y + 32));
+    warning.setAttribute("class", "studio-camera-frame-warning");
+    warning.textContent = `⚠ ${view.issues[0]!.message}`;
+    g.appendChild(warning);
+  }
+
   return g;
 }
 

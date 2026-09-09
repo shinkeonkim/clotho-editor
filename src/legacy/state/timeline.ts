@@ -69,6 +69,27 @@ export function updateEffect(
   );
 }
 
+/**
+ * Swap one effect for another with the same id.
+ *
+ * Changing an effect's type is a replacement, not a patch: `spotlight` carries
+ * `elementIds` where the others carry `elementId`, so merging the new fields over
+ * the old ones would leave a shape the schema rejects — and `mutateDef` drops a
+ * rejected edit without saying so.
+ */
+export function replaceEffect(id: string, next: AnimationEffect): void {
+  mutateDef(
+    (def) => {
+      const idx = def.effects.findIndex((effect) => effect.id === id);
+      if (idx < 0) return;
+      def.effects[idx] = next;
+      def.effects.sort((a, b) => a.time - b.time);
+    },
+    `효과 종류 변경: ${id} → ${next.type}`,
+    "effect",
+  );
+}
+
 export function deleteEffect(id: string): void {
   mutateDef(
     (def) => {

@@ -5,7 +5,10 @@ export type Selection =
   | { kind: "element"; elementId: string }
   | { kind: "elements"; elementIds: string[] }
   | { kind: "chapter"; chapterId: string }
-  | { kind: "effect"; effectId: string };
+  | { kind: "effect"; effectId: string }
+  // The camera is document-level, so it has no id; `focusIndex` points at one
+  // focus entry when the selection came from clicking that entry's bar.
+  | { kind: "camera"; focusIndex?: number };
 
 export interface InternalState {
   def: AnimationDocument | null;
@@ -30,6 +33,7 @@ export type HistoryKind =
   | "appearance"
   | "chapter"
   | "effect"
+  | "camera"
   | "group"
   | "layout"
   | "checkpoint"

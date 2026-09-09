@@ -54,6 +54,19 @@ export {
   updateDuration,
 } from "./timeline";
 export {
+  getCamera,
+  hasCamera,
+  setCameraStrokeScaling,
+  setCameraKeyframe,
+  moveCameraKeyframe,
+  removeCameraKeyframe,
+  removeCameraTrack,
+  addCameraFocus,
+  updateCameraFocus,
+  deleteCameraFocus,
+  clearCamera,
+} from "./camera";
+export {
   updateMeta,
   updateLocales,
   updateData,

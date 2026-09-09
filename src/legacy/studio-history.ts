@@ -22,6 +22,7 @@ const KIND_ICON: Record<HistoryKind, string> = {
   appearance: "◐",
   chapter: "📍",
   effect: "✨",
+  camera: "🎥",
   asset: "\u{1F5BC}",
   group: "⬚",
   layout: "▦",

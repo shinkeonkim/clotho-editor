@@ -1,8 +1,11 @@
 import {
+  addCameraFocus,
   addChapter,
+  getCamera,
   getCurrentTime,
   getDef,
   getSelection,
+  moveCameraKeyframe,
   removeTrackKeyframe,
   setCurrentTime,
   setSelection,
@@ -10,9 +13,10 @@ import {
   subscribe,
   uniqueChapterId,
   updateAppearance,
+  updateCameraFocus,
   updateChapter,
 } from "./state";
-import type { AnimationElement } from "@kokoa/clotho";
+import type { AnimationElement, CameraProperty } from "@kokoa/clotho";
 import { friendlyElementLabel } from "./element-list";
 
 let tracksEl: HTMLElement | null = null;
@@ -51,6 +55,19 @@ type DragMode =
       startValue: string | number | boolean;
       startMouseX: number;
       currentTime: number;
+    }
+  | {
+      kind: "camera-keyframe";
+      prop: CameraProperty;
+      startTime: number;
+      startMouseX: number;
+      currentTime: number;
+    }
+  | {
+      kind: "camera-focus";
+      index: number;
+      startTime: number;
+      startMouseX: number;
     };
 let dragMode: DragMode | null = null;
 const boundDocuments = new WeakMap<Document, () => void>();
@@ -226,6 +243,8 @@ function render(): void {
     })
     .join("");
 
+  const cameraRows = renderCameraRows(totalPx, sel);
+
   const playheadCol = `<div class="studio-tl-playhead-col" style="left:${GUTTER_PX}px;width:${totalPx}px"><div class="studio-tl-playhead" style="left:${timeToPx(currentTime)}px" title="t=${currentTime}ms"></div></div>`;
 
   tracksEl.innerHTML = `
@@ -244,12 +263,76 @@ function render(): void {
           </div>
         </div>
       </div>
+      ${cameraRows}
       ${playheadCol}
     </div>
     <div class="studio-tl-total">전체 ${def.duration} ms · ${sortedChapters.length} chapters · ${def.elements.length} elements · 현재 ${currentTime} ms</div>
   `;
 
   renderElementTracks(def.elements, currentTime, totalPx, sel);
+}
+
+/**
+ * The camera's own timeline rows.
+ *
+ * The camera changes what the reader sees without any element changing, so an
+ * author scrubbing the timeline has no way to tell a camera move from a still
+ * frame — the shapes simply are where they are. These rows are where that movement
+ * becomes visible: one bar per focus entry showing when the move happens and how
+ * long it takes, and one row per `zoom`/`x`/`y` track showing its keyframes.
+ *
+ * Always rendered, even for a document with no camera, because a feature you cannot
+ * see is a feature nobody adds.
+ */
+function renderCameraRows(
+  totalPx: number,
+  sel: ReturnType<typeof getSelection>,
+): string {
+  const camera = getCamera();
+  const isCameraSel = sel.kind === "camera";
+
+  const focusBars = camera.focus
+    .map((entry, index) => {
+      const left = timeToPx(entry.time);
+      // A cut (duration 0) still needs something to grab, so bars have a floor.
+      const width = Math.max(6, timeToPx(entry.duration));
+      const selected = isCameraSel && sel.focusIndex === index;
+      const targets = entry.elementIds.join(", ");
+      return `<div class="studio-tl-camera-focus ${selected ? "is-selected" : ""}" style="left:${left}px;width:${width}px" data-camera-focus="${index}" title="focus → ${escapeHtml(targets)} @ ${entry.time}ms (${entry.duration}ms, 드래그로 이동)">
+        <span class="studio-tl-camera-focus-label">${escapeHtml(targets)}</span>
+      </div>`;
+    })
+    .join("");
+
+  const focusRow = `
+    <div class="studio-tl-row studio-tl-camera-row ${isCameraSel && sel.focusIndex === undefined ? "is-selected" : ""}">
+      <div class="studio-tl-gutter studio-tl-camera-gutter" data-camera-select title="카메라 속성 열기">🎥 Camera<button type="button" class="studio-tl-camera-add" data-add-camera-focus title="현재 시각에 focus 추가">＋</button></div>
+      <div class="studio-tl-body" style="width:${totalPx}px">
+        <div class="studio-tl-camera-track" data-tl-area="camera">
+          ${focusBars || '<span class="studio-tl-camera-empty">focus 없음 · ＋ 로 추가</span>'}
+        </div>
+      </div>
+    </div>`;
+
+  const trackRows = camera.tracks
+    .map((track) => {
+      const marks = track.keyframes
+        .map(
+          (kf) =>
+            `<div class="studio-tl-keyframe studio-tl-camera-keyframe" style="left:${timeToPx(kf.time)}px" data-camera-kf-prop="${track.property}" data-camera-kf-time="${kf.time}" title="${track.property} = ${kf.value} @ ${kf.time}ms (드래그로 이동)">◆</div>`,
+        )
+        .join("");
+      return `
+        <div class="studio-tl-row studio-tl-camera-row">
+          <div class="studio-tl-gutter studio-tl-camera-gutter is-sub" data-camera-select>↳ ${track.property}</div>
+          <div class="studio-tl-body" style="width:${totalPx}px">
+            <div class="studio-tl-camera-track" data-tl-area="camera">${marks}</div>
+          </div>
+        </div>`;
+    })
+    .join("");
+
+  return focusRow + trackRows;
 }
 
 function gutterLabel(el: AnimationElement): string {
@@ -324,6 +407,46 @@ function renderElementTracks(
 
 function onTracksClick(e: MouseEvent): void {
   const target = e.target as HTMLElement;
+
+  if (target.closest("[data-add-camera-focus]")) {
+    const time = getCurrentTime();
+    const selected = getSelection();
+    // Seeded with the current selection, since "frame what I have selected, here"
+    // is what the button is for. With nothing selected the author picks targets in
+    // the properties panel.
+    const elementIds =
+      selected.kind === "element"
+        ? [selected.elementId]
+        : selected.kind === "elements"
+          ? [...selected.elementIds]
+          : (getDef()?.elements[0]?.id ?? "").length > 0
+            ? [getDef()!.elements[0]!.id]
+            : [];
+    if (elementIds.length === 0) return;
+    addCameraFocus({
+      time,
+      duration: 600,
+      elementIds,
+      padding: 24,
+      maxZoom: 4,
+    });
+    return;
+  }
+
+  const focusBar = target.closest<HTMLElement>("[data-camera-focus]");
+  if (focusBar) {
+    setSelection({
+      kind: "camera",
+      focusIndex: Number(focusBar.dataset.cameraFocus),
+    });
+    return;
+  }
+
+  if (target.closest("[data-camera-select]")) {
+    setSelection({ kind: "camera" });
+    return;
+  }
+
   const chapterMarker = target.closest<HTMLElement>("[data-chapter-id]");
   if (chapterMarker) {
     setSelection({
@@ -423,6 +546,38 @@ function onMouseDown(e: MouseEvent): void {
     return;
   }
 
+  const cameraKf = target.closest<HTMLElement>("[data-camera-kf-prop]");
+  if (cameraKf) {
+    e.preventDefault();
+    e.stopPropagation();
+    const startTime = Number(cameraKf.dataset.cameraKfTime);
+    dragMode = {
+      kind: "camera-keyframe",
+      prop: cameraKf.dataset.cameraKfProp as CameraProperty,
+      startTime,
+      startMouseX: e.clientX,
+      currentTime: startTime,
+    };
+    return;
+  }
+
+  const cameraFocus = target.closest<HTMLElement>("[data-camera-focus]");
+  if (cameraFocus) {
+    e.preventDefault();
+    e.stopPropagation();
+    const index = Number(cameraFocus.dataset.cameraFocus);
+    const entry = getCamera().focus[index];
+    if (entry) {
+      dragMode = {
+        kind: "camera-focus",
+        index,
+        startTime: entry.time,
+        startMouseX: e.clientX,
+      };
+    }
+    return;
+  }
+
   const chapterMarker = target.closest<HTMLElement>("[data-chapter-id]");
   if (chapterMarker) {
     e.preventDefault();
@@ -482,6 +637,30 @@ function onMouseMove(e: MouseEvent): void {
       dragMode.currentTime = newTime;
     }
     showDragTooltip(e.clientX, e.clientY, `◆ ${dragMode.prop} @ ${newTime} ms`);
+    return;
+  }
+  if (dragMode.kind === "camera-keyframe") {
+    const dt = Math.round((e.clientX - dragMode.startMouseX) / pxPerMs);
+    const newTime = Math.max(0, dragMode.startTime + dt);
+    if (newTime !== dragMode.currentTime) {
+      moveCameraKeyframe(dragMode.prop, dragMode.currentTime, newTime);
+      dragMode.currentTime = newTime;
+    }
+    showDragTooltip(
+      e.clientX,
+      e.clientY,
+      `🎥 ${dragMode.prop} @ ${newTime} ms`,
+    );
+    return;
+  }
+  if (dragMode.kind === "camera-focus") {
+    const dt = Math.round((e.clientX - dragMode.startMouseX) / pxPerMs);
+    const newTime = Math.max(0, dragMode.startTime + dt);
+    updateCameraFocus(dragMode.index, { time: newTime });
+    // Sorting can renumber the entries, so the drag follows the moved one.
+    const moved = getCamera().focus.findIndex((f) => f.time === newTime);
+    if (moved >= 0) dragMode.index = moved;
+    showDragTooltip(e.clientX, e.clientY, `🎥 focus @ ${newTime} ms`);
     return;
   }
   if (dragMode.kind === "appearance") {

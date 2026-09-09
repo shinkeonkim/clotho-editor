@@ -74,6 +74,7 @@ const SKELETON = `
       <button type="button" id="studio-undo" class="studio-btn studio-btn-icon" aria-label="실행 취소" title="실행 취소 (⌘Z)" disabled>↶</button>
       <button type="button" id="studio-redo" class="studio-btn studio-btn-icon" aria-label="다시 실행" title="다시 실행 (⌘⇧Z / ⌘Y)" disabled>↷</button>
       <button type="button" id="studio-grid-toggle" class="studio-btn studio-btn-grid" aria-label="격자 + 스냅" title="격자 + 스냅 (G)" aria-pressed="false"><span class="studio-btn-grid-icon">⊞</span><span class="studio-btn-grid-label" id="studio-grid-label">격자 끔</span></button>
+      <button type="button" id="studio-camera-frame-toggle" class="studio-btn studio-btn-grid" aria-label="카메라 영역 표시" title="캔버스에 카메라가 보여주는 영역을 표시합니다" aria-pressed="true"><span class="studio-btn-grid-icon">🎥</span><span class="studio-btn-grid-label" id="studio-camera-frame-label">카메라 영역</span></button>
       <input type="text" id="studio-title" class="studio-title-input" placeholder="제목" aria-label="애니메이션 제목" disabled />
       <span id="studio-id-display" class="studio-id-display"></span>
       <span id="studio-status" class="studio-status" aria-live="polite">대기 중</span>

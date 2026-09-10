@@ -1,0 +1,281 @@
+{
+  "clothoVersion": 1,
+  "category": "gallery",
+  "canvas": {
+    "width": 720,
+    "height": 240,
+    "background": "transparent"
+  },
+  "settings": {
+    "loop": true,
+    "autoplay": true,
+    "showCaption": false,
+    "showChapterList": false
+  },
+  "id": "spotlight",
+  "title": "Spotlight",
+  "description": "bbox, circle and element-shaped focus masks",
+  "duration": 6000,
+  "elements": [
+    {
+      "type": "circle",
+      "id": "sp-n0",
+      "cx": 90,
+      "cy": 120,
+      "r": 34,
+      "fill": "#e0e7ff",
+      "stroke": "#6366f1",
+      "strokeWidth": 2,
+      "label": "A",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 6000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "circle",
+      "id": "sp-n1",
+      "cx": 198,
+      "cy": 120,
+      "r": 34,
+      "fill": "#e0e7ff",
+      "stroke": "#6366f1",
+      "strokeWidth": 2,
+      "label": "B",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 6000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "circle",
+      "id": "sp-n2",
+      "cx": 306,
+      "cy": 120,
+      "r": 34,
+      "fill": "#e0e7ff",
+      "stroke": "#6366f1",
+      "strokeWidth": 2,
+      "label": "C",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 6000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "circle",
+      "id": "sp-n3",
+      "cx": 414,
+      "cy": 120,
+      "r": 34,
+      "fill": "#e0e7ff",
+      "stroke": "#6366f1",
+      "strokeWidth": 2,
+      "label": "D",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 6000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "circle",
+      "id": "sp-n4",
+      "cx": 522,
+      "cy": 120,
+      "r": 34,
+      "fill": "#e0e7ff",
+      "stroke": "#6366f1",
+      "strokeWidth": 2,
+      "label": "E",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 6000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "circle",
+      "id": "sp-n5",
+      "cx": 630,
+      "cy": 120,
+      "r": 34,
+      "fill": "#e0e7ff",
+      "stroke": "#6366f1",
+      "strokeWidth": 2,
+      "label": "F",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 6000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "line",
+      "id": "sp-e0",
+      "fromId": "sp-n0",
+      "toId": "sp-n1",
+      "stroke": "#6366f1",
+      "strokeWidth": 2,
+      "appearances": [
+        {
+          "start": 0,
+          "end": 6000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "line",
+      "id": "sp-e1",
+      "fromId": "sp-n1",
+      "toId": "sp-n2",
+      "stroke": "#6366f1",
+      "strokeWidth": 2,
+      "appearances": [
+        {
+          "start": 0,
+          "end": 6000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "line",
+      "id": "sp-e2",
+      "fromId": "sp-n2",
+      "toId": "sp-n3",
+      "stroke": "#6366f1",
+      "strokeWidth": 2,
+      "appearances": [
+        {
+          "start": 0,
+          "end": 6000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "line",
+      "id": "sp-e3",
+      "fromId": "sp-n3",
+      "toId": "sp-n4",
+      "stroke": "#6366f1",
+      "strokeWidth": 2,
+      "appearances": [
+        {
+          "start": 0,
+          "end": 6000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "line",
+      "id": "sp-e4",
+      "fromId": "sp-n4",
+      "toId": "sp-n5",
+      "stroke": "#6366f1",
+      "strokeWidth": 2,
+      "appearances": [
+        {
+          "start": 0,
+          "end": 6000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "sp-caption",
+      "x": 360,
+      "y": 214,
+      "content": "shape: bbox → circle → elements",
+      "fontSize": 15,
+      "textAnchor": "middle",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 6000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    }
+  ],
+  "chapters": [
+    {
+      "id": "sp-c1",
+      "time": 200,
+      "label": "bbox"
+    },
+    {
+      "id": "sp-c2",
+      "time": 2200,
+      "label": "circle"
+    },
+    {
+      "id": "sp-c3",
+      "time": 4200,
+      "label": "elements"
+    }
+  ],
+  "effects": [
+    {
+      "type": "spotlight",
+      "id": "sp-bbox",
+      "elementIds": ["sp-n1", "sp-n2"],
+      "time": 200,
+      "duration": 1700,
+      "shape": "bbox",
+      "padding": 18,
+      "dim": 0.72
+    },
+    {
+      "type": "spotlight",
+      "id": "sp-circle",
+      "elementIds": ["sp-n3"],
+      "time": 2200,
+      "duration": 1700,
+      "shape": "circle",
+      "padding": 10,
+      "dim": 0.72
+    },
+    {
+      "type": "spotlight",
+      "id": "sp-elements",
+      "elementIds": ["sp-n0", "sp-n5"],
+      "time": 4200,
+      "duration": 1700,
+      "shape": "elements",
+      "padding": 8,
+      "dim": 0.72
+    }
+  ]
+}

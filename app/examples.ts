@@ -1,4 +1,5 @@
 import { animationDocumentSchema, type AnimationDocument } from "@kokoa/clotho";
+import camera from "./gallery/documents/camera.json";
 import chapters from "./gallery/documents/chapters.json";
 import connectors from "./gallery/documents/connectors.json";
 import easing from "./gallery/documents/easing.json";
@@ -8,6 +9,7 @@ import incidentWalkthrough from "./gallery/documents/incident-walkthrough.json";
 import groups from "./gallery/documents/groups.json";
 import interpolation from "./gallery/documents/interpolation.json";
 import iteration from "./gallery/documents/iteration.json";
+import spotlight from "./gallery/documents/spotlight.json";
 import trail from "./gallery/documents/trail.json";
 import transitions from "./gallery/documents/transitions.json";
 
@@ -22,7 +24,9 @@ const galleryDocuments: readonly unknown[] = [
   connectors,
   groups,
   chapters,
+  spotlight,
   trail,
+  camera,
 ];
 
 /**

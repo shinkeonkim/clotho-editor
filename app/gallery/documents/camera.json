@@ -1,0 +1,302 @@
+{
+  "clothoVersion": 1,
+  "category": "gallery",
+  "canvas": {
+    "width": 720,
+    "height": 280,
+    "background": "transparent"
+  },
+  "settings": {
+    "loop": true,
+    "autoplay": true,
+    "showCaption": true,
+    "showChapterList": false
+  },
+  "id": "camera",
+  "title": "Camera track",
+  "description": "focus frames named elements, and follows them when they move",
+  "duration": 8000,
+  "chapters": [
+    {
+      "id": "c1",
+      "time": 0,
+      "label": "whole pipeline",
+      "subtitle": "no camera entry yet — the full canvas"
+    },
+    {
+      "id": "c2",
+      "time": 1200,
+      "label": "focus: ingest",
+      "subtitle": "focus frames one element and zooms to fit"
+    },
+    {
+      "id": "c3",
+      "time": 3200,
+      "label": "focus: worker",
+      "subtitle": "the retry note is only readable up close"
+    },
+    {
+      "id": "c4",
+      "time": 5000,
+      "label": "follow the packet",
+      "subtitle": "focus resolves against live bounds, so it tracks a moving element"
+    },
+    {
+      "id": "c5",
+      "time": 6800,
+      "label": "pull back",
+      "subtitle": "two elements at once — the camera frames their union"
+    }
+  ],
+  "camera": {
+    "strokeScaling": "fixed",
+    "focus": [
+      {
+        "time": 1200,
+        "duration": 800,
+        "elementIds": ["ingest"],
+        "padding": 24,
+        "maxZoom": 2.6
+      },
+      {
+        "time": 3200,
+        "duration": 900,
+        "elementIds": ["worker", "retry"],
+        "padding": 22,
+        "maxZoom": 2.6
+      },
+      {
+        "time": 5000,
+        "duration": 700,
+        "elementIds": ["packet"],
+        "padding": 55,
+        "maxZoom": 2.6
+      },
+      {
+        "time": 6800,
+        "duration": 900,
+        "elementIds": ["ingest", "store"],
+        "padding": 30,
+        "maxZoom": 2.6
+      }
+    ]
+  },
+  "elements": [
+    {
+      "type": "circle",
+      "id": "ingest",
+      "cx": 140,
+      "cy": 100,
+      "r": 30,
+      "fill": "#fde68a",
+      "stroke": "#312e81",
+      "strokeWidth": 2,
+      "label": "ingest",
+      "labelSize": 12,
+      "labelColor": "#1e1b4b",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 8000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "circle",
+      "id": "queue",
+      "cx": 300,
+      "cy": 190,
+      "r": 30,
+      "fill": "#bfdbfe",
+      "stroke": "#312e81",
+      "strokeWidth": 2,
+      "label": "queue",
+      "labelSize": 12,
+      "labelColor": "#1e1b4b",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 8000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "circle",
+      "id": "worker",
+      "cx": 460,
+      "cy": 100,
+      "r": 30,
+      "fill": "#bbf7d0",
+      "stroke": "#312e81",
+      "strokeWidth": 2,
+      "label": "worker",
+      "labelSize": 12,
+      "labelColor": "#1e1b4b",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 8000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "circle",
+      "id": "store",
+      "cx": 600,
+      "cy": 190,
+      "r": 30,
+      "fill": "#fbcfe8",
+      "stroke": "#312e81",
+      "strokeWidth": 2,
+      "label": "store",
+      "labelSize": 12,
+      "labelColor": "#1e1b4b",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 8000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "arrow",
+      "id": "e1",
+      "fromId": "ingest",
+      "toId": "queue",
+      "headEnd": "arrow",
+      "strokeWidth": 2,
+      "appearances": [
+        {
+          "start": 0,
+          "end": 8000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "arrow",
+      "id": "e2",
+      "fromId": "queue",
+      "toId": "worker",
+      "headEnd": "arrow",
+      "strokeWidth": 2,
+      "appearances": [
+        {
+          "start": 0,
+          "end": 8000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "arrow",
+      "id": "e3",
+      "fromId": "worker",
+      "toId": "store",
+      "headEnd": "arrow",
+      "strokeWidth": 2,
+      "appearances": [
+        {
+          "start": 0,
+          "end": 8000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "retry",
+      "x": 460,
+      "y": 52,
+      "content": "retry ×3",
+      "fontSize": 11,
+      "color": "#7c3aed",
+      "textAnchor": "middle",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 8000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "rect",
+      "id": "packet",
+      "x": 168,
+      "y": 126,
+      "width": 22,
+      "height": 22,
+      "cornerRadius": 5,
+      "fill": "#ef4444",
+      "stroke": "#b91c1c",
+      "strokeWidth": 1.5,
+      "appearances": [
+        {
+          "start": 0,
+          "end": 8000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ],
+      "tracks": [
+        {
+          "property": "x",
+          "keyframes": [
+            {
+              "time": 0,
+              "value": 168
+            },
+            {
+              "time": 4600,
+              "value": 168
+            },
+            {
+              "time": 6600,
+              "value": 560,
+              "ease": "easeInOut"
+            },
+            {
+              "time": 8000,
+              "value": 560
+            }
+          ]
+        },
+        {
+          "property": "y",
+          "keyframes": [
+            {
+              "time": 0,
+              "value": 126
+            },
+            {
+              "time": 4600,
+              "value": 126
+            },
+            {
+              "time": 6600,
+              "value": 216,
+              "ease": "easeInOut"
+            },
+            {
+              "time": 8000,
+              "value": 216
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

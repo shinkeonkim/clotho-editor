@@ -16,7 +16,12 @@ import {
   updateCameraFocus,
   updateChapter,
 } from "./state";
-import type { AnimationElement, CameraProperty } from "@kokoa/clotho";
+import type {
+  AnimationDocument,
+  AnimationEffect,
+  AnimationElement,
+  CameraProperty,
+} from "@kokoa/clotho";
 import { friendlyElementLabel } from "./element-list";
 
 let tracksEl: HTMLElement | null = null;
@@ -269,7 +274,7 @@ function render(): void {
     <div class="studio-tl-total">전체 ${def.duration} ms · ${sortedChapters.length} chapters · ${def.elements.length} elements · 현재 ${currentTime} ms</div>
   `;
 
-  renderElementTracks(def.elements, currentTime, totalPx, sel);
+  renderElementTracks(def, currentTime, totalPx, sel);
 }
 
 /**
@@ -340,12 +345,23 @@ function gutterLabel(el: AnimationElement): string {
 }
 
 function renderElementTracks(
-  elements: AnimationElement[],
+  def: AnimationDocument,
   currentTime: number,
   totalPx: number,
   sel: ReturnType<typeof getSelection>,
 ): void {
   if (!elTracksEl) return;
+  const elements = def.elements;
+  const effectsByElement = new Map<string, AnimationEffect[]>();
+  for (const effect of def.effects) {
+    const targets =
+      effect.type === "spotlight" ? effect.elementIds : [effect.elementId];
+    for (const target of targets) {
+      const bucket = effectsByElement.get(target);
+      if (bucket) bucket.push(effect);
+      else effectsByElement.set(target, [effect]);
+    }
+  }
   if (elements.length === 0) {
     elTracksEl.innerHTML = '<p class="studio-tl-empty">요소 없음</p>';
     return;
@@ -388,12 +404,32 @@ function renderElementTracks(
             `<div class="studio-tl-keyframe" style="left:${timeToPx(kf.time)}px" data-kf-elem-id="${escapeHtml(el.id)}" data-kf-prop="${escapeHtml(kf.prop)}" data-kf-time="${kf.time}" title="${escapeHtml(kf.prop)} @ ${kf.time}ms (드래그로 이동)">◆</div>`,
         )
         .join("");
+      const effectBars = (effectsByElement.get(el.id) ?? [])
+        .map((effect) => {
+          const left = timeToPx(effect.time);
+          const width = Math.max(6, timeToPx(effect.duration));
+          const selected = sel.kind === "effect" && sel.effectId === effect.id;
+          // A trail's tail reaches back before its own start, and that reach is the
+          // field authors get wrong. Drawing it as a lead-in makes `window` a length
+          // on the timeline instead of a number in a box.
+          const trailWindow = effect.type === "trail" ? effect.window : 0;
+          const lead = Math.min(timeToPx(trailWindow), left);
+          const reach =
+            lead > 0
+              ? `<span class="studio-tl-effect-reach" style="left:${-lead}px;width:${lead}px" title="window ${trailWindow}ms"></span>`
+              : "";
+          return `<div class="studio-tl-effect ${selected ? "is-selected" : ""} is-${escapeHtml(effect.type)}" style="left:${left}px;width:${width}px" data-effect-id="${escapeHtml(effect.id)}" title="${escapeHtml(effect.type)} ${escapeHtml(effect.id)} · ${effect.time}-${effect.time + effect.duration}ms">
+            ${reach}<span class="studio-tl-effect-label">${escapeHtml(effect.type)}</span>
+          </div>`;
+        })
+        .join("");
       return `
         <div class="studio-tl-row studio-tl-element-row ${isSel ? "is-selected" : ""} ${el.type === "group" ? "is-group" : ""}" data-elem-id="${escapeHtml(el.id)}">
           <div class="studio-tl-gutter studio-tl-element-label" style="--studio-tree-depth:${depth}" title="${escapeHtml(el.id)}">${el.type === "group" ? "▾ " : depth > 0 ? "↳ " : ""}${escapeHtml(gutterLabel(el))}</div>
           <div class="studio-tl-body" style="width:${totalPx}px">
             <div class="studio-tl-element-track" data-tl-area="elements">
               ${appearanceBars}
+              ${effectBars}
               ${trackKfs}
             </div>
           </div>
@@ -460,6 +496,13 @@ function onElTracksClick(e: MouseEvent): void {
   if (dragMode) return;
   const target = e.target as HTMLElement;
   if (target.closest("[data-ap-idx]") || target.closest("[data-edge]")) return;
+  // Checked before the row, since an effect bar sits inside its target's row and
+  // clicking it should select the effect rather than the element under it.
+  const effectBar = target.closest<HTMLElement>("[data-effect-id]");
+  if (effectBar) {
+    setSelection({ kind: "effect", effectId: effectBar.dataset.effectId! });
+    return;
+  }
   const row = target.closest<HTMLElement>("[data-elem-id]");
   if (row) {
     setSelection({ kind: "element", elementId: row.dataset.elemId! });

@@ -8,6 +8,7 @@ import incidentWalkthrough from "./gallery/documents/incident-walkthrough.json";
 import groups from "./gallery/documents/groups.json";
 import interpolation from "./gallery/documents/interpolation.json";
 import iteration from "./gallery/documents/iteration.json";
+import trail from "./gallery/documents/trail.json";
 import transitions from "./gallery/documents/transitions.json";
 
 const galleryDocuments: readonly unknown[] = [
@@ -21,6 +22,7 @@ const galleryDocuments: readonly unknown[] = [
   connectors,
   groups,
   chapters,
+  trail,
 ];
 
 /**

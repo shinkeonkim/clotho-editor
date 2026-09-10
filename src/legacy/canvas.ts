@@ -11,6 +11,7 @@ import type {
   SnapshotMap,
   TextElement,
 } from "@kokoa/clotho";
+import { buildScene } from "@kokoa/clotho";
 import type { PreviewOptions } from "./canvas-preview";
 import {
   cameraControlAt,
@@ -1465,6 +1466,9 @@ function render(): void {
   const spotlightPreview = renderSpotlightPreview(def, snap, elementsById);
   if (spotlightPreview) canvasEl.appendChild(spotlightPreview);
 
+  const trailPreview = renderTrailPreview(def);
+  if (trailPreview) canvasEl.appendChild(trailPreview);
+
   const selection = getSelection();
   if (selection.kind === "element") {
     const selEl = elementsById.get(selection.elementId);
@@ -1945,6 +1949,79 @@ function renderSpotlightPreview(
   label.textContent = `🔦 ${effect.id} · ${effect.time}–${effect.time + effect.duration}ms${approximated}`;
   g.appendChild(label);
 
+  return g;
+}
+
+/**
+ * The tail a trail leaves, shown while it is selected.
+ *
+ * A trail is the one effect whose result depends on time in both directions: what
+ * it draws at the playhead is decided by where the element was over the preceding
+ * `window`. On the editing canvas — which draws one still frame from the document
+ * rather than running the renderer — that made it invisible, so `window` and
+ * `samples` were two numbers with no visible effect and the author had to keep
+ * opening the preview to find out what they had done.
+ *
+ * The pieces come from `buildScene`, so this is the tail itself rather than an
+ * impression of one. Reimplementing it here would drift: the renderer merges
+ * samples that land on the same place, and a preview that drew all twelve would
+ * promise a tail the player does not draw.
+ *
+ * Unlike the spotlight preview this does respect the effect's own time window,
+ * because a trail outside its window is not a thing with a shape — it is nothing.
+ * The label says so rather than leaving a blank canvas to be read as a bug.
+ */
+function renderTrailPreview(def: AnimationDocument): SVGGElement | null {
+  const selection = getSelection();
+  if (selection.kind !== "effect") return null;
+  const effect = def.effects.find(
+    (candidate) => candidate.id === selection.effectId,
+  );
+  if (!effect || effect.type !== "trail") return null;
+
+  const time = getCurrentTime();
+  const g = document.createElementNS(SVG_NS, "g");
+  g.setAttribute("class", "studio-trail-preview");
+  g.setAttribute("pointer-events", "none");
+
+  const label = document.createElementNS(SVG_NS, "text");
+  label.setAttribute("x", "8");
+  label.setAttribute("y", "18");
+  label.setAttribute("class", "studio-spotlight-preview-label");
+  const span = `${effect.time}–${effect.time + effect.duration}ms`;
+
+  if (time < effect.time || time >= effect.time + effect.duration) {
+    label.textContent = `✳ ${effect.id} · 재생 위치가 ${span} 밖입니다`;
+    g.appendChild(label);
+    return g;
+  }
+
+  const pieces = buildScene(def, time, {}).nodes.filter(
+    (node) =>
+      typeof node.key === "string" && node.key.startsWith(`${effect.id}-`),
+  );
+
+  if (pieces.length === 0) {
+    // Every sample on one spot draws nothing, and a blank canvas cannot be told
+    // apart from a broken effect. Say which it is.
+    label.textContent = `✳ ${effect.id} · 최근 ${effect.window}ms 동안 ${effect.elementId}가 움직이지 않아 꼬리가 없습니다`;
+    g.appendChild(label);
+    return g;
+  }
+
+  for (const piece of pieces) {
+    const node = document.createElementNS(SVG_NS, piece.kind);
+    for (const [name, value] of Object.entries(piece.attrs)) {
+      if (value !== undefined && value !== null) {
+        node.setAttribute(name, String(value));
+      }
+    }
+    g.appendChild(node);
+  }
+
+  const kind = pieces[0]!.kind === "circle" ? "점" : "선";
+  label.textContent = `✳ ${effect.id} · window ${effect.window}ms · ${kind} ${pieces.length}개 (samples ${effect.samples})`;
+  g.appendChild(label);
   return g;
 }
 

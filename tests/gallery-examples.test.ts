@@ -3,7 +3,7 @@ import { animationDocumentSchema } from "@kokoa/clotho";
 import { exampleAnimations } from "../app/examples";
 
 describe("Cloudflare editor gallery examples", () => {
-  it("Clotho gallery의 JSON 문서 10개를 모두 제공한다", () => {
+  it("Clotho gallery의 JSON 문서 11개를 모두 제공한다", () => {
     expect(exampleAnimations.map((document) => document.id)).toEqual([
       "incident-walkthrough",
       "elements",
@@ -15,6 +15,7 @@ describe("Cloudflare editor gallery examples", () => {
       "connectors",
       "groups",
       "chapters",
+      "trail",
     ]);
   });
 

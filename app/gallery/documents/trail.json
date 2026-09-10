@@ -1,0 +1,331 @@
+{
+  "clothoVersion": 1,
+  "category": "gallery",
+  "canvas": {
+    "width": 720,
+    "height": 260,
+    "background": "transparent"
+  },
+  "settings": {
+    "loop": true,
+    "autoplay": true,
+    "showCaption": false,
+    "showChapterList": false
+  },
+  "id": "trail",
+  "title": "Motion trail",
+  "description": "a blended sweep leaves a line, a stepped one leaves dots",
+  "duration": 6000,
+  "elements": [
+    {
+      "type": "rect",
+      "id": "tr-cell-0",
+      "x": 40,
+      "y": 96,
+      "width": 66,
+      "height": 60,
+      "fill": "#eef2ff",
+      "stroke": "#6366f1",
+      "strokeWidth": 1.5,
+      "label": "0",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 6000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "rect",
+      "id": "tr-cell-1",
+      "x": 114,
+      "y": 96,
+      "width": 66,
+      "height": 60,
+      "fill": "#eef2ff",
+      "stroke": "#6366f1",
+      "strokeWidth": 1.5,
+      "label": "1",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 6000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "rect",
+      "id": "tr-cell-2",
+      "x": 188,
+      "y": 96,
+      "width": 66,
+      "height": 60,
+      "fill": "#eef2ff",
+      "stroke": "#6366f1",
+      "strokeWidth": 1.5,
+      "label": "2",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 6000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "rect",
+      "id": "tr-cell-3",
+      "x": 262,
+      "y": 96,
+      "width": 66,
+      "height": 60,
+      "fill": "#eef2ff",
+      "stroke": "#6366f1",
+      "strokeWidth": 1.5,
+      "label": "3",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 6000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "rect",
+      "id": "tr-cell-4",
+      "x": 336,
+      "y": 96,
+      "width": 66,
+      "height": 60,
+      "fill": "#eef2ff",
+      "stroke": "#6366f1",
+      "strokeWidth": 1.5,
+      "label": "4",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 6000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "rect",
+      "id": "tr-cell-5",
+      "x": 410,
+      "y": 96,
+      "width": 66,
+      "height": 60,
+      "fill": "#eef2ff",
+      "stroke": "#6366f1",
+      "strokeWidth": 1.5,
+      "label": "5",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 6000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "rect",
+      "id": "tr-cell-6",
+      "x": 484,
+      "y": 96,
+      "width": 66,
+      "height": 60,
+      "fill": "#eef2ff",
+      "stroke": "#6366f1",
+      "strokeWidth": 1.5,
+      "label": "6",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 6000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "circle",
+      "id": "tr-smooth",
+      "cx": 77,
+      "cy": 66,
+      "r": 13,
+      "fill": "#f97316",
+      "stroke": "#f97316",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 6000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ],
+      "tracks": [
+        {
+          "property": "cx",
+          "keyframes": [
+            {
+              "time": 0,
+              "value": 77,
+              "ease": "linear"
+            },
+            {
+              "time": 933,
+              "value": 151,
+              "ease": "linear"
+            },
+            {
+              "time": 1867,
+              "value": 225,
+              "ease": "linear"
+            },
+            {
+              "time": 2800,
+              "value": 299,
+              "ease": "linear"
+            },
+            {
+              "time": 3733,
+              "value": 373,
+              "ease": "linear"
+            },
+            {
+              "time": 4667,
+              "value": 447,
+              "ease": "linear"
+            },
+            {
+              "time": 5600,
+              "value": 521,
+              "ease": "linear"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "circle",
+      "id": "tr-stepped",
+      "cx": 77,
+      "cy": 186,
+      "r": 13,
+      "fill": "#16a34a",
+      "stroke": "#16a34a",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 6000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ],
+      "tracks": [
+        {
+          "property": "cx",
+          "interpolate": "discrete",
+          "keyframes": [
+            {
+              "time": 0,
+              "value": 77
+            },
+            {
+              "time": 933,
+              "value": 151
+            },
+            {
+              "time": 1867,
+              "value": 225
+            },
+            {
+              "time": 2800,
+              "value": 299
+            },
+            {
+              "time": 3733,
+              "value": 373
+            },
+            {
+              "time": 4667,
+              "value": 447
+            },
+            {
+              "time": 5600,
+              "value": 521
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "tr-label-a",
+      "x": 700,
+      "y": 46,
+      "content": "blended → path",
+      "fontSize": 13,
+      "textAnchor": "end",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 6000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "tr-label-b",
+      "x": 700,
+      "y": 232,
+      "content": "stepped → dots",
+      "fontSize": 13,
+      "textAnchor": "end",
+      "appearances": [
+        {
+          "start": 0,
+          "end": 6000,
+          "entryDuration": 0,
+          "exitDuration": 0
+        }
+      ]
+    }
+  ],
+  "effects": [
+    {
+      "type": "trail",
+      "id": "tr-1",
+      "elementId": "tr-smooth",
+      "time": 0,
+      "duration": 6000,
+      "window": 2000,
+      "samples": 16,
+      "color": "#f97316",
+      "width": 3
+    },
+    {
+      "type": "trail",
+      "id": "tr-2",
+      "elementId": "tr-stepped",
+      "time": 0,
+      "duration": 6000,
+      "window": 2600,
+      "samples": 14,
+      "color": "#16a34a",
+      "width": 4
+    }
+  ]
+}

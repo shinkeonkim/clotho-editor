@@ -1229,6 +1229,13 @@ body.studio-player-popout #clotho-player-preview {
     font-size: 0.66rem;
     color: var(--color-fg-muted);
   }
+  /* A hint about something that will silently do nothing, rather than about taste. */
+  .studio-props-warn {
+    color: #b45309;
+    background-color: color-mix(in srgb, #d97706 12%, transparent);
+    border-radius: 4px;
+    padding: 0.3rem 0.4rem;
+  }
   .studio-camera-chips {
     display: flex;
     flex-wrap: wrap;
@@ -1681,6 +1688,24 @@ body.studio-player-popout #clotho-player-preview {
     border-radius: 3px;
     font-size: 0.65rem;
     margin-right: 0.2rem;
+  }
+  /* One effect on the selected element, as a button that selects it. */
+  .studio-effect-chip {
+    display: block;
+    width: 100%;
+    text-align: left;
+    margin-bottom: 0.25rem;
+    padding: 0.28rem 0.4rem;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background-color: var(--color-surface);
+    color: var(--color-fg);
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    cursor: pointer;
+  }
+  .studio-effect-chip:hover {
+    border-color: var(--color-accent);
   }
   .studio-add-effect-bar {
     display: grid;
@@ -2237,7 +2262,8 @@ body.studio-player-popout #clotho-player-preview {
   .studio-tl-element-track {
     position: relative;
     width: 100%;
-    height: 32px;
+    /* Room for an effect strip under the appearance bars. */
+    height: 42px;
     user-select: none;
   }
   .studio-tl-appearance {
@@ -2282,6 +2308,64 @@ body.studio-player-popout #clotho-player-preview {
     padding: 0 8px;
     pointer-events: none;
     white-space: nowrap;
+  }
+  /*
+   * Effects on the row of the element they decorate.
+   *
+   * They were nowhere on the timeline before, so an author scrubbing to find out
+   * when something was emphasised had nothing to scrub against. A thin strip under
+   * the appearance bars, because an effect is a note on an element's life rather
+   * than a life of its own.
+   */
+  .studio-tl-effect {
+    position: absolute;
+    top: 31px;
+    height: 9px;
+    border-radius: 3px;
+    background-color: color-mix(in srgb, #d97706 45%, var(--color-surface));
+    border: 1px solid #d97706;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    overflow: visible;
+  }
+  .studio-tl-effect.is-spotlight {
+    background-color: color-mix(in srgb, #7c3aed 45%, var(--color-surface));
+    border-color: #7c3aed;
+  }
+  .studio-tl-effect.is-trail {
+    background-color: color-mix(in srgb, #0891b2 45%, var(--color-surface));
+    border-color: #0891b2;
+  }
+  .studio-tl-effect.is-selected {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
+  }
+  .studio-tl-effect-label {
+    padding: 0 4px;
+    pointer-events: none;
+    white-space: nowrap;
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    line-height: 1;
+    color: var(--color-fg);
+    opacity: 0.85;
+  }
+  /*
+   * How far a trail reaches back before its own start. `window` is the field
+   * authors get wrong, and drawing it makes it a length rather than a number.
+   */
+  .studio-tl-effect-reach {
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    border-radius: 3px 0 0 3px;
+    background: repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, #0891b2 40%, transparent) 0 3px,
+      transparent 3px 6px
+    );
+    pointer-events: none;
   }
   .studio-tl-keyframe {
     position: absolute;

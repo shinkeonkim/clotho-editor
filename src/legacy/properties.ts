@@ -62,7 +62,11 @@ import type {
   DataBinding,
   DataValue,
 } from "@kokoa/clotho";
-import { bindablePropertiesFor, computeCamera } from "@kokoa/clotho";
+import {
+  bindablePropertiesFor,
+  computeCamera,
+  resolveBlendMode,
+} from "@kokoa/clotho";
 import { captureFocusWithin, restoreFocusWithin } from "./studio-focus";
 import {
   alignSelected,
@@ -451,6 +455,7 @@ function renderInner(): void {
           <option value="pulse">pulse</option>
           <option value="flow">flow</option>
           <option value="spotlight">spotlight</option>
+          <option value="trail">trail</option>
         </select>
         <button type="button" class="studio-btn" data-add-effect>＋ 효과</button>
       </div>
@@ -553,7 +558,9 @@ function renderInner(): void {
       setSelection({ kind: "none" });
       return;
     }
-    const typeOpts = (["highlight", "pulse", "flow", "spotlight"] as const)
+    const typeOpts = (
+      ["highlight", "pulse", "flow", "spotlight", "trail"] as const
+    )
       .map(
         (t) =>
           `<option value="${t}" ${t === eff.type ? "selected" : ""}>${t}</option>`,
@@ -590,6 +597,44 @@ function renderInner(): void {
         <div class="studio-props-header" style="margin-top:0.6rem"><span class="studio-props-header-title">비추는 쪽</span></div>
         ${rangeField("lit", "effect.lit", eff.lit, 0, 1, 0.01, "0이면 대상은 자기 색 그대로입니다. 조명의 젤처럼 색을 얹으려면 올리세요.")}
         ${colorField("litColor", "effect.litColor", eff.litColor)}
+        <button type="button" class="studio-btn studio-btn-danger" data-delete-effect style="margin-top:0.6rem">🗑 효과 삭제</button>
+      `;
+      return;
+    }
+
+    // A trail says where the element has been, so the fields an author actually
+    // reaches for are the two that decide what the tail looks like — how far back
+    // it goes and how it is drawn. Everything about it is felt rather than
+    // calculated, which is why they are sliders.
+    if (eff.type === "trail") {
+      const elemOptsTrail = def.elements
+        .map(
+          (e) =>
+            `<option value="${escapeHtml(e.id)}" ${e.id === eff.elementId ? "selected" : ""}>${escapeHtml(e.id)}</option>`,
+        )
+        .join("");
+      const resolved = trailModeHint(def, eff);
+      panelEl.innerHTML = `
+        ${timeHint}
+        <div class="studio-props-header"><span class="studio-props-header-title">${escapeHtml(eff.id)}</span><span class="studio-props-header-type">trail</span></div>
+        <label class="studio-field"><span>type</span><select data-prop-key="effect.type">${typeOpts}</select></label>
+        <p class="studio-props-empty" style="margin:0 0 0.4rem">요소가 지나온 자리를 꼬리로 남깁니다. 움직임 자체가 정보인 문서에서, 정지 프레임이 잃어버리는 것을 되돌려 줍니다.</p>
+        <label class="studio-field"><span>elementId</span><select data-prop-key="effect.elementId">${elemOptsTrail}</select></label>
+        ${trailMotionWarning(def, eff)}
+        ${numberField("time (ms)", "effect.time", eff.time, 50)}
+        ${numberField("duration (ms)", "effect.duration", eff.duration, 50)}
+        <div class="studio-props-header" style="margin-top:0.6rem"><span class="studio-props-header-title">꼬리</span></div>
+        ${rangeField("window (ms) · 꼬리 길이", "effect.window", eff.window, 100, 5000, 50, "얼마나 거슬러 올라갈지입니다. 한 걸음의 박자에 맞추세요 — 이산 커서는 한 칸, 훑는 움직임은 조금 더.")}
+        ${rangeField("samples · 해상도", "effect.samples", eff.samples, 2, 32, 1, "창을 몇 개로 나눌지입니다. 올려도 꼬리가 길어지지는 않습니다 — 길이는 window가 정합니다.")}
+        ${selectField("mode", "effect.mode", eff.mode, [
+          { value: "auto", label: "auto (보간으로 결정)" },
+          { value: "path", label: "path — 선" },
+          { value: "dots", label: "dots — 점" },
+        ])}
+        <p class="studio-camera-hint">${resolved}</p>
+        ${checkboxField("fade · 오래된 쪽을 흐리게", "effect.fade", eff.fade)}
+        ${colorField("color", "effect.color", eff.color)}
+        ${rangeField("width", "effect.width", eff.width, 0.5, 16, 0.5, "path는 선의 굵기, dots는 점의 반지름입니다.")}
         <button type="button" class="studio-btn studio-btn-danger" data-delete-effect style="margin-top:0.6rem">🗑 효과 삭제</button>
       `;
       return;
@@ -857,18 +902,57 @@ function renderElementForm(def: AnimationDocument, el: AnimationElement): void {
   const baseHeader = `<span class="studio-props-header-title">${escapeHtml(el.id)}</span><span class="studio-props-header-type">${escapeHtml(el.type)}</span>`;
   const apHeader = `<span class="studio-props-header-title">출현 (Appearances)</span><button type="button" class="studio-btn studio-btn-small" data-add-appearance>＋</button>`;
   const tracksHeader = `<span class="studio-props-header-title">키프레임 트랙 (${el.tracks.length})</span>`;
+  const effects = renderElementEffects(def, el);
 
   panelEl.innerHTML = `
     ${timeHint}
     ${section("el-base", baseHeader, baseFields)}
     ${section("el-appearances", apHeader, appearances)}
     ${section("el-tracks", tracksHeader, tracks)}
+    ${section("el-effects", `<span class="studio-props-header-title">효과</span>`, effects)}
     ${section("el-bindings", `<span class="studio-props-header-title">데이터 연결 (${el.bindings.length})</span>`, bindings)}
     <div class="studio-props-empty" style="font-size:0.72rem;margin-top:0.5rem">
       base 속성을 변경하면 → t=${getCurrentTime()} ms 에 keyframe 추가<br/>
       트랙이 없는 속성은 base 값이 항상 사용됨
     </div>
   `;
+}
+
+/**
+ * The effects on this element, and a way to add one to it.
+ *
+ * The document panel has an add-effect bar too, but it can only ever attach the
+ * new effect to the document's first element: the panel is only shown when nothing
+ * is selected, so there is no selection for it to read. Adding one from here is
+ * the case that actually comes up — you are looking at the thing you want to
+ * decorate — and the target needs no second step.
+ */
+function renderElementEffects(
+  def: AnimationDocument,
+  el: AnimationElement,
+): string {
+  const mine = def.effects.filter((effect) =>
+    effect.type === "spotlight"
+      ? effect.elementIds.includes(el.id)
+      : effect.elementId === el.id,
+  );
+  const rows = mine
+    .map(
+      (effect) =>
+        `<button type="button" class="studio-effect-chip" data-select-effect="${escapeHtml(effect.id)}">${escapeHtml(effect.type)} · ${effect.time}–${effect.time + effect.duration}ms</button>`,
+    )
+    .join("");
+  return `${rows || '<p class="studio-props-empty" style="font-size:0.72rem">이 요소에 걸린 효과가 없습니다.</p>'}
+    <div class="studio-add-effect-bar">
+      <select data-new-effect-for="${escapeHtml(el.id)}">
+        <option value="highlight">highlight</option>
+        <option value="pulse">pulse</option>
+        <option value="flow">flow</option>
+        <option value="spotlight">spotlight</option>
+        <option value="trail">trail</option>
+      </select>
+      <button type="button" class="studio-btn" data-add-effect-for="${escapeHtml(el.id)}">＋ 효과</button>
+    </div>`;
 }
 
 function renderBindings(el: AnimationElement): string {
@@ -1494,7 +1578,10 @@ function apply(key: string, value: string | number | boolean): void {
       prop === "dim" ||
       prop === "lit" ||
       prop === "padding" ||
-      prop === "fadeIn"
+      prop === "fadeIn" ||
+      prop === "window" ||
+      prop === "samples" ||
+      prop === "width"
     ) {
       patch[prop] = Number(value);
     } else {
@@ -1502,6 +1589,142 @@ function apply(key: string, value: string | number | boolean): void {
     }
     updateEffect(sel.effectId, patch as Partial<AnimationEffect>);
   }
+}
+
+/** Position properties whose blending decides how `auto` draws the trail. */
+const TRAIL_POSITION_PROPERTIES = new Set([
+  "x",
+  "y",
+  "cx",
+  "cy",
+  "x1",
+  "y1",
+  "x2",
+  "y2",
+]);
+
+function trailPositionTracks(
+  def: AnimationDocument,
+  elementId: string,
+): AnimationElement["tracks"] {
+  const el = def.elements.find((candidate) => candidate.id === elementId);
+  return (el?.tracks ?? []).filter((track) =>
+    TRAIL_POSITION_PROPERTIES.has(track.property),
+  );
+}
+
+/**
+ * What `auto` will actually pick, said out loud.
+ *
+ * `auto` is the right default and an opaque one: the mode depends on the target's
+ * interpolation, which lives on a different panel. An author who sees dots where
+ * they expected a line has no way from here to learn why, so the hint names the
+ * decision and the reason for it.
+ */
+function trailModeHint(
+  def: AnimationDocument,
+  effect: Extract<AnimationEffect, { type: "trail" }>,
+): string {
+  if (effect.mode === "path") return "샘플을 선으로 잇습니다.";
+  if (effect.mode === "dots") return "샘플마다 점을 찍습니다.";
+  const tracks = trailPositionTracks(def, effect.elementId);
+  if (tracks.length === 0) return "위치 track이 없으므로 선으로 그립니다.";
+  const steps = tracks.every(
+    (track) =>
+      resolveBlendMode(track.interpolate, track.property) === "discrete",
+  );
+  return steps
+    ? "auto → 점. 위치 track이 이산 보간이라 지나지 않은 곳을 잇지 않습니다."
+    : "auto → 선. 위치가 연속으로 변하므로 샘플을 이어도 거짓이 아닙니다.";
+}
+
+/**
+ * The one thing an author gets wrong here and cannot see.
+ *
+ * A trail on an element that does not move draws nothing at all — samples that
+ * land on the same place are merged, so there is no tail and no error either. The
+ * panel would otherwise look exactly like a working one.
+ */
+function trailMotionWarning(
+  def: AnimationDocument,
+  effect: Extract<AnimationEffect, { type: "trail" }>,
+): string {
+  const el = def.elements.find(
+    (candidate) => candidate.id === effect.elementId,
+  );
+  if (!el) return "";
+  if (trailPositionTracks(def, effect.elementId).length > 0) return "";
+  const inGroup = el.parentId !== undefined;
+  return `<p class="studio-camera-hint studio-props-warn">⚠ <code>${escapeHtml(effect.elementId)}</code>에 위치 track이 없습니다${inGroup ? " (부모 group이 움직인다면 꼬리는 남습니다)" : ""}. 움직이지 않는 요소는 꼬리를 남기지 않습니다.</p>`;
+}
+
+/**
+ * Add an effect of `type` aimed at `seeds`, or at the first element when there is
+ * nothing selected to aim it at.
+ *
+ * Shared by the document panel's bar and the element panel's, because the defaults
+ * are the interesting part and having them in two places is how the two bars drift
+ * into creating different effects.
+ */
+function createEffect(
+  def: AnimationDocument,
+  type: string,
+  seeds: readonly string[],
+): void {
+  const firstEl = def.elements[0];
+  if (!firstEl) return;
+  const targets = seeds.length > 0 ? seeds : [firstEl.id];
+  const id = uniqueEffectId();
+  const time = getCurrentTime();
+  const base = { id, elementId: targets[0]!, time, duration: 500 };
+
+  let effect: AnimationEffect;
+  if (type === "spotlight") {
+    effect = {
+      id,
+      type: "spotlight",
+      elementIds: [...targets],
+      time,
+      duration: 1200,
+      dim: 0.7,
+      lit: 0,
+      litColor: "#fde68a",
+      shape: "bbox",
+      padding: 12,
+      fadeIn: 200,
+    };
+  } else if (type === "trail") {
+    // Running to the end of the document rather than for half a second: a trail is
+    // watched while the element moves, not flashed at a moment.
+    effect = {
+      id,
+      type: "trail",
+      elementId: targets[0]!,
+      time,
+      duration: Math.max(1000, def.duration - time),
+      window: 1200,
+      samples: 12,
+      mode: "auto",
+      fade: true,
+      color: "#94a3b8",
+      width: 2,
+    };
+  } else if (type === "pulse") {
+    effect = { ...base, type: "pulse", scale: 1.12 };
+  } else if (type === "flow") {
+    effect = {
+      ...base,
+      type: "flow",
+      color: "#facc15",
+      particles: 3,
+      radius: 4,
+      duration: 800,
+    };
+  } else {
+    effect = { ...base, type: "highlight", color: "#facc15" };
+  }
+  addEffect(effect);
+  setSelection({ kind: "effect", effectId: id });
 }
 
 /**
@@ -1538,6 +1761,21 @@ function changeEffectType(
       shape: "bbox",
       padding: 12,
       fadeIn: 200,
+    };
+  } else if (type === "trail") {
+    next = {
+      ...base,
+      type: "trail",
+      elementId: targets[0] ?? "",
+      // A trail needs long enough to be seen moving; the emphasis effects default
+      // to half a second, which is shorter than most single steps.
+      duration: Math.max(current.duration, 3000),
+      window: 1200,
+      samples: 12,
+      mode: "auto",
+      fade: true,
+      color: "#94a3b8",
+      width: 2,
     };
   } else {
     const single = {
@@ -1787,53 +2025,30 @@ function onClick(e: Event): void {
     const typeSel = document.getElementById(
       "studio-new-effect-type",
     ) as HTMLSelectElement | null;
-    const type = (typeSel?.value ?? "highlight") as
-      "highlight" | "pulse" | "flow" | "spotlight";
-    const firstEl = def.elements[0];
-    if (!firstEl) return;
-    const id = uniqueEffectId();
-    const base = {
-      id,
-      elementId: firstEl.id,
-      time: getCurrentTime(),
-      duration: 500,
-    };
-    let eff: AnimationEffect;
-    if (type === "spotlight") {
-      // Seeded from the canvas selection, since "light what I have selected" is
-      // what the button is for when a spotlight is what you asked for.
-      const selected =
-        sel.kind === "element"
-          ? [sel.elementId]
-          : sel.kind === "elements"
-            ? [...sel.elementIds]
-            : [firstEl.id];
-      eff = {
-        id,
-        type: "spotlight",
-        elementIds: selected,
-        time: getCurrentTime(),
-        duration: 1200,
-        dim: 0.7,
-        lit: 0,
-        litColor: "#fde68a",
-        shape: "bbox",
-        padding: 12,
-        fadeIn: 200,
-      };
-    } else if (type === "highlight")
-      eff = { ...base, type: "highlight", color: "#facc15" };
-    else if (type === "pulse") eff = { ...base, type: "pulse", scale: 1.12 };
-    else
-      eff = {
-        ...base,
-        type: "flow",
-        color: "#facc15",
-        particles: 3,
-        radius: 4,
-        duration: 800,
-      };
-    addEffect(eff);
+    const seeds =
+      sel.kind === "element"
+        ? [sel.elementId]
+        : sel.kind === "elements"
+          ? [...sel.elementIds]
+          : [];
+    createEffect(def, typeSel?.value ?? "highlight", seeds);
+    return;
+  }
+  const addFor = target.closest<HTMLElement>("[data-add-effect-for]");
+  if (addFor) {
+    const elementId = addFor.dataset.addEffectFor!;
+    const typeSel = panelEl?.querySelector<HTMLSelectElement>(
+      `[data-new-effect-for="${CSS.escape(elementId)}"]`,
+    );
+    createEffect(def, typeSel?.value ?? "highlight", [elementId]);
+    return;
+  }
+  const pickEffect = target.closest<HTMLElement>("[data-select-effect]");
+  if (pickEffect) {
+    setSelection({
+      kind: "effect",
+      effectId: pickEffect.dataset.selectEffect!,
+    });
     return;
   }
   if (target.closest("[data-delete-effect]") && sel.kind === "effect") {

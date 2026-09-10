@@ -6,7 +6,7 @@
       "name": "@kokoa/clotho-editor",
       "devDependencies": {
         "@eslint/js": "^9.17.0",
-        "@kokoa/clotho": "^0.4.0",
+        "@kokoa/clotho": "^0.4.1",
         "@types/bun": "^1.1.14",
         "@types/react": "^19.0.0",
         "@types/react-dom": "^19.0.0",
@@ -20,7 +20,7 @@
         "wrangler": "^4.127.1",
       },
       "peerDependencies": {
-        "@kokoa/clotho": "^0.4.0",
+        "@kokoa/clotho": "^0.4.1",
         "react": "^18.0.0 || ^19.0.0",
         "react-dom": "^18.0.0 || ^19.0.0",
       },
@@ -191,7 +191,7 @@
 
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.31", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw=="],
 
-    "@kokoa/clotho": ["@kokoa/clotho@0.4.0", "", { "dependencies": { "@resvg/resvg-js": "^2.6.2", "gifenc": "^1.0.3", "zod": "^3.24.1" }, "peerDependencies": { "react": "^18.0.0 || ^19.0.0", "react-dom": "^18.0.0 || ^19.0.0", "vue": "^3.4.0" }, "optionalPeers": ["react", "react-dom", "vue"], "bin": { "clotho": "dist/cli/index.js" } }, "sha512-2Tv8SQsrNjCxIC+UZImKqaRYkMv0cJa1C2ipVwsfnuLtIBEh4kynAO1LLRSZlX2rl130xQrsf1hgAcgwPJ1CDA=="],
+    "@kokoa/clotho": ["@kokoa/clotho@0.4.1", "", { "dependencies": { "@resvg/resvg-js": "^2.6.2", "gifenc": "^1.0.3", "zod": "^3.24.1" }, "peerDependencies": { "react": "^18.0.0 || ^19.0.0", "react-dom": "^18.0.0 || ^19.0.0", "vue": "^3.4.0" }, "optionalPeers": ["react", "react-dom", "vue"], "bin": { "clotho": "dist/cli/index.js" } }, "sha512-9vUslBCde1CYezp35IwCvy96wlJw8P1G5kTNDfGNtiZtwA7VOIuCSou2FrEblGo6YFrKvbGhhLod41FufeQnTQ=="],
 
     "@napi-rs/lzma-linux-x64-gnu": ["@napi-rs/lzma-linux-x64-gnu@1.5.1", "", { "os": "linux", "cpu": "x64" }, "sha512-oTXEIha4SsuXdTA4Iyskj0kpdx2yVXdhd75c2v3xGrHFfVMsbhTPZU/nMPL4sWKo4pBHm3aucLaqGlF696dTyQ=="],
 

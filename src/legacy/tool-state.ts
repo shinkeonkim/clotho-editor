@@ -7,7 +7,8 @@ export type StudioTool =
   | "text"
   | "image"
   | "path"
-  | "polygon";
+  | "polygon"
+  | "math";
 
 let activeTool: StudioTool = "select";
 const listeners = new Set<(tool: StudioTool) => void>();

@@ -1010,7 +1010,12 @@ function renderBaseFields(
     value: (e.name as string | undefined) ?? "",
   });
 
-  if (el.type === "rect" || el.type === "image" || el.type === "text") {
+  if (
+    el.type === "rect" ||
+    el.type === "image" ||
+    el.type === "text" ||
+    el.type === "math"
+  ) {
     numberFields.push({ label: "x", key: "x", value: e.x as number });
     numberFields.push({ label: "y", key: "y", value: e.y as number });
   }
@@ -1062,6 +1067,21 @@ function renderBaseFields(
       value: e.fontSize as number,
     });
   }
+  if (el.type === "math") {
+    textFields.push({ label: "tex", key: "tex", value: e.tex as string });
+    numberFields.push({
+      label: "fontSize",
+      key: "fontSize",
+      value: e.fontSize as number,
+    });
+    // The one field a reader who cannot see the typeset result depends on, and the
+    // one an author forgets: it ships as `role="img"` plus `aria-label`.
+    textFields.push({
+      label: "alt (낭독 문구)",
+      key: "alt",
+      value: (e.alt as string | undefined) ?? "",
+    });
+  }
   if (
     el.type === "rect" ||
     el.type === "circle" ||
@@ -1108,7 +1128,7 @@ function renderBaseFields(
       });
     }
   }
-  if (el.type === "text") {
+  if (el.type === "text" || el.type === "math") {
     colorFields.push({
       label: "color",
       key: "color",

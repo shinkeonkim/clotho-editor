@@ -41,6 +41,7 @@ const TOOL_SHORTCUTS: Readonly<Partial<Record<string, StudioTool>>> = {
   i: "image",
   b: "path",
   y: "polygon",
+  m: "math",
 };
 
 export function toolForShortcut(

@@ -97,6 +97,7 @@ const SKELETON = `
         <button type="button" class="studio-tool-btn" data-add-element="line" title="선 (L)" aria-label="선 도구"><span>／ Line</span><kbd>L</kbd></button>
         <button type="button" class="studio-tool-btn" data-add-element="arrow" title="화살표 (A)" aria-label="화살표 도구"><span>↗ Arrow</span><kbd>A</kbd></button>
         <button type="button" class="studio-tool-btn" data-add-element="text" title="텍스트 (T)" aria-label="텍스트 도구"><span>T Text</span><kbd>T</kbd></button>
+        <button type="button" class="studio-tool-btn" data-add-element="math" title="수식 (M)" aria-label="수식 도구"><span>∑ Math</span><kbd>M</kbd></button>
         <button type="button" class="studio-tool-btn" data-add-element="image" title="이미지 (I)" aria-label="이미지 도구"><span>🖼 Image</span><kbd>I</kbd></button>
         <button type="button" class="studio-tool-btn" data-add-element="path" title="Path (B)" aria-label="Path 도구"><span>✎ Path</span><kbd>B</kbd></button>
         <div class="studio-tool-with-option"><button type="button" class="studio-tool-btn" data-add-element="polygon" title="다각형 (Y)" aria-label="다각형 도구"><span>⬢ Polygon</span><kbd>Y</kbd></button><label>변 <input type="number" id="studio-polygon-sides" min="3" max="24" value="6" aria-label="다각형의 변 개수" /></label></div>

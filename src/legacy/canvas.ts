@@ -5,6 +5,7 @@ import type {
   CircleElement,
   ImageElement,
   LineElement,
+  MathElement,
   PathElement,
   PolygonElement,
   RectElement,
@@ -266,7 +267,8 @@ let toolDrawState: {
   currentX: number;
   currentY: number;
 } | null = null;
-type ElementDrawTool = "rect" | "circle" | "polygon" | "text" | "image";
+type ElementDrawTool =
+  "rect" | "circle" | "polygon" | "text" | "image" | "math";
 let elementDrawState: {
   tool: ElementDrawTool;
   start: DrawPoint;
@@ -478,7 +480,8 @@ function onMouseDown(e: MouseEvent): void {
       activeTool === "circle" ||
       activeTool === "polygon" ||
       activeTool === "text" ||
-      activeTool === "image"
+      activeTool === "image" ||
+      activeTool === "math"
     ) {
       elementDrawState = {
         tool: activeTool,
@@ -2190,6 +2193,17 @@ function renderElement(
     const g = makeG(baseEl.id, rotation, t.x, t.y);
     g.innerHTML = `<text x="${t.x}" y="${t.y}" font-size="${t.fontSize}" font-weight="${t.fontWeight}"
       fill="${t.color}" text-anchor="${t.textAnchor}">${escapeXml(t.content)}</text>`;
+    return g;
+  }
+  if (baseEl.type === "math") {
+    const m = state as unknown as MathElement;
+    const g = makeG(baseEl.id, rotation, m.x, m.y);
+    // The editor injects no typesetter, which is also the library's default state:
+    // draw the TeX source as monospace. Painting nothing would make the element
+    // invisible here while it renders fine in the player — the worst of both.
+    g.innerHTML = `<text x="${m.x}" y="${m.y}" font-size="${m.fontSize}"
+      font-family="ui-monospace, SFMono-Regular, Menlo, monospace"
+      fill="${m.color}" text-anchor="${m.textAnchor}" xml:space="preserve">${escapeXml(m.tex)}</text>`;
     return g;
   }
   if (baseEl.type === "image") {

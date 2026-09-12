@@ -340,6 +340,25 @@ export function makeDefaultElement(
         color: "#18181b",
         textAnchor: "middle",
       };
+    case "math":
+      return {
+        type: "math",
+        id,
+        rotation: 0,
+        appearances: [],
+        tracks: [],
+        bindings: [],
+        x: cx,
+        y: cy,
+        // A fraction, because it is the shortest expression whose typeset form is
+        // obviously not its source — so it is clear at a glance whether a host has
+        // wired up a typesetter.
+        tex: "x = \\frac{-b}{2a}",
+        display: "block",
+        fontSize: 18,
+        color: "#18181b",
+        textAnchor: "middle",
+      };
     case "image":
       return {
         type: "image",

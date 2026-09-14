@@ -70,7 +70,15 @@ export {
   clearCamera,
 } from "./camera";
 export {
+  addChart,
+  updateChart,
+  deleteChart,
+  uniqueChartId,
+  defaultChart,
+} from "./chart";
+export {
   updateMeta,
+  updateStyle,
   updateLocales,
   updateData,
   updateResponsive,

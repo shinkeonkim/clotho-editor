@@ -49,6 +49,7 @@ import {
   updateCheckpoint,
   deleteCheckpoint,
   uniqueCheckpointId,
+  updateStyle,
 } from "./state";
 import type {
   AnimationDocument,
@@ -67,6 +68,7 @@ import {
   computeCamera,
   resolveBlendMode,
 } from "@kokoa/clotho";
+import { openChartModal } from "./chart-modal";
 import { captureFocusWithin, restoreFocusWithin } from "./studio-focus";
 import {
   alignSelected,
@@ -319,6 +321,26 @@ function renderInner(): void {
   const timeHint = `<span class="studio-step-hint">📍 t = ${getCurrentTime()} ms / ${def.duration} ms</span>`;
 
   if (sel.kind === "none") {
+    const docStyle = (def as AnimationDocument).style;
+    const stylePreset = docStyle?.preset ?? "clean";
+    const styleHeader = `<span class="studio-props-header-title">Render style</span><span class="studio-props-header-type">${escapeHtml(stylePreset)}</span>`;
+    // `clean` is not merely the default — its output is byte-identical to having no
+    // style at all, so selecting it removes the field rather than writing it.
+    const styleBody = [
+      selectField("preset", "meta.style.preset", stylePreset, [
+        { value: "clean", label: "clean (기본)" },
+        { value: "sketch", label: "sketch — 손그림" },
+        { value: "mono", label: "mono — 그레이스케일" },
+      ]),
+      textField("seed", "meta.style.seed", docStyle?.seed ?? ""),
+      numberField(
+        "roughness",
+        "meta.style.roughness",
+        docStyle?.roughness ?? 1,
+        0.1,
+      ),
+      `<p class="studio-camera-hint">지터는 <b>결정적</b>입니다 — 시드는 <code>seed ?? 문서 id</code>이고 <b>시각은 시드에 들어가지 않습니다.</b> 넣으면 매 프레임 선이 다시 섞여 화면이 끓습니다. 비워 두면 문서 id를 씁니다.</p>`,
+    ].join("");
     const metaHeader = `<span class="studio-props-header-title">애니메이션 메타</span><span class="studio-props-header-type">${escapeHtml(def.id)}</span>`;
     const metaBody = [
       textField("title", "meta.title", def.title),
@@ -445,6 +467,7 @@ function renderInner(): void {
       ${timeHint}
       ${section("meta", metaHeader, metaBody)}
       ${section("settings", settingsHeader, settingsBody)}
+      ${section("style", styleHeader, styleBody)}
       ${section("checkpoints", `<span class="studio-props-header-title">Checkpoint (${def.checkpoints.length})</span>`, `${checkpoints}<button type="button" class="studio-btn" data-add-checkpoint>＋ 현재 시간에 checkpoint 추가</button>`)}
       <div class="studio-props-header" style="margin-top:0.6rem"><span class="studio-props-header-title">목차 (${def.chapters.length})</span></div>
       <button type="button" class="studio-btn" data-add-chapter>＋ 현재 시간에 chapter 추가</button>
@@ -461,6 +484,9 @@ function renderInner(): void {
       </div>
       <div class="studio-props-header" style="margin-top:0.6rem"><span class="studio-props-header-title">카메라</span><span class="studio-props-header-type">${hasCamera() ? `focus ${getCamera().focus.length} · track ${getCamera().tracks.length}` : "없음"}</span></div>
       <button type="button" class="studio-btn" data-open-camera>🎥 카메라 편집</button>
+      <div class="studio-props-header" style="margin-top:0.6rem"><span class="studio-props-header-title">차트</span><span class="studio-props-header-type">${def.charts.length}개</span></div>
+      <button type="button" class="studio-btn" data-open-charts>📊 차트 편집</button>
+      <p class="studio-camera-hint">차트는 <b>저작 시간 스펙</b>이라 캔버스에서 고를 수 있는 요소가 아닙니다 — 컴파일되면 평범한 요소가 되고, 그 결과는 <code>chart-1__series-…</code> 같은 예측 가능한 id로 강조·카메라 대상이 됩니다.</p>
     `;
     return;
   }
@@ -546,6 +572,8 @@ function renderInner(): void {
       ${numberField("time (ms)", "chapter.time", ch.time, 50)}
       ${textField("label", "chapter.label", ch.label)}
       ${textField("subtitle", "chapter.subtitle", ch.subtitle)}
+      ${textField("notes (발표자 메모)", "chapter.notes", ch.notes)}
+      <p class="studio-camera-hint"><code>notes</code>는 <b>발표자 모드에서만</b> 보입니다. <code>subtitle</code>은 청중이 읽는 자막이라 겸용할 수 없습니다 — 공유 화면에 나오는 필드가 "무슨 말을 하려 했더라"를 적어두는 자리가 될 수는 없습니다.</p>
       ${annotationReferenceFields("chapter", [ch.label, ch.subtitle], chapterReferences).join("")}
       <button type="button" class="studio-btn studio-btn-danger" data-delete-chapter style="margin-top:0.6rem">🗑 chapter 삭제</button>
     `;
@@ -1067,6 +1095,21 @@ function renderBaseFields(
       value: e.fontSize as number,
     });
   }
+  if (el.type === "code") {
+    // Only the source link: the rest of `code` editing (content, language) has never
+    // been in this panel and is a separate gap.
+    const src = (e.source ?? {}) as { file?: string; region?: string };
+    textFields.push({
+      label: "source.file",
+      key: "source.file",
+      value: src.file ?? "",
+    });
+    textFields.push({
+      label: "source.region",
+      key: "source.region",
+      value: src.region ?? "",
+    });
+  }
   if (el.type === "math") {
     textFields.push({ label: "tex", key: "tex", value: e.tex as string });
     numberFields.push({
@@ -1353,6 +1396,22 @@ function apply(key: string, value: string | number | boolean): void {
     } catch {
       /* keep the last valid variants while JSON is being edited */
     }
+  } else if (key.startsWith("meta.style.")) {
+    const field = key.slice("meta.style.".length);
+    if (field === "preset") {
+      // Selecting `clean` clears the field: an explicit `clean` and no style at all
+      // render identically, and the shorter document is the truer one.
+      updateStyle(
+        String(value) === "clean"
+          ? null
+          : { preset: String(value) as "sketch" | "mono" },
+      );
+    } else if (field === "seed") {
+      const seed = String(value).trim();
+      updateStyle({ seed: seed === "" ? undefined : seed });
+    } else if (field === "roughness") {
+      updateStyle({ roughness: Number(value) });
+    }
   } else if (key === "meta.duration") updateDuration(Number(value));
   else if (key === "canvas.width") updateCanvas({ width: Number(value) });
   else if (key === "canvas.height") updateCanvas({ height: Number(value) });
@@ -1480,6 +1539,21 @@ function apply(key: string, value: string | number | boolean): void {
     const time = getCurrentTime();
     const el = def.elements.find((e) => e.id === sel.elementId);
     if (!el) return;
+    if (prop.startsWith("source.") && el.type === "code") {
+      const field = prop.slice("source.".length);
+      const current = (el as { source?: Record<string, string> }).source ?? {};
+      const text = String(value).trim();
+      // A source with no file is not a source, so clearing the path drops the link
+      // rather than leaving a half-record behind.
+      const next =
+        field === "file" && text === ""
+          ? undefined
+          : { ...current, [field]: text };
+      updateElementBase(sel.elementId, {
+        source: next,
+      } as unknown as Parameters<typeof updateElementBase>[1]);
+      return;
+    }
     if (prop === "locales" && el.type === "text") {
       const locales = parseLocales(String(value));
       updateElementBase(sel.elementId, {
@@ -1570,6 +1644,8 @@ function apply(key: string, value: string | number | boolean): void {
     updateChapter(sel.chapterId, { time: Number(value) });
   } else if (key === "chapter.label" && sel.kind === "chapter") {
     updateChapter(sel.chapterId, { label: String(value) });
+  } else if (key === "chapter.notes" && sel.kind === "chapter") {
+    updateChapter(sel.chapterId, { notes: String(value) });
   } else if (key === "chapter.subtitle" && sel.kind === "chapter") {
     updateChapter(sel.chapterId, { subtitle: String(value) });
   } else if (key.startsWith("chapter.reference.") && sel.kind === "chapter") {
@@ -1945,6 +2021,10 @@ function onClick(e: Event): void {
     return;
   }
 
+  if (target.closest("[data-open-charts]")) {
+    openChartModal();
+    return;
+  }
   if (target.closest("[data-open-camera]")) {
     setSelection({ kind: "camera" });
     return;
@@ -2033,6 +2113,7 @@ function onClick(e: Event): void {
       time: getCurrentTime(),
       label: `Chapter ${id.split("-")[1]}`,
       subtitle: "",
+      notes: "",
       references: {},
     });
     return;

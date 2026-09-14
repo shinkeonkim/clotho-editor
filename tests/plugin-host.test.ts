@@ -21,6 +21,7 @@ const document = {
   assets: {},
   elements: [],
   layouts: [],
+  charts: [],
   chapters: [],
   checkpoints: [],
   effects: [],

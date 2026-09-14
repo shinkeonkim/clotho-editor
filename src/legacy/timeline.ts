@@ -120,6 +120,7 @@ export function initTimeline(
       time: newTime,
       label: `Chapter ${id.split("-")[1]}`,
       subtitle: "",
+      notes: "",
       references: {},
     });
     setSelection({ kind: "chapter", chapterId: id });

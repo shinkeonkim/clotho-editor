@@ -16,6 +16,37 @@ export function updateMeta(
   );
 }
 
+/**
+ * Document-level render style.
+ *
+ * `updateMeta` deliberately accepts only `title` and `description`, so the style
+ * preset needs its own path rather than widening that signature — `style` is not
+ * metadata about the document, it is a rendering instruction.
+ */
+export function updateStyle(
+  patch: Partial<NonNullable<AnimationDocument["style"]>> | null,
+): void {
+  mutateDef(
+    (def) => {
+      const target = def as AnimationDocument;
+      if (patch === null) {
+        delete target.style;
+        return;
+      }
+      // `roughness` carries a schema default, so it is required on the parsed type —
+      // the fallback has to be a complete style, not just a preset.
+      target.style = {
+        ...(target.style ?? { preset: "clean", roughness: 1 }),
+        ...patch,
+      };
+    },
+    patch === null
+      ? "render style 해제"
+      : `render style: ${Object.keys(patch).join(", ")}`,
+    "meta",
+  );
+}
+
 /** Update the locales offered to localized text elements in this document. */
 export function updateLocales(locales: string[]): void {
   mutateDef(

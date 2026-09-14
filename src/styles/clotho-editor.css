@@ -1707,6 +1707,139 @@ body.studio-player-popout #clotho-player-preview {
   .studio-effect-chip:hover {
     border-color: var(--color-accent);
   }
+  /*
+   * Chart editing is a form, not a canvas interaction: `charts` is an authoring-time
+   * spec with no element to select or drag, and the form is far too large for the
+   * properties rail beside six other sections.
+   */
+  .studio-chart-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .studio-chart-backdrop {
+    position: absolute;
+    inset: 0;
+    background-color: color-mix(in srgb, #000 55%, transparent);
+  }
+  .studio-chart-panel {
+    position: relative;
+    width: min(900px, 92vw);
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    box-shadow: 0 24px 64px color-mix(in srgb, #000 45%, transparent);
+    overflow: hidden;
+  }
+  .studio-chart-head {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 0.9rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .studio-chart-head strong {
+    font-size: 0.9rem;
+  }
+  .studio-chart-note {
+    flex: 1;
+    font-size: 0.66rem;
+    color: var(--color-fg-muted);
+  }
+  .studio-chart-body {
+    padding: 0.8rem 0.9rem 1rem;
+    overflow-y: auto;
+  }
+  .studio-chart-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-bottom: 0.7rem;
+  }
+  .studio-chart-tab {
+    padding: 0.25rem 0.6rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background-color: transparent;
+    color: var(--color-fg);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    cursor: pointer;
+  }
+  .studio-chart-tab.is-active {
+    border-color: var(--color-accent);
+    background-color: color-mix(in srgb, var(--color-accent) 18%, transparent);
+  }
+  .studio-chart-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.4rem;
+  }
+  .studio-chart-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+  }
+  .studio-chart-table th,
+  .studio-chart-table td {
+    border: 1px solid var(--color-border);
+    padding: 0;
+  }
+  .studio-chart-table input {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: var(--color-fg);
+    padding: 0.25rem 0.35rem;
+    font: inherit;
+  }
+  .studio-chart-table th {
+    background-color: color-mix(in srgb, var(--color-accent) 10%, transparent);
+    position: relative;
+  }
+  .studio-chart-col {
+    font-weight: 600;
+  }
+  .studio-chart-x {
+    border: 0;
+    background: transparent;
+    color: var(--color-fg-muted);
+    cursor: pointer;
+    padding: 0 0.3rem;
+    font-size: 0.7rem;
+  }
+  .studio-chart-x:hover {
+    color: #dc2626;
+  }
+  /*
+   * `.studio-field` stacks its label above its control, which is right in a narrow
+   * properties rail and wrong in a modal three times that width — a checkbox came
+   * out centred with its label underneath.
+   */
+  .studio-chart-form .studio-field-checkbox {
+    /* `.studio-field` is `display: block`, so flex properties alone did nothing. */
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.45rem;
+  }
+  .studio-chart-form .studio-field-checkbox input {
+    width: auto;
+    margin: 0;
+  }
+  .studio-chart-actions {
+    display: flex;
+    gap: 0.3rem;
+    margin-top: 0.4rem;
+  }
   .studio-add-effect-bar {
     display: grid;
     grid-template-columns: 1fr 1fr auto;
